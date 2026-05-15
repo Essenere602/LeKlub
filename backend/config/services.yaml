@@ -1,0 +1,66 @@
+# This file is the entry point to configure your own services.
+# Files in the packages/ subdirectory configure your dependencies.
+
+# Put parameters here that don't need to change on each machine where the app is deployed
+# https://symfony.com/doc/current/best_practices.html#use-parameters-for-application-configuration
+parameters:
+    football_data_api_default_base_url: 'https://api.football-data.org'
+
+services:
+    # default configuration for services in *this* file
+    _defaults:
+        autowire: true      # Automatically injects dependencies in your services.
+        autoconfigure: true # Automatically registers your services as commands, event subscribers, etc.
+
+    # makes classes in src/ available to be used as services
+    # this creates a service per class whose id is the fully-qualified class name
+    App\:
+        resource: '../src/'
+        exclude:
+            - '../src/DependencyInjection/'
+            - '../src/Domain/Entity/'
+            - '../src/Kernel.php'
+
+    # add more service definitions when explicit configuration is needed
+    # please note that last definitions always *replace* previous ones
+    App\Domain\Repository\UserRepositoryInterface:
+        alias: App\Infrastructure\Doctrine\Repository\UserRepository
+
+    App\Domain\Repository\PostRepositoryInterface:
+        alias: App\Infrastructure\Doctrine\Repository\PostRepository
+
+    App\Domain\Repository\CommentRepositoryInterface:
+        alias: App\Infrastructure\Doctrine\Repository\CommentRepository
+
+    App\Domain\Repository\PostReactionRepositoryInterface:
+        alias: App\Infrastructure\Doctrine\Repository\PostReactionRepository
+
+    App\Domain\Repository\ConversationRepositoryInterface:
+        alias: App\Infrastructure\Doctrine\Repository\ConversationRepository
+
+    App\Domain\Repository\MessageRepositoryInterface:
+        alias: App\Infrastructure\Doctrine\Repository\MessageRepository
+
+    App\Infrastructure\Football\FootballDataClientInterface:
+        alias: App\Infrastructure\Football\ExternalFootballDataClient
+
+    App\Infrastructure\Football\ExternalFootballDataClient:
+        arguments:
+            $baseUrl: '%env(default:football_data_api_default_base_url:FOOTBALL_DATA_API_BASE_URL)%'
+            $apiToken: '%env(FOOTBALL_DATA_API_TOKEN)%'
+            $timeout: '%env(float:FOOTBALL_DATA_API_TIMEOUT)%'
+
+    App\Infrastructure\WebSocket\MessageNotifierInterface:
+        alias: App\Infrastructure\WebSocket\FileMessageNotifier
+
+    App\Infrastructure\WebSocket\FileMessageNotifier:
+        arguments:
+            $projectDir: '%kernel.project_dir%'
+
+    App\Infrastructure\WebSocket\ChatNotificationServer:
+        arguments:
+            $projectDir: '%kernel.project_dir%'
+
+    App\Controller\:
+        resource: '../src/Controller/'
+        tags: ['controller.service_arguments']

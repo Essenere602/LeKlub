@@ -1,0 +1,81 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+  pull_request:
+
+jobs:
+  backend:
+    name: Backend checks
+    runs-on: ubuntu-latest
+    env:
+      APP_ENV: test
+      APP_SECRET: ci_secret
+      DATABASE_URL: mysql://leklub:leklub_password@127.0.0.1:3306/leklub?serverVersion=8.0&charset=utf8mb4
+      JWT_SECRET_KEY: '%kernel.project_dir%/config/jwt/private.pem'
+      JWT_PUBLIC_KEY: '%kernel.project_dir%/config/jwt/public.pem'
+      JWT_PASSPHRASE: ci_jwt_passphrase
+      FOOTBALL_DATA_API_BASE_URL: https://api.football-data.org
+      FOOTBALL_DATA_API_TOKEN: ci_change_me
+      FOOTBALL_DATA_API_TIMEOUT: '3.0'
+
+    defaults:
+      run:
+        working-directory: backend
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: ctype, iconv, intl, pdo_mysql, zip
+          coverage: none
+
+      - name: Install backend dependencies
+        run: composer install --prefer-dist --no-progress --no-interaction --no-scripts
+
+      - name: Generate temporary JWT keys
+        run: php bin/console lexik:jwt:generate-keypair --skip-if-exists
+
+      - name: Validate composer
+        run: composer validate --strict
+
+      - name: Validate Symfony container
+        run: php bin/console lint:container
+
+      - name: Validate Doctrine mapping
+        run: php bin/console doctrine:schema:validate --skip-sync
+
+      - name: Run backend tests
+        run: php bin/phpunit
+
+  mobile:
+    name: Mobile checks
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: mobile
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: mobile/package-lock.json
+
+      - name: Install mobile dependencies
+        run: npm ci
+
+      - name: TypeScript check
+        run: npx tsc --noEmit

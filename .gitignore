@@ -1,0 +1,53 @@
+# System
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+*.swp
+*.swo
+
+# Env files
+.env
+.env.local
+.env.*.local
+!.env.example
+
+# Logs
+*.log
+logs/
+
+# Docker / runtime
+docker/data/
+docker/mysql/data/
+
+# Symfony
+/backend/vendor/
+/backend/var/
+/backend/.env.local
+/backend/.env.*.local
+/backend/public/bundles/
+/backend/phpunit.xml
+/backend/.phpunit.result.cache
+
+# Composer
+/backend/composer.phar
+
+# Node / Expo
+/mobile/node_modules/
+/mobile/.expo/
+/mobile/dist/
+/mobile/build/
+/mobile/.env
+/mobile/.env.local
+/mobile/npm-debug.log*
+/mobile/yarn-debug.log*
+/mobile/yarn-error.log*
+
+# Testing / coverage
+coverage/
+/backend/coverage/
+/mobile/coverage/
+
+# Generated keys
+/backend/config/jwt/*.pem

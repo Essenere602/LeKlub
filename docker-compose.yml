@@ -1,0 +1,64 @@
+services:
+  php:
+    build:
+      context: .
+      dockerfile: docker/php/Dockerfile
+    container_name: leklub_php
+    working_dir: /var/www/backend
+    volumes:
+      - ./backend:/var/www/backend
+    environment:
+      APP_ENV: ${APP_ENV:-dev}
+      DATABASE_URL: ${DATABASE_URL}
+      FOOTBALL_DATA_API_BASE_URL: ${FOOTBALL_DATA_API_BASE_URL:-https://api.football-data.org}
+      FOOTBALL_DATA_API_TOKEN: ${FOOTBALL_DATA_API_TOKEN:-change_me}
+      FOOTBALL_DATA_API_TIMEOUT: ${FOOTBALL_DATA_API_TIMEOUT:-3.0}
+    depends_on:
+      - mysql
+
+  nginx:
+    image: nginx:1.27-alpine
+    container_name: leklub_nginx
+    ports:
+      - "${BACKEND_PORT:-8080}:80"
+    volumes:
+      - ./backend:/var/www/backend
+      - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - php
+
+  websocket:
+    build:
+      context: .
+      dockerfile: docker/php/Dockerfile
+    container_name: leklub_websocket
+    working_dir: /var/www/backend
+    command: php bin/console app:websocket:server
+    ports:
+      - "${WEBSOCKET_PORT:-8081}:8081"
+    volumes:
+      - ./backend:/var/www/backend
+    environment:
+      APP_ENV: ${APP_ENV:-dev}
+      DATABASE_URL: ${DATABASE_URL}
+      FOOTBALL_DATA_API_BASE_URL: ${FOOTBALL_DATA_API_BASE_URL:-https://api.football-data.org}
+      FOOTBALL_DATA_API_TOKEN: ${FOOTBALL_DATA_API_TOKEN:-change_me}
+      FOOTBALL_DATA_API_TIMEOUT: ${FOOTBALL_DATA_API_TIMEOUT:-3.0}
+    depends_on:
+      - mysql
+
+  mysql:
+    image: mysql:8.0
+    container_name: leklub_mysql
+    ports:
+      - "${MYSQL_PORT:-3307}:3306"
+    environment:
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-leklub}
+      MYSQL_USER: ${MYSQL_USER:-leklub}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-leklub_password}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root_password}
+    volumes:
+      - mysql_data:/var/lib/mysql
+
+volumes:
+  mysql_data:
