@@ -22,6 +22,22 @@ jobs:
       FOOTBALL_DATA_API_TOKEN: ci_change_me
       FOOTBALL_DATA_API_TIMEOUT: '3.0'
 
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_DATABASE: leklub_test
+          MYSQL_USER: leklub
+          MYSQL_PASSWORD: leklub_password
+          MYSQL_ROOT_PASSWORD: root_password
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -uroot -proot_password"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
     defaults:
       run:
         working-directory: backend
@@ -34,7 +50,7 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: '8.3'
-          extensions: ctype, iconv, intl, pdo_mysql, zip
+          extensions: ctype, dom, iconv, intl, mbstring, openssl, pdo_mysql, xml, xmlwriter, zip
           coverage: none
 
       - name: Install backend dependencies
