@@ -14,11 +14,11 @@ jobs:
     env:
       APP_ENV: test
       APP_SECRET: ci_secret
-      DATABASE_URL: mysql://leklub:leklub_password@127.0.0.1:3306/leklub?serverVersion=8.0&charset=utf8mb4
+      DATABASE_URL: mysql://leklub:leklub_password@127.0.0.1:3306/leklub_test?serverVersion=8.0&charset=utf8mb4
       JWT_SECRET_KEY: '%kernel.project_dir%/config/jwt/private.pem'
       JWT_PUBLIC_KEY: '%kernel.project_dir%/config/jwt/public.pem'
-      JWT_PASSPHRASE: ci_jwt_passphrase
-      FOOTBALL_DATA_API_BASE_URL: https://api.football-data.org
+      JWT_PASSPHRASE: ci_passphrase
+      FOOTBALL_DATA_API_BASE_URL: https://api.football-data.org/v4
       FOOTBALL_DATA_API_TOKEN: ci_change_me
       FOOTBALL_DATA_API_TIMEOUT: '3.0'
 
@@ -55,6 +55,20 @@ jobs:
 
       - name: Install backend dependencies
         run: composer install --prefer-dist --no-progress --no-interaction --no-scripts
+
+      - name: Create temporary CI env file
+        run: |
+          cat > .env <<'EOF'
+          APP_ENV=test
+          APP_SECRET=ci_secret
+          DATABASE_URL=mysql://leklub:leklub_password@127.0.0.1:3306/leklub_test?serverVersion=8.0&charset=utf8mb4
+          JWT_SECRET_KEY=%kernel.project_dir%/config/jwt/private.pem
+          JWT_PUBLIC_KEY=%kernel.project_dir%/config/jwt/public.pem
+          JWT_PASSPHRASE=ci_passphrase
+          FOOTBALL_DATA_API_TOKEN=ci_change_me
+          FOOTBALL_DATA_API_BASE_URL=https://api.football-data.org/v4
+          FOOTBALL_DATA_API_TIMEOUT=3.0
+          EOF
 
       - name: Generate temporary JWT keys
         run: php bin/console lexik:jwt:generate-keypair --skip-if-exists
