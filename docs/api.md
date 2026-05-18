@@ -11,6 +11,7 @@ Base actuelle :
 /api/feed
 /api/conversations
 /api/football
+/api/admin
 ```
 
 ## Format De Réponse
@@ -207,6 +208,27 @@ Retourne un Post visible. Un Post supprimé retourne `404`.
 
 Codes possibles : `200`, `401`, `404`.
 
+### PATCH /api/feed/{id}
+
+Modifie le contenu d'un Post visible.
+
+Autorisé uniquement pour l'auteur du Post. `ROLE_ADMIN` ne modifie pas le contenu utilisateur, il modère par suppression logique.
+
+```json
+{
+  "content": "Nouveau contenu du Post"
+}
+```
+
+Le contenu est normalisé comme à la création :
+
+- trim
+- suppression des balises HTML
+- refus si vide après normalisation
+- stockage en texte brut
+
+Codes possibles : `200`, `400`, `401`, `403`, `404`, `422`.
+
 ### DELETE /api/feed/{id}
 
 Supprime logiquement un Post.
@@ -249,6 +271,20 @@ Autorisé :
 
 Codes possibles : `200`, `401`, `403`, `404`.
 
+### PATCH /api/feed/comments/{id}
+
+Modifie le contenu d'un Commentaire visible.
+
+Autorisé uniquement pour l'auteur du Commentaire. Un Commentaire supprimé ou lié à un Post supprimé retourne `404`.
+
+```json
+{
+  "content": "Nouveau commentaire"
+}
+```
+
+Codes possibles : `200`, `400`, `401`, `403`, `404`, `422`.
+
 ## Réactions
 
 ### PUT /api/feed/{postId}/reaction
@@ -286,6 +322,7 @@ La messagerie MVP est volontairement simple :
 
 - Conversations privées entre deux utilisateurs
 - Messages privés texte uniquement
+- suppression d'un Message privé pour soi uniquement
 - contenu normalisé en texte brut
 - accès limité aux participants
 - pas de groupes, pièces jointes ou suppression avancée
@@ -341,6 +378,8 @@ Retourne l'historique des Messages privés d'une Conversation privée.
 
 Autorisé uniquement si l'utilisateur authentifié est participant de la Conversation privée.
 
+Les Messages privés masqués par l'utilisateur courant ne sont pas retournés.
+
 Codes possibles : `200`, `401`, `403`, `404`.
 
 ### POST /api/conversations/{id}/messages
@@ -361,6 +400,21 @@ Le contenu est normalisé :
 - limite à 1000 caractères
 
 Codes possibles : `201`, `400`, `401`, `403`, `404`, `422`.
+
+### DELETE /api/conversations/{id}/messages/{messageId}
+
+Masque un Message privé uniquement pour l'utilisateur authentifié.
+
+Effets :
+
+- le Message privé ne réapparaît plus dans son historique
+- l'autre participant conserve le Message privé
+- aucune suppression physique n'est effectuée
+- le comportement est idempotent
+
+Autorisé uniquement pour un participant de la Conversation privée.
+
+Codes possibles : `200`, `401`, `403`, `404`.
 
 ### PATCH /api/conversations/{id}/read
 
@@ -408,6 +462,81 @@ Message reçu lors d'un nouveau Message privé :
 ```
 
 Le contenu du Message privé n'est pas transmis dans l'événement WebSocket. Le mobile doit rafraîchir l'historique via l'API protégée.
+
+## Administration
+
+Toutes les routes `/api/admin/*` demandent un JWT avec `ROLE_ADMIN`.
+
+Le Back Office Admin MVP est volontairement limité :
+
+- synthèse simple
+- liste utilisateurs sans email
+- modération des Posts
+- modération des Commentaires
+- suppression logique uniquement
+
+Il ne permet pas de lire les Messages privés, de supprimer physiquement un utilisateur, de bannir un compte ou de gérer les rôles.
+
+### GET /api/admin/overview
+
+Retourne des compteurs de supervision.
+
+```json
+{
+  "usersCount": 12,
+  "postsCount": 34,
+  "commentsCount": 51,
+  "conversationsCount": 8,
+  "messagesCount": 93
+}
+```
+
+Codes possibles : `200`, `401`, `403`.
+
+### GET /api/admin/users?page=1&limit=10&query=
+
+Retourne une liste paginée d'utilisateurs.
+
+Champs retournés uniquement :
+
+```json
+{
+  "id": 1,
+  "username": "samuel",
+  "displayName": "Samuel",
+  "avatarUrl": null,
+  "roles": ["ROLE_USER"],
+  "createdAt": "2026-05-16T12:00:00+00:00"
+}
+```
+
+La réponse ne retourne pas `email`, `password`, token JWT ou donnée sensible.
+
+Codes possibles : `200`, `401`, `403`.
+
+### GET /api/admin/posts?page=1&limit=10
+
+Retourne les Posts visibles à modérer.
+
+Codes possibles : `200`, `401`, `403`.
+
+### DELETE /api/admin/posts/{id}
+
+Supprime logiquement un Post en renseignant `deletedAt` et `deletedBy`.
+
+Codes possibles : `200`, `401`, `403`, `404`.
+
+### GET /api/admin/comments?page=1&limit=10
+
+Retourne les Commentaires visibles à modérer.
+
+Codes possibles : `200`, `401`, `403`.
+
+### DELETE /api/admin/comments/{id}
+
+Supprime logiquement un Commentaire en renseignant `deletedAt` et `deletedBy`.
+
+Codes possibles : `200`, `401`, `403`, `404`.
 
 ## Football
 

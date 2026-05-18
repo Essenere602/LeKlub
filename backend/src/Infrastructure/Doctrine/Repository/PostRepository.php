@@ -55,6 +55,20 @@ final class PostRepository extends ServiceEntityRepository implements PostReposi
             ->getSingleScalarResult();
     }
 
+    public function paginateVisibleForAdmin(int $page, int $limit): array
+    {
+        return $this->createQueryBuilder('post')
+            ->join('post.author', 'author')
+            ->leftJoin('author.profile', 'profile')
+            ->addSelect('author', 'profile')
+            ->andWhere('post.deletedAt IS NULL')
+            ->orderBy('post.createdAt', 'DESC')
+            ->setFirstResult(($page - 1) * $limit)
+            ->setMaxResults($limit)
+            ->getQuery()
+            ->getResult();
+    }
+
     public function countVisibleComments(Post $post): int
     {
         return (int) $this->getEntityManager()->createQueryBuilder()

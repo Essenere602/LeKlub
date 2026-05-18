@@ -155,9 +155,13 @@ Le Feed mobile MVP utilise :
 
 - `GET /api/feed?page=1&limit=10` pour afficher les Posts
 - `POST /api/feed` pour créer un Post texte
+- `PATCH /api/feed/{id}` pour modifier son propre Post
+- `DELETE /api/feed/{id}` pour supprimer logiquement son propre Post
 - `GET /api/feed/{id}` pour afficher un Post
 - `GET /api/feed/{postId}/comments?page=1&limit=20` pour afficher les Commentaires
 - `POST /api/feed/{postId}/comments` pour ajouter un Commentaire
+- `PATCH /api/feed/comments/{id}` pour modifier son propre Commentaire
+- `DELETE /api/feed/comments/{id}` pour supprimer logiquement son propre Commentaire
 - `PUT /api/feed/{postId}/reaction` pour liker ou disliker
 - `DELETE /api/feed/{postId}/reaction` pour retirer la Réaction
 
@@ -176,6 +180,11 @@ Le backend ne retourne pas encore la Réaction courante de l'utilisateur. L'inte
 - liker un Post et vérifier le compteur
 - disliker le même Post et vérifier la mise à jour
 - retirer la Réaction et vérifier la mise à jour
+- modifier un de ses propres Posts
+- supprimer un de ses propres Posts après confirmation
+- modifier un de ses propres Commentaires
+- supprimer un de ses propres Commentaires après confirmation
+- vérifier que les boutons modifier/supprimer ne sont pas affichés sur le contenu d'un autre utilisateur
 - utiliser `Charger plus` si plus de 10 Posts existent
 - revenir au Feed après un commentaire et rafraîchir la liste
 
@@ -226,9 +235,12 @@ La Messagerie mobile MVP utilise :
 - `POST /api/conversations` pour créer ou ouvrir une Conversation privée
 - `GET /api/conversations/{id}/messages` pour charger l'historique
 - `POST /api/conversations/{id}/messages` pour envoyer un Message privé
+- `DELETE /api/conversations/{id}/messages/{messageId}` pour masquer un Message privé uniquement pour soi
 - `PATCH /api/conversations/{id}/read` pour marquer les Messages privés reçus comme lus
 
 Le WebSocket sert uniquement à notifier l'arrivée d'un nouveau Message privé. Le contenu affiché dans l'interface vient toujours de l'API REST.
+
+Un appui long sur une bulle permet de choisir `Supprimer pour moi`. Cette action masque le Message privé uniquement dans l'historique de l'utilisateur courant.
 
 ### WebSocket Avec Expo Go
 
@@ -269,6 +281,44 @@ Il n'y a pas de présence en ligne, pas de statut `delivered`, pas d'animation e
 - vérifier que les Messages privés reçus sont marqués lus
 - revenir avec le premier utilisateur et vérifier le passage de `✓` à `✓✓`
 - envoyer un Message privé pendant que l'autre utilisateur est dans l'écran Messages et vérifier le rafraîchissement REST après notification WebSocket
+- faire un appui long sur un Message privé et choisir `Supprimer pour moi`
+- vérifier que le Message privé disparaît uniquement pour le compte courant
+- vérifier avec l'autre compte que le Message privé reste visible
+
+## Back Office Admin Mobile
+
+L'onglet `Admin` apparaît uniquement pour un utilisateur ayant `ROLE_ADMIN`.
+
+Le Back Office Admin mobile MVP utilise :
+
+- `GET /api/admin/overview` pour la synthèse
+- `GET /api/admin/users?page=&limit=&query=` pour consulter les utilisateurs
+- `GET /api/admin/posts?page=&limit=` pour lister les Posts à modérer
+- `DELETE /api/admin/posts/{id}` pour supprimer logiquement un Post
+- `GET /api/admin/comments?page=&limit=` pour lister les Commentaires à modérer
+- `DELETE /api/admin/comments/{id}` pour supprimer logiquement un Commentaire
+
+Contraintes MVP :
+
+- pas de suppression physique utilisateur
+- pas de bannissement
+- pas de gestion des rôles
+- pas de lecture des Messages privés
+- confirmation avant chaque action de modération
+
+### Tests Manuels Admin
+
+À vérifier sur iPhone avec Expo Go :
+
+- se connecter avec un utilisateur `ROLE_USER` et vérifier que l'onglet Admin est absent
+- se connecter avec un utilisateur `ROLE_ADMIN` et vérifier que l'onglet Admin apparaît
+- ouvrir la synthèse admin
+- ouvrir la liste utilisateurs et vérifier qu'aucun email n'est affiché
+- rechercher un utilisateur
+- ouvrir la modération Feed
+- basculer entre Posts et Commentaires
+- supprimer logiquement un Post ou Commentaire de test
+- vérifier que le contenu supprimé disparaît du Feed utilisateur
 
 ## Audit NPM
 
@@ -291,6 +341,7 @@ La correction automatique proposée par npm implique un changement majeur de ver
 ```text
 src/
   components/
+    admin/
     feed/
     football/
     messaging/
@@ -300,6 +351,7 @@ src/
   hooks/
   navigation/
   services/
+    admin/
     api/
     auth/
     feed/
@@ -307,6 +359,7 @@ src/
     messaging/
     user/
   screens/
+    Admin/
     Auth/
     Feed/
     Football/

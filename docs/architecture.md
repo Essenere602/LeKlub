@@ -15,6 +15,7 @@ Structure Symfony :
 backend/src/
   Controller/Api/
   Application/
+    Admin/
     Auth/
     User/
     Feed/
@@ -69,6 +70,25 @@ Le feed suit la même séparation :
 - `Domain/ValueObject` contient les valeurs métier simples comme le type de Réaction.
 - `Security/Voter` centralise les droits auteur/admin.
 - `Infrastructure/Doctrine/Repository` contient les requêtes Doctrine.
+
+## Administration
+
+Le Back Office Admin suit la même architecture en couches :
+
+- `Controller/Api/Admin` expose les endpoints `/api/admin/*`.
+- `Application/Admin` contient les cas d'utilisation : synthèse, liste utilisateurs, liste/modération Posts et Commentaires.
+- Les repositories existants sont enrichis avec quelques méthodes admin ciblées, plutôt que créer une couche parallèle inutile.
+- `Infrastructure/Doctrine/Repository` garde les requêtes Doctrine concrètes.
+
+Ce choix est volontairement pragmatique pour le MVP CDA :
+
+- pas de dashboard complexe
+- pas de permissions avancées
+- pas de lecture des Messages privés
+- pas de suppression physique utilisateur
+- suppression logique existante pour la modération
+
+La séparation reste claire : le contrôleur reçoit la requête, le use case orchestre, le repository accède aux données et le presenter admin normalise les réponses.
 
 ## Messagerie
 

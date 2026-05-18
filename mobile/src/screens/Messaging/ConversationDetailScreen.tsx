@@ -8,15 +8,16 @@ import { AppInput } from '../../components/ui/AppInput';
 import { AppText } from '../../components/ui/AppText';
 import { ErrorMessage } from '../../components/ui/ErrorMessage';
 import { Screen } from '../../components/ui/Screen';
+import { StatusBadge } from '../../components/ui/StatusBadge';
 import { theme } from '../../config/theme';
 import { useAuth } from '../../hooks/useAuth';
 import { useMessagingSocket } from '../../hooks/useMessagingSocket';
-import { MainStackParamList } from '../../navigation/navigation.types';
+import { MessagingStackParamList } from '../../navigation/navigation.types';
 import { toApiError } from '../../services/api/apiError';
 import { messagingService } from '../../services/messaging/messagingService';
 import { PrivateMessage } from '../../types/messaging.types';
 
-type ConversationDetailScreenProps = NativeStackScreenProps<MainStackParamList, 'ConversationDetail'>;
+type ConversationDetailScreenProps = NativeStackScreenProps<MessagingStackParamList, 'ConversationDetail'>;
 
 export function ConversationDetailScreen({ navigation, route }: ConversationDetailScreenProps) {
   const { conversationId, participantUsername } = route.params;
@@ -88,6 +89,18 @@ export function ConversationDetailScreen({ navigation, route }: ConversationDeta
     }
   }
 
+  async function hideMessageForMe(messageId: number) {
+    setError(null);
+
+    try {
+      await messagingService.hideMessageForMe(conversationId, messageId);
+      await loadMessages();
+    } catch (caughtError) {
+      setError(toApiError(caughtError).message);
+      throw caughtError;
+    }
+  }
+
   return (
     <Screen style={styles.screen}>
       <KeyboardAvoidingView
@@ -99,7 +112,7 @@ export function ConversationDetailScreen({ navigation, route }: ConversationDeta
           <View style={styles.titleBlock}>
             <AppText style={styles.kicker}>Conversation privée</AppText>
             <AppText variant="title">{participantUsername}</AppText>
-            <AppText style={styles.socketStatus}>WebSocket : {labelForSocketStatus(socketStatus)}</AppText>
+            <StatusBadge {...badgeForSocketStatus(socketStatus)} />
           </View>
           <ErrorMessage message={error} />
         </View>
@@ -114,7 +127,11 @@ export function ConversationDetailScreen({ navigation, route }: ConversationDeta
             keyExtractor={(message) => String(message.id)}
             ListEmptyComponent={<EmptyMessages />}
             renderItem={({ item }) => (
-              <MessageBubble message={item} mine={item.sender.id === user?.id} />
+              <MessageBubble
+                message={item}
+                mine={item.sender.id === user?.id}
+                onHideForMe={() => hideMessageForMe(item.id)}
+              />
             )}
           />
         )}
@@ -144,17 +161,25 @@ function EmptyMessages() {
   );
 }
 
-function labelForSocketStatus(status: string): string {
-  const labels: Record<string, string> = {
-    authenticated: 'connecté',
-    closed: 'déconnecté',
-    connected: 'connexion ouverte',
-    connecting: 'connexion...',
-    disabled: 'désactivé',
-    error: 'erreur',
-  };
+type SocketBadge = {
+  label: string;
+  variant: 'accent' | 'success' | 'warning' | 'danger' | 'neutral';
+};
 
-  return labels[status] ?? status;
+function badgeForSocketStatus(status: string): SocketBadge {
+  if (status === 'authenticated' || status === 'connected') {
+    return { label: 'Temps réel actif', variant: 'success' };
+  }
+
+  if (status === 'connecting') {
+    return { label: 'Connexion temps réel...', variant: 'warning' };
+  }
+
+  if (status === 'error') {
+    return { label: 'Temps réel indisponible', variant: 'danger' };
+  }
+
+  return { label: 'Hors ligne', variant: 'neutral' };
 }
 
 const styles = StyleSheet.create({
@@ -177,10 +202,6 @@ const styles = StyleSheet.create({
     fontSize: theme.typography.sizes.sm,
     fontWeight: theme.typography.weights.bold,
     textTransform: 'uppercase',
-  },
-  socketStatus: {
-    color: theme.colors.text.muted,
-    fontSize: theme.typography.sizes.sm,
   },
   messages: {
     flexGrow: 1,

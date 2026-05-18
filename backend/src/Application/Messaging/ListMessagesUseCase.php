@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Application\Messaging;
 
 use App\Domain\Entity\Conversation;
+use App\Domain\Entity\User;
 use App\Domain\Repository\MessageRepositoryInterface;
 
 final class ListMessagesUseCase
@@ -18,11 +19,11 @@ final class ListMessagesUseCase
     /**
      * @return list<array<string, mixed>>
      */
-    public function execute(Conversation $conversation): array
+    public function execute(Conversation $conversation, User $currentUser): array
     {
         return array_map(
             fn ($message): array => $this->presenter->message($message),
-            $this->messages->findForConversation($conversation)
+            $this->messages->findVisibleForConversationAndUser($conversation, $currentUser)
         );
     }
 }

@@ -6,11 +6,13 @@ namespace App\Application\Messaging;
 
 use App\Domain\Entity\User;
 use App\Domain\Repository\ConversationRepositoryInterface;
+use App\Domain\Repository\MessageRepositoryInterface;
 
 final class ListConversationsUseCase
 {
     public function __construct(
         private readonly ConversationRepositoryInterface $conversations,
+        private readonly MessageRepositoryInterface $messages,
         private readonly MessagingPresenter $presenter,
     ) {
     }
@@ -20,9 +22,14 @@ final class ListConversationsUseCase
      */
     public function execute(User $user): array
     {
-        return array_map(
-            fn ($conversation): array => $this->presenter->conversation($conversation, $user),
-            $this->conversations->findForUser($user)
+        $visibleConversations = array_filter(
+            $this->conversations->findForUser($user),
+            fn ($conversation): bool => $this->messages->findLastVisibleForConversationAndUser($conversation, $user) !== null
         );
+
+        return array_values(array_map(
+            fn ($conversation): array => $this->presenter->conversation($conversation, $user),
+            $visibleConversations
+        ));
     }
 }

@@ -13,6 +13,7 @@ use Symfony\Component\Security\Core\Authorization\Voter\Voter;
 final class CommentVoter extends Voter
 {
     public const DELETE = 'COMMENT_DELETE';
+    public const EDIT = 'COMMENT_EDIT';
 
     public function __construct(
         private readonly Security $security,
@@ -21,7 +22,7 @@ final class CommentVoter extends Voter
 
     protected function supports(string $attribute, mixed $subject): bool
     {
-        return $attribute === self::DELETE && $subject instanceof Comment;
+        return in_array($attribute, [self::DELETE, self::EDIT], true) && $subject instanceof Comment;
     }
 
     protected function voteOnAttribute(string $attribute, mixed $subject, TokenInterface $token): bool
@@ -32,7 +33,7 @@ final class CommentVoter extends Voter
             return false;
         }
 
-        if ($this->security->isGranted('ROLE_ADMIN')) {
+        if ($attribute === self::DELETE && $this->security->isGranted('ROLE_ADMIN')) {
             return true;
         }
 

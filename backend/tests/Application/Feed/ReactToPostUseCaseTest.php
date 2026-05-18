@@ -72,6 +72,11 @@ final class VisiblePostRepository implements PostRepositoryInterface
         return 1;
     }
 
+    public function paginateVisibleForAdmin(int $page, int $limit): array
+    {
+        return [$this->post];
+    }
+
     public function countVisibleComments(Post $post): int
     {
         return 0;

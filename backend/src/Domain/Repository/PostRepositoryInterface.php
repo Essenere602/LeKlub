@@ -20,6 +20,11 @@ interface PostRepositoryInterface
 
     public function countVisible(): int;
 
+    /**
+     * @return list<Post>
+     */
+    public function paginateVisibleForAdmin(int $page, int $limit): array;
+
     public function countVisibleComments(Post $post): int;
 
     public function countReactions(Post $post, PostReactionType $type): int;

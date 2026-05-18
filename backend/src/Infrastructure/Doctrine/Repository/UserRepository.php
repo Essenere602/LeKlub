@@ -50,10 +50,44 @@ final class UserRepository extends ServiceEntityRepository implements UserReposi
         return $queryBuilder->getQuery()->getResult();
     }
 
+    public function paginateForAdmin(?string $query, int $page, int $limit): array
+    {
+        $queryBuilder = $this->createAdminQueryBuilder($query)
+            ->orderBy('user.createdAt', 'DESC')
+            ->setFirstResult(($page - 1) * $limit)
+            ->setMaxResults($limit);
+
+        return $queryBuilder->getQuery()->getResult();
+    }
+
+    public function countForAdmin(?string $query): int
+    {
+        return (int) $this->createAdminQueryBuilder($query)
+            ->select('COUNT(user.id)')
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
+
     public function save(User $user): void
     {
         $entityManager = $this->getEntityManager();
         $entityManager->persist($user);
         $entityManager->flush();
+    }
+
+    private function createAdminQueryBuilder(?string $query): \Doctrine\ORM\QueryBuilder
+    {
+        $queryBuilder = $this->createQueryBuilder('user')
+            ->leftJoin('user.profile', 'profile')
+            ->addSelect('profile');
+
+        if ($query !== null && $query !== '') {
+            $search = mb_strtolower($query);
+            $queryBuilder
+                ->andWhere('LOWER(user.username) LIKE :query OR LOWER(profile.displayName) LIKE :query')
+                ->setParameter('query', '%'.$search.'%');
+        }
+
+        return $queryBuilder;
     }
 }

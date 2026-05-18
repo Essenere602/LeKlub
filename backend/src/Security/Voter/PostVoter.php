@@ -13,6 +13,7 @@ use Symfony\Component\Security\Core\Authorization\Voter\Voter;
 final class PostVoter extends Voter
 {
     public const DELETE = 'POST_DELETE';
+    public const EDIT = 'POST_EDIT';
 
     public function __construct(
         private readonly Security $security,
@@ -21,7 +22,7 @@ final class PostVoter extends Voter
 
     protected function supports(string $attribute, mixed $subject): bool
     {
-        return $attribute === self::DELETE && $subject instanceof Post;
+        return in_array($attribute, [self::DELETE, self::EDIT], true) && $subject instanceof Post;
     }
 
     protected function voteOnAttribute(string $attribute, mixed $subject, TokenInterface $token): bool
@@ -32,7 +33,7 @@ final class PostVoter extends Voter
             return false;
         }
 
-        if ($this->security->isGranted('ROLE_ADMIN')) {
+        if ($attribute === self::DELETE && $this->security->isGranted('ROLE_ADMIN')) {
             return true;
         }
 

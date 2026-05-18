@@ -46,3 +46,11 @@ export type CreatePostPayload = {
 export type CreateCommentPayload = {
   content: string;
 };
+
+export type UpdatePostPayload = {
+  content: string;
+};
+
+export type UpdateCommentPayload = {
+  content: string;
+};

@@ -22,7 +22,7 @@ final class MessagingPresenter
     public function conversation(Conversation $conversation, User $currentUser): array
     {
         $other = $conversation->otherParticipant($currentUser);
-        $lastMessage = $this->messages->findLastForConversation($conversation);
+        $lastMessage = $this->messages->findLastVisibleForConversationAndUser($conversation, $currentUser);
 
         return [
             'id' => $conversation->getId(),
@@ -31,7 +31,7 @@ final class MessagingPresenter
                 'username' => $other->getUsername(),
             ],
             'lastMessage' => $lastMessage === null ? null : $this->message($lastMessage),
-            'unreadCount' => $this->messages->countUnreadForRecipient($conversation, $currentUser),
+            'unreadCount' => $this->messages->countVisibleUnreadForRecipient($conversation, $currentUser),
             'updatedAt' => $conversation->getUpdatedAt()->format(DATE_ATOM),
         ];
     }

@@ -7,10 +7,12 @@ namespace App\Controller\Api\Feed;
 use App\Application\Feed\AddCommentUseCase;
 use App\Application\Feed\DeleteCommentUseCase;
 use App\Application\Feed\ListPostCommentsUseCase;
+use App\Application\Feed\UpdateCommentUseCase;
 use App\Domain\Entity\User;
 use App\Domain\Exception\ResourceNotFoundException;
 use App\Domain\Repository\CommentRepositoryInterface;
 use App\DTO\Feed\CreateCommentRequest;
+use App\DTO\Feed\UpdateCommentRequest;
 use App\Security\Voter\CommentVoter;
 use App\Shared\Api\ApiResponse;
 use App\Shared\Api\Pagination;
@@ -63,6 +65,41 @@ final class CommentController
             ], 'Comment created successfully.', 201);
         } catch (ResourceNotFoundException) {
             return ApiResponse::error('Post not found.', [], 404);
+        }
+    }
+
+    #[Route('/comments/{id}', name: 'api_feed_comments_update', methods: ['PATCH'], requirements: ['id' => '\d+'])]
+    public function update(int $id, Request $request, UpdateCommentUseCase $useCase): JsonResponse
+    {
+        $comment = $this->comments->findVisibleById($id);
+
+        if ($comment === null) {
+            return ApiResponse::error('Comment not found.', [], 404);
+        }
+
+        if (!$this->security->isGranted(CommentVoter::EDIT, $comment)) {
+            return ApiResponse::error('Access denied.', [], 403);
+        }
+
+        $payload = $this->jsonPayload($request);
+
+        if ($payload instanceof JsonResponse) {
+            return $payload;
+        }
+
+        $dto = UpdateCommentRequest::fromArray($payload);
+        $violations = $this->validator->validate($dto);
+
+        if (count($violations) > 0) {
+            return ApiResponse::validationError($violations);
+        }
+
+        try {
+            return ApiResponse::success([
+                'comment' => $useCase->execute($comment, $dto),
+            ], 'Comment updated successfully.');
+        } catch (ResourceNotFoundException) {
+            return ApiResponse::error('Comment not found.', [], 404);
         }
     }
 

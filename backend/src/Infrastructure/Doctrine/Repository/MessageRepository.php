@@ -6,6 +6,7 @@ namespace App\Infrastructure\Doctrine\Repository;
 
 use App\Domain\Entity\Conversation;
 use App\Domain\Entity\Message;
+use App\Domain\Entity\MessageHiddenForUser;
 use App\Domain\Entity\User;
 use App\Domain\Repository\MessageRepositoryInterface;
 use DateTimeImmutable;
@@ -31,6 +32,14 @@ final class MessageRepository extends ServiceEntityRepository implements Message
         return $this->createQueryBuilder('message')
             ->andWhere('message.conversation = :conversation')
             ->setParameter('conversation', $conversation)
+            ->orderBy('message.createdAt', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
+
+    public function findVisibleForConversationAndUser(Conversation $conversation, User $user): array
+    {
+        return $this->createVisibleForUserQueryBuilder($conversation, $user)
             ->orderBy('message.createdAt', 'ASC')
             ->getQuery()
             ->getResult();
@@ -64,6 +73,17 @@ final class MessageRepository extends ServiceEntityRepository implements Message
             ->getSingleScalarResult();
     }
 
+    public function countVisibleUnreadForRecipient(Conversation $conversation, User $recipient): int
+    {
+        return (int) $this->createVisibleForUserQueryBuilder($conversation, $recipient)
+            ->select('COUNT(message.id)')
+            ->andWhere('message.sender != :recipient')
+            ->andWhere('message.readAt IS NULL')
+            ->setParameter('recipient', $recipient)
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
+
     public function findLastForConversation(Conversation $conversation): ?Message
     {
         return $this->createQueryBuilder('message')
@@ -73,5 +93,42 @@ final class MessageRepository extends ServiceEntityRepository implements Message
             ->setMaxResults(1)
             ->getQuery()
             ->getOneOrNullResult();
+    }
+
+    public function findLastVisibleForConversationAndUser(Conversation $conversation, User $user): ?Message
+    {
+        return $this->createVisibleForUserQueryBuilder($conversation, $user)
+            ->orderBy('message.createdAt', 'DESC')
+            ->setMaxResults(1)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
+
+    public function findById(int $id): ?Message
+    {
+        return $this->find($id);
+    }
+
+    public function countAll(): int
+    {
+        return (int) $this->createQueryBuilder('message')
+            ->select('COUNT(message.id)')
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
+
+    private function createVisibleForUserQueryBuilder(Conversation $conversation, User $user): \Doctrine\ORM\QueryBuilder
+    {
+        return $this->createQueryBuilder('message')
+            ->leftJoin(
+                MessageHiddenForUser::class,
+                'hiddenMessage',
+                'WITH',
+                'hiddenMessage.message = message AND hiddenMessage.user = :user'
+            )
+            ->andWhere('message.conversation = :conversation')
+            ->andWhere('hiddenMessage.id IS NULL')
+            ->setParameter('conversation', $conversation)
+            ->setParameter('user', $user);
     }
 }

@@ -51,4 +51,12 @@ final class ConversationRepository extends ServiceEntityRepository implements Co
             ->getQuery()
             ->getResult();
     }
+
+    public function countAll(): int
+    {
+        return (int) $this->createQueryBuilder('conversation')
+            ->select('COUNT(conversation.id)')
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
 }

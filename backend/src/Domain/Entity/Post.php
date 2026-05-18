@@ -87,6 +87,16 @@ class Post
         return $this->deletedAt !== null;
     }
 
+    public function updateContent(string $content): void
+    {
+        if ($this->deletedAt !== null) {
+            return;
+        }
+
+        $this->content = $content;
+        $this->touch();
+    }
+
     public function delete(User $deletedBy): void
     {
         if ($this->deletedAt !== null) {

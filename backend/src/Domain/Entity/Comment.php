@@ -78,9 +78,29 @@ class Comment
         return $this->createdAt;
     }
 
+    public function getDeletedAt(): ?DateTimeImmutable
+    {
+        return $this->deletedAt;
+    }
+
+    public function getDeletedBy(): ?User
+    {
+        return $this->deletedBy;
+    }
+
     public function isDeleted(): bool
     {
         return $this->deletedAt !== null;
+    }
+
+    public function updateContent(string $content): void
+    {
+        if ($this->deletedAt !== null) {
+            return;
+        }
+
+        $this->content = $content;
+        $this->updatedAt = new DateTimeImmutable();
     }
 
     public function delete(User $deletedBy): void
