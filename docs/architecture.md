@@ -1,137 +1,349 @@
 # Architecture
 
-LeKlub utilise une architecture en couches simple, lisible et défendable pour un projet CDA.
+## Decision Architecturale
 
-## Backend
+L'architecture officielle de LeKlub est :
 
-- Controller / API
-- Application / Use Case
-- Domain
-- Infrastructure
+> Architecture en couches orientee Use Cases, inspiree Clean Architecture, adaptee a Symfony.
 
-Structure Symfony :
+Cette formulation est volontairement precise. LeKlub n'est pas seulement une application Symfony MVC classique : les controleurs ne portent pas la logique metier et ne pilotent pas directement toute la persistance. Le coeur applicatif est organise autour de cas d'utilisation explicites, de repositories, de DTO, de voters et de services d'infrastructure.
+
+Le choix est adapte au contexte CDA parce qu'il reste :
+
+- simple a expliquer devant un jury ;
+- coherent avec Symfony, Doctrine et React Native Expo ;
+- testable par cas d'utilisation ;
+- suffisamment structure pour separer les responsabilites ;
+- moins risque qu'une architecture trop abstraite ou surdimensionnee.
+
+## Ce Que LeKlub Est
+
+LeKlub est une application mobile avec API REST securisee, organisee autour de deux grands ensembles :
+
+- un backend Symfony structure en couches ;
+- un frontend React Native Expo structure par navigation, ecrans, services API, composants et types.
+
+Le backend suit quatre couches principales :
+
+- **Controller / API** : recoit les requetes HTTP, transforme les entrees en DTO, appelle un use case et retourne une reponse JSON.
+- **Application / Use Case** : orchestre un cas d'utilisation concret de l'application.
+- **Domain** : contient les entites principales, contrats de repositories, exceptions et value objects.
+- **Infrastructure** : contient les details techniques : Doctrine, API football, WebSocket, services de notification.
+
+La securite est transversale :
+
+- les firewalls JWT sont configures dans Symfony Security ;
+- les routes sensibles sont protegees par authentification ;
+- les droits par ressource sont centralises dans des voters ;
+- les use cases gardent les regles applicatives importantes ;
+- les donnees sensibles ne sont pas exposees dans les presenters.
+
+## Ce Que LeKlub N'est Pas
+
+### Pas Un MVC Symfony Classique
+
+Symfony permet naturellement une organisation MVC, mais LeKlub ne suit pas le modele MVC classique ou le controleur contient une grande partie de la logique.
+
+Dans LeKlub :
+
+- les controleurs restent fins ;
+- la logique applicative est dans `Application/*UseCase.php` ;
+- les acces aux donnees passent par des repositories ;
+- les reponses sont normalisees par des presenters ou par `ApiResponse`.
+
+Exemple :
+
+- `Controller/Api/Feed/FeedController.php` recoit la requete ;
+- `Application/Feed/UpdatePostUseCase.php` orchestre la modification ;
+- `Domain/Repository/PostRepositoryInterface.php` definit le contrat ;
+- `Infrastructure/Doctrine/Repository/PostRepository.php` implemente la requete Doctrine.
+
+### Pas Du DDD Strict
+
+LeKlub emprunte certaines idees du Domain-Driven Design, notamment la presence d'un dossier `Domain`, d'entites metier, de value objects et d'exceptions metier.
+
+Mais LeKlub n'est pas du DDD strict :
+
+- il n'y a pas de bounded contexts formalises ;
+- les aggregates ne sont pas modelises de maniere avancee ;
+- le langage omnipresent n'est pas pousse au niveau d'un projet d'entreprise complexe ;
+- les entites `Domain/Entity` utilisent des attributs Doctrine.
+
+Ce compromis est volontaire. Pour un projet CDA, l'objectif est de montrer une separation claire sans complexifier artificiellement le code.
+
+### Pas Une Architecture Hexagonale Complete
+
+LeKlub n'est pas une architecture hexagonale complete.
+
+Il existe bien des interfaces de repositories dans `Domain/Repository`, mais tous les ports et adapters ne sont pas generalises. Certains services techniques restent volontairement dans `Infrastructure`, par exemple :
+
+- `Infrastructure/Football/FootballDataClientInterface.php` ;
+- `Infrastructure/WebSocket/MessageNotifierInterface.php`.
+
+Ce choix est pragmatique : l'API football et le WebSocket sont des details techniques du MVP. Les extraire dans une couche de ports plus abstraite aurait ajoute de la complexite sans benefice suffisant pour le perimetre CDA.
+
+### Pas Une Clean Architecture Stricte
+
+LeKlub est inspire de la Clean Architecture, mais n'en applique pas toutes les regles strictes.
+
+En particulier :
+
+- les entites de domaine portent des attributs Doctrine ;
+- Symfony reste visible dans certaines parties du projet ;
+- les presenters sont places dans `Application` par simplicite ;
+- certaines interfaces techniques restent dans `Infrastructure`.
+
+Le benefice recherche est la separation des responsabilites, pas la purete theorique.
+
+## Arborescence Backend Commentee
 
 ```text
 backend/src/
   Controller/Api/
-  Application/
-    Admin/
-    Auth/
-    User/
-    Feed/
-    Messaging/
-    Football/
-  Domain/
-    Entity/
-    Repository/
-    Exception/
-    ValueObject/
-  Infrastructure/
-    Doctrine/
-    Football/
-    WebSocket/
+    Admin/                 Endpoints admin proteges ROLE_ADMIN
+    Auth/                  Inscription et authentification publique
+    Feed/                  Endpoints Posts, Commentaires, Reactions
+    Football/              Endpoints lecture seule football
+    Messaging/             Endpoints Conversations et Messages prives
+    User/                  Profil, utilisateur courant, annuaire
+
   DTO/
-    Auth/
-    Feed/
-    Messaging/
-    User/
-  Security/Voter/
-  Security/EventSubscriber/
-  Shared/Api/
+    Auth/                  Donnees entrantes inscription
+    Feed/                  Donnees entrantes Posts, Commentaires, Reactions
+    Messaging/             Donnees entrantes Conversations et Messages
+    User/                  Donnees entrantes profil utilisateur
+
+  Application/
+    Admin/                 Cas d'utilisation du Back Office Admin
+    Auth/                  Cas d'utilisation d'inscription
+    Feed/                  Cas d'utilisation du feed social
+    Football/              Cas d'utilisation lecture football
+    Messaging/             Cas d'utilisation messagerie privee
+    User/                  Cas d'utilisation profil et annuaire
+
+  Domain/
+    Entity/                Entites principales : User, Post, Comment, Message...
+    Repository/            Interfaces de repositories attendues par l'application
+    Exception/             Exceptions metier ou applicatives
+    ValueObject/           Valeurs metier simples : competition, reaction...
+
+  Infrastructure/
+    Doctrine/Repository/   Implementations Doctrine des repositories
+    Football/              Client vers football-data.org
+    WebSocket/             Serveur temps reel et notification technique
+
+  Security/
+    Voter/                 Autorisations par ressource
+    EventSubscriber/       Adaptation technique du JWT
+
+  Shared/
+    Api/                   Format de reponse API et pagination
 ```
 
-## Pourquoi Les Entités Doctrine Sont Dans `Domain/Entity`
+## Arborescence Frontend Commentee
 
-Les entités principales sont placées dans `Domain/Entity` parce qu'elles représentent les objets métier manipulés par l'application : `User`, `UserProfile`, `Post`, `Comment`, `PostReaction`, `Conversation` et `Message`.
+```text
+mobile/src/
+  navigation/              Navigation publique, protegee, tabs et stacks internes
+  screens/                 Ecrans metier affiches a l'utilisateur
+    Admin/                 Back Office mobile reserve ROLE_ADMIN
+    Auth/                  Login et Register
+    Feed/                  Feed, detail Post, Commentaires
+    Football/              Competitions, resultats, classements, buteurs
+    Home/                  Accueil utilisateur
+    Messaging/             Conversations, messages, choix utilisateur
+    Profile/               Profil et compte utilisateur
 
-Ce choix reste volontairement simple :
+  components/
+    admin/                 Cartes et elements specifiques au Back Office
+    feed/                  PostCard, CommentCard, reactions
+    football/              Cards football, classements, buteurs, logos
+    messaging/             ConversationCard, MessageBubble, avatars
+    ui/                    Design system leger : headers, cards, etats
 
-- les entités portent les données et quelques règles métier locales faciles à comprendre
-- les contrôleurs ne manipulent pas directement la base de données
-- les cas d'utilisation travaillent avec des objets métier explicites
-- les repositories Doctrine restent dans `Infrastructure/Doctrine/Repository`
-- les interfaces de repositories restent dans `Domain/Repository`
+  services/
+    api/                   Client Axios, erreurs API
+    auth/                  Login, register, stockage token
+    feed/                  Appels REST feed
+    football/              Appels REST football
+    messaging/             Appels REST messagerie et WebSocket
+    user/                  Profil et annuaire utilisateur
+    admin/                 Appels REST admin
 
-Le projet n'essaie pas de faire une architecture hexagonale abstraite ou complexe. Les attributs Doctrine sont acceptés dans les entités pour rester cohérent avec Symfony et Doctrine, tout en conservant une séparation claire entre :
+  contexts/                AuthContext
+  hooks/                   Hooks transverses comme WebSocket
+  types/                   Types TypeScript par domaine fonctionnel
+  config/                  Theme, variables d'environnement, visuels football
+```
 
-- la logique applicative dans `Application`
-- les objets métier dans `Domain`
-- les détails techniques de persistance dans `Infrastructure`
+Le frontend applique le meme principe general que le backend : les ecrans affichent et orchestrent l'interface, mais les appels reseau sont separes dans `services/`, les composants visuels sont reutilisables et les contrats sont formalises dans `types/`.
 
-Ce compromis est adapté à un MVP CDA : il est maintenable, simple à expliquer et évite la sur-ingénierie.
+## Backend Par Domaine Fonctionnel
 
-## Feed
+### Authentification Et Profil
 
-Le feed suit la même séparation :
+- `Controller/Api/Auth/RegisterController.php`
+- `Application/Auth/RegisterUserUseCase.php`
+- `Controller/Api/User/MeController.php`
+- `Application/User/GetCurrentUserProfileUseCase.php`
+- `Application/User/UpdateCurrentUserProfileUseCase.php`
+- `Security/EventSubscriber/JWTCreatedSubscriber.php`
 
-- `Controller/Api/Feed` reçoit les requêtes HTTP et retourne des réponses JSON.
-- `Application/Feed` orchestre les cas d'utilisation : créer un Post, lister le feed, ajouter un Commentaire, gérer une Réaction.
-- `Domain/Entity` contient `Post`, `Comment` et `PostReaction`.
-- `Domain/ValueObject` contient les valeurs métier simples comme le type de Réaction.
-- `Security/Voter` centralise les droits auteur/admin.
-- `Infrastructure/Doctrine/Repository` contient les requêtes Doctrine.
+L'authentification JWT est geree par Symfony Security et LexikJWTAuthenticationBundle. Le backend reste responsable de l'identite, des roles et du controle d'acces.
 
-## Administration
+### Feed Social
 
-Le Back Office Admin suit la même architecture en couches :
+- `Controller/Api/Feed/FeedController.php`
+- `Controller/Api/Feed/CommentController.php`
+- `Application/Feed/*UseCase.php`
+- `Domain/Entity/Post.php`
+- `Domain/Entity/Comment.php`
+- `Domain/Entity/PostReaction.php`
+- `Security/Voter/PostVoter.php`
+- `Security/Voter/CommentVoter.php`
 
-- `Controller/Api/Admin` expose les endpoints `/api/admin/*`.
-- `Application/Admin` contient les cas d'utilisation : synthèse, liste utilisateurs, liste/modération Posts et Commentaires.
-- Les repositories existants sont enrichis avec quelques méthodes admin ciblées, plutôt que créer une couche parallèle inutile.
-- `Infrastructure/Doctrine/Repository` garde les requêtes Doctrine concrètes.
+Le feed illustre bien la separation en couches : les controleurs recoivent les requetes, les use cases appliquent les regles, les voters protegent les actions auteur/admin et Doctrine persiste les donnees.
 
-Ce choix est volontairement pragmatique pour le MVP CDA :
+### Messagerie Privee
 
-- pas de dashboard complexe
-- pas de permissions avancées
-- pas de lecture des Messages privés
-- pas de suppression physique utilisateur
-- suppression logique existante pour la modération
+- `Controller/Api/Messaging/ConversationController.php`
+- `Controller/Api/Messaging/MessageController.php`
+- `Application/Messaging/*UseCase.php`
+- `Domain/Entity/Conversation.php`
+- `Domain/Entity/Message.php`
+- `Domain/Entity/MessageHiddenForUser.php`
+- `Security/Voter/ConversationVoter.php`
+- `Infrastructure/WebSocket/*`
 
-La séparation reste claire : le contrôleur reçoit la requête, le use case orchestre, le repository accède aux données et le presenter admin normalise les réponses.
+La messagerie separe clairement REST et WebSocket :
 
-## Messagerie
+- REST reste la source de verite pour lire, envoyer, masquer et marquer comme lus les messages ;
+- WebSocket sert uniquement a notifier l'arrivee d'un nouveau message.
 
-La messagerie suit la même séparation que le reste du backend :
+L'admin ne lit jamais le contenu des messages prives.
 
-- `Controller/Api/Messaging` reçoit les requêtes HTTP et retourne les réponses JSON.
-- `Application/Messaging` orchestre les cas d'utilisation : lister, créer, envoyer, marquer comme lu.
-- `Domain/Entity` contient `Conversation` et `Message`.
-- `Domain/Repository` déclare les contrats attendus par l'application.
-- `Infrastructure/Doctrine/Repository` contient les requêtes Doctrine.
-- `Security/Voter/ConversationVoter` centralise le contrôle d'accès aux Conversations privées.
-- `Infrastructure/WebSocket` contient le serveur temps réel et le notificateur technique.
+### Football
 
-Cette organisation permet d'expliquer clairement où se trouvent les règles d'accès, la logique applicative et les détails techniques.
+- `Controller/Api/Football/FootballController.php`
+- `Application/Football/*UseCase.php`
+- `Domain/ValueObject/FootballCompetition.php`
+- `Infrastructure/Football/ExternalFootballDataClient.php`
 
-## Football
+Les donnees football sont en lecture seule. Le controleur ne retourne jamais la reponse brute de football-data.org : les donnees sont normalisees pour l'application mobile.
 
-L'intégration football est volontairement en lecture seule dans le MVP :
+### Back Office Admin
 
-- `Controller/Api/Football` expose les endpoints REST.
-- `Application/Football` vérifie les championnats supportés, limite les résultats et orchestre les appels.
-- `Domain/ValueObject/FootballCompetition` contient la liste des championnats autorisés dans le MVP.
-- `Infrastructure/Football` contient le client HTTP vers football-data.org.
+- `Controller/Api/Admin/*`
+- `Application/Admin/*UseCase.php`
+- `Application/Admin/AdminPresenter.php`
+- repositories Doctrine existants enrichis avec des methodes admin ciblees
+- ecrans mobiles dans `mobile/src/screens/Admin`
 
-Le contrôleur ne renvoie jamais la réponse brute de l'API externe. Le client d'infrastructure transforme les données externes en tableaux normalisés adaptés au mobile.
+Le Back Office Admin reste simple :
 
-Ce choix permet de démontrer une intégration d'API externe sans ajouter de persistance inutile en base de données.
+- synthese ;
+- liste utilisateurs sans donnees sensibles ;
+- moderation Posts et Commentaires ;
+- suppression logique ;
+- aucune suppression physique utilisateur ;
+- aucune lecture des Messages prives.
 
-L'interface du client football reste dans `Infrastructure/Football` par choix pragmatique MVP : elle décrit un service technique externe et évite d'ajouter une abstraction de domaine plus lourde pour un besoin en lecture seule.
+## Securite Dans L'Architecture
 
-De la même manière, l'interface de notification WebSocket reste dans `Infrastructure/WebSocket`. Les cas d'utilisation de messagerie en dépendent pour déclencher une notification, mais le choix reste volontairement simple et défendable : le temps réel est un détail technique local au MVP, pas un sous-domaine métier complexe.
+La securite est placee au backend, meme si le mobile masque aussi certains boutons pour l'experience utilisateur.
 
-## Frontend
+Principes :
 
-Structure prévue :
+- routes publiques limitees : health, register, login ;
+- routes applicatives protegees par JWT ;
+- routes admin protegees par `ROLE_ADMIN` ;
+- voters pour les ressources sensibles ;
+- validation des entrees par DTO ;
+- mots de passe hashes ;
+- secrets hors repository ;
+- token JWT stocke cote mobile via Expo Secure Store ;
+- pas de donnees sensibles dans les reponses presenters ;
+- logs sans secret volontairement expose.
 
-- `screens/`
-- `components/`
-- `navigation/`
-- `services/`
-- `hooks/`
-- `contexts/`
-- `types/`
-- `config/`
+Exemples :
 
-Le frontend doit garder la logique d'appel API dans des services dédiés et éviter de mélanger les composants visuels avec la logique réseau ou l'authentification.
+- un utilisateur ne peut modifier que son propre profil ;
+- un utilisateur ne peut supprimer que ses propres Posts ou Commentaires ;
+- un admin peut moderer Posts et Commentaires ;
+- un utilisateur ne peut consulter que ses Conversations privees ;
+- un Message masque pour soi reste visible pour l'autre participant.
+
+## Infrastructure
+
+Le projet utilise Docker pour fournir un environnement de developpement reproductible :
+
+- conteneur PHP/Symfony ;
+- conteneur Nginx ;
+- conteneur MySQL ;
+- conteneur WebSocket ;
+- variables d'environnement via `.env` local non versionne et `.env.example` versionne.
+
+GitHub Actions execute une CI simple :
+
+- installation backend ;
+- validation Composer ;
+- validation container Symfony ;
+- validation mapping Doctrine ;
+- tests PHPUnit ;
+- installation mobile ;
+- verification TypeScript.
+
+Le frontend Expo n'est pas dockerise en developpement. Il est lance localement pour conserver Expo Go, QR code, hot reload et tests sur iPhone physique.
+
+## Compromis Assumes
+
+Les compromis suivants sont volontaires et doivent etre expliques comme des choix MVP :
+
+- les entites du domaine utilisent les attributs Doctrine ;
+- les interfaces football et WebSocket restent dans `Infrastructure` ;
+- les presenters sont dans `Application` pour normaliser les sorties sans ajouter une couche de presentation abstraite ;
+- l'admin MVP reste volontairement limite ;
+- pas de microservices ;
+- pas de CQRS avance ;
+- pas d'event sourcing ;
+- pas de refresh token pour l'instant ;
+- pas de lecture admin des messages prives ;
+- pas de suppression physique utilisateur.
+
+Ces choix gardent le projet comprehensible, stable et defendable dans le cadre CDA.
+
+## Regles Pour Les Futures Features
+
+Pour chaque nouvelle fonctionnalite :
+
+1. creer une branche `feature/nom-explicite` depuis `develop` ;
+2. ajouter ou modifier un DTO si une entree utilisateur est recue ;
+3. garder le controleur fin ;
+4. placer la logique applicative dans un use case ;
+5. utiliser une interface de repository si le use case accede aux donnees ;
+6. implementer les requetes Doctrine dans `Infrastructure/Doctrine/Repository` ;
+7. ajouter un voter si l'action depend d'une ressource sensible ;
+8. normaliser les reponses et ne pas exposer de donnees sensibles ;
+9. ajouter des tests backend cibles ;
+10. mettre a jour `docs/api.md`, `docs/security.md`, `docs/architecture.md` ou `mobile/README.md` si le changement les concerne ;
+11. verifier `phpunit`, `lint:container`, `doctrine:schema:validate --skip-sync` et `npx tsc --noEmit` si le mobile est touche ;
+12. merger vers `develop`, attendre CI verte, puis merger vers `main` uniquement pour une version stable.
+
+## Comment L'Expliquer Au Jury CDA
+
+Formulation courte :
+
+> J'ai choisi une architecture en couches orientee Use Cases, inspiree Clean Architecture et adaptee a Symfony. Les controleurs recoivent les requetes, les DTO valident les entrees, les use cases portent la logique applicative, le domaine contient les entites et les contrats, et l'infrastructure gere Doctrine, l'API football et le WebSocket.
+
+Points a defendre :
+
+- **separation des responsabilites** : chaque couche a un role clair ;
+- **securite** : les droits sont verifies cote backend, notamment via JWT, roles et voters ;
+- **testabilite** : les use cases peuvent etre testes sans passer par l'interface mobile ;
+- **maintenabilite** : une feature se range dans un domaine clair : Feed, Messaging, Football, Admin, User ;
+- **pragmatisme** : le projet evite DDD strict, hexagonal complet, microservices et patterns lourds ;
+- **coherence produit** : l'architecture soutient une application sociale football reelle, avec feed, messagerie, football, profil et admin.
+
+Phrase de synthese :
+
+> LeKlub n'est pas une demonstration technique jetable : c'est un MVP structure, securise et extensible, construit avec une architecture assez propre pour etre maintenue, mais assez simple pour etre livree et defendue dans le cadre d'un titre CDA.
