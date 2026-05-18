@@ -184,6 +184,7 @@ Il n'y a pas de déploiement automatique dans le MVP.
 ## Documentation
 
 - `docs/architecture.md`
+- `docs/database.md`
 - `docs/security.md`
 - `docs/api.md`
 - `docs/roadmap.md`

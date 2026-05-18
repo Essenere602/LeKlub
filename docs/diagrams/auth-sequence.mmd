@@ -1,0 +1,18 @@
+sequenceDiagram
+    actor Mobile as Application mobile
+    participant API as API Symfony
+    participant Security as Symfony Security
+    participant DB as MySQL
+
+    Mobile->>API: POST /api/auth/login
+    API->>Security: json_login
+    Security->>DB: Recherche User par email
+    DB-->>Security: User + hash password
+    Security->>Security: Verification mot de passe
+    Security-->>API: JWT signe
+    API-->>Mobile: token JWT
+    Mobile->>Mobile: Stockage token via Expo Secure Store
+    Mobile->>API: GET /api/me avec Authorization Bearer
+    API->>Security: Verification JWT
+    API->>DB: Chargement User/Profile
+    API-->>Mobile: Donnees utilisateur sans password

@@ -1,0 +1,90 @@
+erDiagram
+    USER {
+        int id PK
+        varchar email UK
+        varchar username UK
+        json roles
+        varchar password
+        datetime created_at
+        datetime updated_at
+    }
+
+    USER_PROFILE {
+        int id PK
+        int user_id FK UK
+        varchar display_name
+        varchar bio
+        varchar favorite_team_name
+        varchar avatar_url
+        datetime created_at
+        datetime updated_at
+    }
+
+    POST {
+        int id PK
+        int author_id FK
+        longtext content
+        datetime created_at
+        datetime updated_at
+        datetime deleted_at
+        int deleted_by_id FK
+    }
+
+    FEED_COMMENT {
+        int id PK
+        int post_id FK
+        int author_id FK
+        longtext content
+        datetime created_at
+        datetime updated_at
+        datetime deleted_at
+        int deleted_by_id FK
+    }
+
+    POST_REACTION {
+        int id PK
+        int post_id FK
+        int user_id FK
+        varchar type
+        datetime created_at
+        datetime updated_at
+    }
+
+    CONVERSATION {
+        int id PK
+        int participant_one_id FK
+        int participant_two_id FK
+        datetime created_at
+        datetime updated_at
+    }
+
+    MESSAGE {
+        int id PK
+        int conversation_id FK
+        int sender_id FK
+        longtext content
+        datetime read_at
+        datetime created_at
+    }
+
+    MESSAGE_HIDDEN_FOR_USER {
+        int id PK
+        int message_id FK
+        int user_id FK
+        datetime hidden_at
+    }
+
+    USER ||--|| USER_PROFILE : user_id
+    USER ||--o{ POST : author_id
+    USER ||--o{ POST : deleted_by_id
+    POST ||--o{ FEED_COMMENT : post_id
+    USER ||--o{ FEED_COMMENT : author_id
+    USER ||--o{ FEED_COMMENT : deleted_by_id
+    USER ||--o{ POST_REACTION : user_id
+    POST ||--o{ POST_REACTION : post_id
+    USER ||--o{ CONVERSATION : participant_one_id
+    USER ||--o{ CONVERSATION : participant_two_id
+    CONVERSATION ||--o{ MESSAGE : conversation_id
+    USER ||--o{ MESSAGE : sender_id
+    MESSAGE ||--o{ MESSAGE_HIDDEN_FOR_USER : message_id
+    USER ||--o{ MESSAGE_HIDDEN_FOR_USER : user_id

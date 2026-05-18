@@ -1,0 +1,80 @@
+classDiagram
+    class User {
+        +id
+        +email
+        +username
+        +roles
+        +password
+        +getRoles()
+        +setPassword()
+    }
+
+    class UserProfile {
+        +displayName
+        +bio
+        +favoriteTeamName
+        +avatarUrl
+        +update()
+    }
+
+    class Post {
+        +author
+        +content
+        +deletedAt
+        +deletedBy
+        +updateContent()
+        +delete()
+        +isDeleted()
+    }
+
+    class Comment {
+        +post
+        +author
+        +content
+        +deletedAt
+        +deletedBy
+        +updateContent()
+        +delete()
+        +isDeleted()
+    }
+
+    class PostReaction {
+        +post
+        +user
+        +type
+        +changeType()
+    }
+
+    class Conversation {
+        +participantOne
+        +participantTwo
+        +includes()
+        +otherParticipant()
+        +touch()
+    }
+
+    class Message {
+        +conversation
+        +sender
+        +content
+        +readAt
+        +markAsRead()
+    }
+
+    class MessageHiddenForUser {
+        +message
+        +user
+        +hiddenAt
+    }
+
+    User "1" --> "1" UserProfile
+    User "1" --> "*" Post
+    User "1" --> "*" Comment
+    User "1" --> "*" PostReaction
+    Post "1" --> "*" Comment
+    Post "1" --> "*" PostReaction
+    User "1" --> "*" Conversation
+    Conversation "1" --> "*" Message
+    User "1" --> "*" Message
+    Message "1" --> "*" MessageHiddenForUser
+    User "1" --> "*" MessageHiddenForUser
