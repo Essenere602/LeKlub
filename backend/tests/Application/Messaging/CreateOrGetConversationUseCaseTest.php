@@ -113,6 +113,16 @@ final class MessagingUserRepository implements UserRepositoryInterface
         return [];
     }
 
+    public function paginateForAdmin(?string $query, int $page, int $limit): array
+    {
+        return [];
+    }
+
+    public function countForAdmin(?string $query): int
+    {
+        return count($this->users);
+    }
+
     public function save(User $user): void
     {
     }
@@ -141,6 +151,11 @@ final class MessagingConversationRepository implements ConversationRepositoryInt
     {
         return [];
     }
+
+    public function countAll(): int
+    {
+        return $this->savedConversation === null ? 0 : 1;
+    }
 }
 
 final class MessagingMessageRepository implements MessageRepositoryInterface
@@ -160,6 +175,11 @@ final class MessagingMessageRepository implements MessageRepositoryInterface
         return [];
     }
 
+    public function findVisibleForConversationAndUser(Conversation $conversation, User $user): array
+    {
+        return [];
+    }
+
     public function markAsReadForRecipient(Conversation $conversation, User $recipient): void
     {
     }
@@ -169,9 +189,35 @@ final class MessagingMessageRepository implements MessageRepositoryInterface
         return 0;
     }
 
+    public function countVisibleUnreadForRecipient(Conversation $conversation, User $recipient): int
+    {
+        return 0;
+    }
+
     public function findLastForConversation(Conversation $conversation): ?Message
     {
         return $this->savedMessages[0] ?? null;
+    }
+
+    public function findLastVisibleForConversationAndUser(Conversation $conversation, User $user): ?Message
+    {
+        return $this->findLastForConversation($conversation);
+    }
+
+    public function findById(int $id): ?Message
+    {
+        foreach ($this->savedMessages as $message) {
+            if ($message->getId() === $id) {
+                return $message;
+            }
+        }
+
+        return null;
+    }
+
+    public function countAll(): int
+    {
+        return count($this->savedMessages);
     }
 }
 

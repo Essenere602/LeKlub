@@ -10,15 +10,17 @@ import { AppText } from '../../components/ui/AppText';
 import { ErrorMessage } from '../../components/ui/ErrorMessage';
 import { Screen } from '../../components/ui/Screen';
 import { theme } from '../../config/theme';
-import { MainStackParamList } from '../../navigation/navigation.types';
+import { useAuth } from '../../hooks/useAuth';
+import { FeedStackParamList } from '../../navigation/navigation.types';
 import { toApiError } from '../../services/api/apiError';
 import { feedService } from '../../services/feed/feedService';
 import { Commentaire, Pagination, Post, ReactionType } from '../../types/feed.types';
 
-type PostDetailScreenProps = NativeStackScreenProps<MainStackParamList, 'PostDetail'>;
+type PostDetailScreenProps = NativeStackScreenProps<FeedStackParamList, 'PostDetail'>;
 
 export function PostDetailScreen({ navigation, route }: PostDetailScreenProps) {
   const { postId } = route.params;
+  const { user } = useAuth();
   const [post, setPost] = useState<Post | null>(null);
   const [comments, setComments] = useState<Commentaire[]>([]);
   const [commentsPagination, setCommentsPagination] = useState<Pagination | null>(null);
@@ -122,6 +124,61 @@ export function PostDetailScreen({ navigation, route }: PostDetailScreenProps) {
     }
   }
 
+  async function updatePost(updatedContent: string) {
+    setError(null);
+
+    try {
+      setPost(await feedService.updatePost(postId, { content: updatedContent }));
+    } catch (caughtError) {
+      setError(toApiError(caughtError).message);
+      throw caughtError;
+    }
+  }
+
+  async function deletePost() {
+    setError(null);
+
+    try {
+      await feedService.deletePost(postId);
+      navigation.goBack();
+    } catch (caughtError) {
+      setError(toApiError(caughtError).message);
+      throw caughtError;
+    }
+  }
+
+  async function updateComment(commentId: number, updatedContent: string) {
+    setError(null);
+
+    try {
+      const updatedComment = await feedService.updateComment(commentId, { content: updatedContent });
+      setComments((currentComments) => currentComments.map((comment) => (
+        comment.id === updatedComment.id ? updatedComment : comment
+      )));
+    } catch (caughtError) {
+      setError(toApiError(caughtError).message);
+      throw caughtError;
+    }
+  }
+
+  async function deleteComment(commentId: number) {
+    setError(null);
+
+    try {
+      await feedService.deleteComment(commentId);
+      const [updatedPost, updatedComments] = await Promise.all([
+        feedService.getPost(postId),
+        feedService.listComments(postId),
+      ]);
+      setPost(updatedPost);
+      setComments(updatedComments.comments);
+      setCommentsPagination(updatedComments.pagination);
+    } catch (caughtError) {
+      setError(toApiError(caughtError).message);
+      throw caughtError;
+    }
+  }
+
   return (
     <Screen style={styles.screen}>
       <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
@@ -137,9 +194,12 @@ export function PostDetailScreen({ navigation, route }: PostDetailScreenProps) {
 
         {post ? (
           <PostCard
+            canManage={post.author.id === user?.id}
             disabled={isReacting}
+            onDelete={deletePost}
             onReact={reactToPost}
             onRemoveReaction={removeReaction}
+            onUpdate={updatePost}
             post={post}
           />
         ) : null}
@@ -165,7 +225,13 @@ export function PostDetailScreen({ navigation, route }: PostDetailScreenProps) {
             <AppText variant="muted">Aucun commentaire pour le moment.</AppText>
           ) : null}
           {comments.map((comment) => (
-            <CommentCard comment={comment} key={comment.id} />
+            <CommentCard
+              canManage={comment.author.id === user?.id}
+              comment={comment}
+              key={comment.id}
+              onDelete={() => deleteComment(comment.id)}
+              onUpdate={(updatedContent) => updateComment(comment.id, updatedContent)}
+            />
           ))}
           {commentsPagination && commentsPagination.page < commentsPagination.pages ? (
             <AppButton

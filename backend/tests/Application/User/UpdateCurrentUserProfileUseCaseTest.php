@@ -76,6 +76,16 @@ final class SavingUserRepository implements UserRepositoryInterface
         return [];
     }
 
+    public function paginateForAdmin(?string $query, int $page, int $limit): array
+    {
+        return [];
+    }
+
+    public function countForAdmin(?string $query): int
+    {
+        return 0;
+    }
+
     public function save(User $user): void
     {
         $this->savedUser = $user;

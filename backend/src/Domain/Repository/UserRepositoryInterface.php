@@ -19,5 +19,12 @@ interface UserRepositoryInterface
      */
     public function findForDirectory(User $currentUser, ?string $query, int $limit): array;
 
+    /**
+     * @return list<User>
+     */
+    public function paginateForAdmin(?string $query, int $page, int $limit): array;
+
+    public function countForAdmin(?string $query): int;
+
     public function save(User $user): void;
 }

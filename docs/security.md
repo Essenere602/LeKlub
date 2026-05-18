@@ -19,7 +19,7 @@ Le backend utilise Symfony Security avec LexikJWTAuthenticationBundle.
 - `/api/auth/login` est public et géré par `json_login`.
 - `/api/health` est public.
 - Les autres routes `/api` demandent `ROLE_USER`.
-- Les routes `/api/admin` demanderont `ROLE_ADMIN`.
+- Les routes `/api/admin` demandent `ROLE_ADMIN`.
 - `ROLE_ADMIN` hérite de `ROLE_USER`.
 
 Le login utilise l'email comme identifiant. Le JWT contient donc l'email dans le claim configuré par `user_id_claim`.
@@ -57,8 +57,10 @@ Règles :
 - un utilisateur peut liker ou disliker un Post visible
 - un seul vote est autorisé par utilisateur et par Post
 - un utilisateur peut changer ou retirer sa Réaction
+- un auteur peut modifier son propre Post ou Commentaire visible
 - un auteur peut supprimer son propre Post ou Commentaire
 - `ROLE_ADMIN` peut supprimer n'importe quel Post ou Commentaire
+- `ROLE_ADMIN` ne modifie pas le contenu utilisateur, il modère uniquement par suppression logique
 
 La modération admin reste volontairement simple :
 
@@ -74,12 +76,38 @@ Les contenus supprimés sont invisibles dans :
 - les Commentaires
 - les Réactions
 
+Un contenu supprimé ne peut plus être modifié.
+
 Les contenus texte sont normalisés avant stockage :
 
 - `trim`
 - suppression des balises HTML
 - refus si vide après normalisation
 - stockage en texte brut
+
+## Back Office Admin
+
+Le Back Office Admin MVP est protégé côté backend par `ROLE_ADMIN` :
+
+- règle globale dans `security.yaml` sur `/api/admin`
+- attribut `#[IsGranted('ROLE_ADMIN')]` sur les contrôleurs admin
+- onglet mobile Admin affiché uniquement si l'utilisateur courant possède `ROLE_ADMIN`
+
+Les endpoints admin appliquent un principe de minimisation :
+
+- la liste utilisateurs ne retourne pas l'email
+- aucun mot de passe, token JWT ou secret n'est exposé
+- les Messages privés ne sont jamais lus ni affichés dans l'admin
+- les actions de modération utilisent la suppression logique existante
+- `deletedBy` conserve une trace du modérateur
+
+Le MVP admin ne contient pas :
+
+- suppression physique utilisateur
+- bannissement
+- gestion des rôles
+- signalements
+- dashboard complexe ou graphiques
 
 ## Messagerie Et WebSocket
 
@@ -92,6 +120,7 @@ Règles :
 - seul un participant peut lire les Messages privés d'une Conversation privée
 - seul un participant peut envoyer un Message privé dans une Conversation privée
 - seul un participant peut marquer une Conversation privée comme lue
+- seul un participant peut masquer un Message privé pour lui-même
 - les réponses API exposent l'id et le username, jamais le mot de passe ni l'email de l'autre participant
 
 Les Messages privés sont normalisés avant stockage :
@@ -103,6 +132,15 @@ Les Messages privés sont normalisés avant stockage :
 - stockage en texte brut
 
 Le WebSocket est authentifié par JWT après ouverture de connexion.
+
+La suppression de Message privé dans le MVP est une suppression pour soi uniquement :
+
+- table dédiée `message_hidden_for_user`
+- aucune suppression physique
+- aucun impact sur l'autre participant
+- l'historique REST filtre les Messages privés masqués pour l'utilisateur courant
+- la liste des Conversations privées utilise le dernier Message privé encore visible pour l'utilisateur courant
+- aucun changement WebSocket
 
 Les notifications WebSocket ne transportent pas le contenu du Message privé. Elles contiennent uniquement l'identifiant de Conversation privée, l'identifiant du Message privé et l'expéditeur. Le client mobile récupère ensuite l'historique via l'API REST protégée.
 

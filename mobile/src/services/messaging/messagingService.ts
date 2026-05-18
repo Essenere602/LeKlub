@@ -66,4 +66,8 @@ export const messagingService = {
   async markAsRead(conversationId: number): Promise<void> {
     await apiClient.patch<ApiResponse<Record<string, never>>>(`/conversations/${conversationId}/read`);
   },
+
+  async hideMessageForMe(conversationId: number, messageId: number): Promise<void> {
+    await apiClient.delete<ApiResponse<Record<string, never>>>(`/conversations/${conversationId}/messages/${messageId}`);
+  },
 };

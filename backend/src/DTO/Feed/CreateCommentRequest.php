@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\DTO\Feed;
 
+use App\Application\Feed\FeedContentNormalizer;
 use Symfony\Component\Validator\Constraints as Assert;
 
 final class CreateCommentRequest
@@ -15,7 +16,7 @@ final class CreateCommentRequest
     public static function fromArray(array $data): self
     {
         $request = new self();
-        $request->content = trim(strip_tags((string) ($data['content'] ?? '')));
+        $request->content = FeedContentNormalizer::normalize($data['content'] ?? '');
 
         return $request;
     }

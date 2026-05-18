@@ -9,16 +9,18 @@ import { AppText } from '../../components/ui/AppText';
 import { ErrorMessage } from '../../components/ui/ErrorMessage';
 import { Screen } from '../../components/ui/Screen';
 import { theme } from '../../config/theme';
-import { MainStackParamList } from '../../navigation/navigation.types';
+import { useAuth } from '../../hooks/useAuth';
+import { FeedStackParamList } from '../../navigation/navigation.types';
 import { toApiError } from '../../services/api/apiError';
 import { feedService } from '../../services/feed/feedService';
 import { Pagination, Post, ReactionType } from '../../types/feed.types';
 
-type FeedScreenProps = NativeStackScreenProps<MainStackParamList, 'Feed'>;
+type FeedScreenProps = NativeStackScreenProps<FeedStackParamList, 'Feed'>;
 
 const FEED_LIMIT = 10;
 
 export function FeedScreen({ navigation }: FeedScreenProps) {
+  const { user } = useAuth();
   const [posts, setPosts] = useState<Post[]>([]);
   const [pagination, setPagination] = useState<Pagination | null>(null);
   const [content, setContent] = useState('');
@@ -113,6 +115,30 @@ export function FeedScreen({ navigation }: FeedScreenProps) {
     await updatePostReaction(postId, () => feedService.removeReaction(postId));
   }
 
+  async function updatePost(postId: number, updatedContent: string) {
+    setError(null);
+
+    try {
+      const updatedPost = await feedService.updatePost(postId, { content: updatedContent });
+      setPosts((currentPosts) => currentPosts.map((post) => (post.id === updatedPost.id ? updatedPost : post)));
+    } catch (caughtError) {
+      setError(toApiError(caughtError).message);
+      throw caughtError;
+    }
+  }
+
+  async function deletePost(postId: number) {
+    setError(null);
+
+    try {
+      await feedService.deletePost(postId);
+      setPosts((currentPosts) => currentPosts.filter((post) => post.id !== postId));
+    } catch (caughtError) {
+      setError(toApiError(caughtError).message);
+      throw caughtError;
+    }
+  }
+
   async function updatePostReaction(postId: number, action: () => Promise<Post>) {
     setReactingPostId(postId);
     setError(null);
@@ -180,10 +206,13 @@ export function FeedScreen({ navigation }: FeedScreenProps) {
         }
         renderItem={({ item }) => (
           <PostCard
+            canManage={item.author.id === user?.id}
             disabled={reactingPostId === item.id}
             onOpen={() => navigation.navigate('PostDetail', { postId: item.id })}
             onReact={(type) => reactToPost(item.id, type)}
+            onDelete={() => deletePost(item.id)}
             onRemoveReaction={() => removeReaction(item.id)}
+            onUpdate={(updatedContent) => updatePost(item.id, updatedContent)}
             post={item}
           />
         )}

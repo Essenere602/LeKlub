@@ -7,12 +7,12 @@ import { FootballEmptyState } from '../../components/football/FootballEmptyState
 import { FootballShell } from '../../components/football/FootballShell';
 import { Screen } from '../../components/ui/Screen';
 import { theme } from '../../config/theme';
-import { MainStackParamList } from '../../navigation/navigation.types';
+import { FootballStackParamList } from '../../navigation/navigation.types';
 import { toApiError } from '../../services/api/apiError';
 import { footballService } from '../../services/football/footballService';
 import { FootballCompetition } from '../../types/football.types';
 
-type FootballHomeScreenProps = NativeStackScreenProps<MainStackParamList, 'Football'>;
+type FootballHomeScreenProps = NativeStackScreenProps<FootballStackParamList, 'Football'>;
 
 export function FootballHomeScreen({ navigation }: FootballHomeScreenProps) {
   const [competitions, setCompetitions] = useState<FootballCompetition[]>([]);

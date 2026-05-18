@@ -85,6 +85,16 @@ final class DirectoryUserRepository implements UserRepositoryInterface
         return $this->users;
     }
 
+    public function paginateForAdmin(?string $query, int $page, int $limit): array
+    {
+        return [];
+    }
+
+    public function countForAdmin(?string $query): int
+    {
+        return 0;
+    }
+
     public function save(User $user): void
     {
     }

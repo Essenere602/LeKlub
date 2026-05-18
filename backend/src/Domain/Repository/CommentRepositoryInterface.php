@@ -19,4 +19,11 @@ interface CommentRepositoryInterface
     public function paginateVisibleForPost(Post $post, int $page, int $limit): array;
 
     public function countVisibleForPost(Post $post): int;
+
+    /**
+     * @return list<Comment>
+     */
+    public function paginateVisibleForAdmin(int $page, int $limit): array;
+
+    public function countVisible(): int;
 }

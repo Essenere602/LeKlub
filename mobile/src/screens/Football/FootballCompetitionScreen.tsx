@@ -14,12 +14,12 @@ import { AppButton } from '../../components/ui/AppButton';
 import { AppText } from '../../components/ui/AppText';
 import { Screen } from '../../components/ui/Screen';
 import { theme } from '../../config/theme';
-import { MainStackParamList } from '../../navigation/navigation.types';
+import { FootballStackParamList } from '../../navigation/navigation.types';
 import { toApiError } from '../../services/api/apiError';
 import { footballService } from '../../services/football/footballService';
 import { FootballCompetitionCode, FootballMatch, FootballScorer, FootballStanding } from '../../types/football.types';
 
-type FootballCompetitionScreenProps = NativeStackScreenProps<MainStackParamList, 'FootballCompetition'>;
+type FootballCompetitionScreenProps = NativeStackScreenProps<FootballStackParamList, 'FootballCompetition'>;
 
 type FootballSection = 'results' | 'upcoming' | 'standings' | 'scorers';
 

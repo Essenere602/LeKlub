@@ -1,4 +1,4 @@
-import { StyleSheet, View } from 'react-native';
+import { Alert, Pressable, StyleSheet, View } from 'react-native';
 
 import { theme } from '../../config/theme';
 import { PrivateMessage } from '../../types/messaging.types';
@@ -7,14 +7,34 @@ import { AppText } from '../ui/AppText';
 type MessageBubbleProps = {
   message: PrivateMessage;
   mine: boolean;
+  onHideForMe?: () => Promise<void>;
 };
 
-export function MessageBubble({ message, mine }: MessageBubbleProps) {
+export function MessageBubble({ message, mine, onHideForMe }: MessageBubbleProps) {
   const isRead = message.readAt !== null;
+
+  function confirmHideForMe() {
+    if (!onHideForMe) {
+      return;
+    }
+
+    Alert.alert(
+      'Supprimer pour moi',
+      "Ce message disparaîtra uniquement de ton historique. L'autre participant pourra toujours le voir.",
+      [
+        { text: 'Annuler', style: 'cancel' },
+        { text: 'Supprimer pour moi', onPress: () => void onHideForMe(), style: 'destructive' },
+      ],
+    );
+  }
 
   return (
     <View style={[styles.row, mine ? styles.mineRow : styles.otherRow]}>
-      <View style={[styles.bubble, mine ? styles.mineBubble : styles.otherBubble]}>
+      <Pressable
+        accessibilityRole="button"
+        onLongPress={confirmHideForMe}
+        style={[styles.bubble, mine ? styles.mineBubble : styles.otherBubble]}
+      >
         {!mine ? <AppText style={styles.sender}>{message.sender.username}</AppText> : null}
         <AppText style={[styles.content, mine && styles.mineContent]}>{message.content}</AppText>
         <View style={styles.metaRow}>
@@ -28,7 +48,7 @@ export function MessageBubble({ message, mine }: MessageBubbleProps) {
             </AppText>
           ) : null}
         </View>
-      </View>
+      </Pressable>
     </View>
   );
 }

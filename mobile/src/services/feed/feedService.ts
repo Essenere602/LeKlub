@@ -7,6 +7,8 @@ import {
   PaginatedPosts,
   Post,
   ReactionType,
+  UpdateCommentPayload,
+  UpdatePostPayload,
 } from '../../types/feed.types';
 import { apiClient } from '../api/apiClient';
 
@@ -51,6 +53,20 @@ export const feedService = {
     return response.data.data.post;
   },
 
+  async updatePost(postId: number, payload: UpdatePostPayload): Promise<Post> {
+    const response = await apiClient.patch<ApiResponse<PostResponseData>>(`/feed/${postId}`, payload);
+
+    if (!response.data.data?.post) {
+      throw new Error(response.data.message ?? 'Unable to update post.');
+    }
+
+    return response.data.data.post;
+  },
+
+  async deletePost(postId: number): Promise<void> {
+    await apiClient.delete<ApiResponse<null>>(`/feed/${postId}`);
+  },
+
   async listComments(postId: number, page = 1, limit = 20): Promise<PaginatedComments> {
     const response = await apiClient.get<ApiResponse<PaginatedComments>>(`/feed/${postId}/comments`, {
       params: { page, limit },
@@ -71,6 +87,20 @@ export const feedService = {
     }
 
     return response.data.data.comment;
+  },
+
+  async updateComment(commentId: number, payload: UpdateCommentPayload): Promise<Commentaire> {
+    const response = await apiClient.patch<ApiResponse<CommentResponseData>>(`/feed/comments/${commentId}`, payload);
+
+    if (!response.data.data?.comment) {
+      throw new Error(response.data.message ?? 'Unable to update comment.');
+    }
+
+    return response.data.data.comment;
+  },
+
+  async deleteComment(commentId: number): Promise<void> {
+    await apiClient.delete<ApiResponse<null>>(`/feed/comments/${commentId}`);
   },
 
   async setReaction(postId: number, type: ReactionType): Promise<Post> {
