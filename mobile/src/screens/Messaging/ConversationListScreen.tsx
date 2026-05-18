@@ -7,15 +7,16 @@ import { AppButton } from '../../components/ui/AppButton';
 import { AppText } from '../../components/ui/AppText';
 import { ErrorMessage } from '../../components/ui/ErrorMessage';
 import { Screen } from '../../components/ui/Screen';
+import { StatusBadge } from '../../components/ui/StatusBadge';
 import { theme } from '../../config/theme';
 import { useAuth } from '../../hooks/useAuth';
 import { useMessagingSocket } from '../../hooks/useMessagingSocket';
-import { MainStackParamList } from '../../navigation/navigation.types';
+import { MessagingStackParamList } from '../../navigation/navigation.types';
 import { toApiError } from '../../services/api/apiError';
 import { messagingService } from '../../services/messaging/messagingService';
 import { Conversation } from '../../types/messaging.types';
 
-type ConversationListScreenProps = NativeStackScreenProps<MainStackParamList, 'Conversations'>;
+type ConversationListScreenProps = NativeStackScreenProps<MessagingStackParamList, 'Conversations'>;
 
 export function ConversationListScreen({ navigation }: ConversationListScreenProps) {
   const { isAuthenticated } = useAuth();
@@ -86,7 +87,7 @@ export function ConversationListScreen({ navigation }: ConversationListScreenPro
               <AppButton label="Nouvelle conversation" onPress={() => navigation.navigate('UserPicker')} />
             </View>
 
-            <AppText style={styles.socketStatus}>WebSocket : {labelForSocketStatus(socketStatus)}</AppText>
+            <StatusBadge {...badgeForSocketStatus(socketStatus)} />
             <ErrorMessage message={error} />
             {isLoading ? <ActivityIndicator color={theme.colors.accent} /> : null}
           </View>
@@ -121,17 +122,25 @@ function EmptyConversations() {
   );
 }
 
-function labelForSocketStatus(status: string): string {
-  const labels: Record<string, string> = {
-    authenticated: 'connecté',
-    closed: 'déconnecté',
-    connected: 'connexion ouverte',
-    connecting: 'connexion...',
-    disabled: 'désactivé',
-    error: 'erreur',
-  };
+type SocketBadge = {
+  label: string;
+  variant: 'accent' | 'success' | 'warning' | 'danger' | 'neutral';
+};
 
-  return labels[status] ?? status;
+function badgeForSocketStatus(status: string): SocketBadge {
+  if (status === 'authenticated' || status === 'connected') {
+    return { label: 'Temps réel actif', variant: 'success' };
+  }
+
+  if (status === 'connecting') {
+    return { label: 'Connexion temps réel...', variant: 'warning' };
+  }
+
+  if (status === 'error') {
+    return { label: 'Temps réel indisponible', variant: 'danger' };
+  }
+
+  return { label: 'Hors ligne', variant: 'neutral' };
 }
 
 const styles = StyleSheet.create({
@@ -156,10 +165,6 @@ const styles = StyleSheet.create({
   },
   actions: {
     gap: theme.spacing.md,
-  },
-  socketStatus: {
-    color: theme.colors.text.muted,
-    fontSize: theme.typography.sizes.sm,
   },
   empty: {
     alignItems: 'center',

@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace App\Controller\Api\Messaging;
 
+use App\Application\Messaging\HideMessageForCurrentUserUseCase;
 use App\Application\Messaging\ListMessagesUseCase;
 use App\Application\Messaging\MarkConversationAsReadUseCase;
 use App\Application\Messaging\SendMessageUseCase;
 use App\Domain\Entity\User;
+use App\Domain\Exception\ResourceNotFoundException;
 use App\Domain\Repository\ConversationRepositoryInterface;
 use App\DTO\Messaging\SendMessageRequest;
 use App\Security\Voter\ConversationVoter;
@@ -43,7 +45,7 @@ final class MessageController
         }
 
         return ApiResponse::success([
-            'messages' => $useCase->execute($conversation),
+            'messages' => $useCase->execute($conversation, $this->currentUser()),
         ]);
     }
 
@@ -93,6 +95,28 @@ final class MessageController
         $useCase->execute($conversation, $this->currentUser());
 
         return ApiResponse::success([], 'Conversation marked as read.');
+    }
+
+    #[Route('/{id}/messages/{messageId}', name: 'api_conversation_message_hide', methods: ['DELETE'], requirements: ['id' => '\d+', 'messageId' => '\d+'])]
+    public function hideForMe(int $id, int $messageId, HideMessageForCurrentUserUseCase $useCase): JsonResponse
+    {
+        $conversation = $this->conversations->findById($id);
+
+        if ($conversation === null) {
+            return ApiResponse::error('Conversation not found.', [], 404);
+        }
+
+        if (!$this->security->isGranted(ConversationVoter::VIEW, $conversation)) {
+            return ApiResponse::error('Access denied.', [], 403);
+        }
+
+        try {
+            $useCase->execute($conversation, $messageId, $this->currentUser());
+
+            return ApiResponse::success([], 'Message hidden successfully.');
+        } catch (ResourceNotFoundException) {
+            return ApiResponse::error('Message not found.', [], 404);
+        }
     }
 
     private function currentUser(): User

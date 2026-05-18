@@ -8,10 +8,12 @@ use App\Application\Feed\CreatePostUseCase;
 use App\Application\Feed\DeletePostUseCase;
 use App\Application\Feed\GetPostUseCase;
 use App\Application\Feed\ListFeedUseCase;
+use App\Application\Feed\UpdatePostUseCase;
 use App\Domain\Entity\User;
 use App\Domain\Exception\ResourceNotFoundException;
 use App\Domain\Repository\PostRepositoryInterface;
 use App\DTO\Feed\CreatePostRequest;
+use App\DTO\Feed\UpdatePostRequest;
 use App\Security\Voter\PostVoter;
 use App\Shared\Api\ApiResponse;
 use App\Shared\Api\Pagination;
@@ -67,6 +69,41 @@ final class FeedController
             return ApiResponse::success([
                 'post' => $useCase->execute($id),
             ]);
+        } catch (ResourceNotFoundException) {
+            return ApiResponse::error('Post not found.', [], 404);
+        }
+    }
+
+    #[Route('/{id}', name: 'api_feed_update', methods: ['PATCH'], requirements: ['id' => '\d+'])]
+    public function update(int $id, Request $request, UpdatePostUseCase $useCase): JsonResponse
+    {
+        $post = $this->posts->findVisibleById($id);
+
+        if ($post === null) {
+            return ApiResponse::error('Post not found.', [], 404);
+        }
+
+        if (!$this->security->isGranted(PostVoter::EDIT, $post)) {
+            return ApiResponse::error('Access denied.', [], 403);
+        }
+
+        $payload = $this->jsonPayload($request);
+
+        if ($payload instanceof JsonResponse) {
+            return $payload;
+        }
+
+        $dto = UpdatePostRequest::fromArray($payload);
+        $violations = $this->validator->validate($dto);
+
+        if (count($violations) > 0) {
+            return ApiResponse::validationError($violations);
+        }
+
+        try {
+            return ApiResponse::success([
+                'post' => $useCase->execute($post, $dto),
+            ], 'Post updated successfully.');
         } catch (ResourceNotFoundException) {
             return ApiResponse::error('Post not found.', [], 404);
         }

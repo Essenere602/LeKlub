@@ -9,13 +9,13 @@ import { AppText } from '../../components/ui/AppText';
 import { ErrorMessage } from '../../components/ui/ErrorMessage';
 import { Screen } from '../../components/ui/Screen';
 import { theme } from '../../config/theme';
-import { MainStackParamList } from '../../navigation/navigation.types';
+import { MessagingStackParamList } from '../../navigation/navigation.types';
 import { toApiError } from '../../services/api/apiError';
 import { messagingService } from '../../services/messaging/messagingService';
 import { userDirectoryService } from '../../services/user/userDirectoryService';
 import { MessagingUser } from '../../types/userDirectory.types';
 
-type UserPickerScreenProps = NativeStackScreenProps<MainStackParamList, 'UserPicker'>;
+type UserPickerScreenProps = NativeStackScreenProps<MessagingStackParamList, 'UserPicker'>;
 
 export function UserPickerScreen({ navigation }: UserPickerScreenProps) {
   const [users, setUsers] = useState<MessagingUser[]>([]);

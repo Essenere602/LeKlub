@@ -1,5 +1,8 @@
-import { Pressable, StyleSheet, View } from 'react-native';
+import { Alert, Pressable, StyleSheet, View } from 'react-native';
+import { useState } from 'react';
 
+import { AppButton } from '../ui/AppButton';
+import { AppInput } from '../ui/AppInput';
 import { theme } from '../../config/theme';
 import { Post, ReactionType } from '../../types/feed.types';
 import { AppText } from '../ui/AppText';
@@ -8,16 +11,82 @@ import { ReactionButtons } from './ReactionButtons';
 type PostCardProps = {
   post: Post;
   disabled?: boolean;
+  canManage?: boolean;
   onOpen?: () => void;
   onReact: (type: ReactionType) => void;
   onRemoveReaction: () => void;
+  onUpdate?: (content: string) => Promise<void>;
+  onDelete?: () => Promise<void>;
 };
 
-export function PostCard({ disabled = false, onOpen, onReact, onRemoveReaction, post }: PostCardProps) {
+export function PostCard({
+  canManage = false,
+  disabled = false,
+  onDelete,
+  onOpen,
+  onReact,
+  onRemoveReaction,
+  onUpdate,
+  post,
+}: PostCardProps) {
+  const [isEditing, setIsEditing] = useState(false);
+  const [editContent, setEditContent] = useState(post.content);
+  const [isSaving, setIsSaving] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  async function saveEdit() {
+    const trimmedContent = editContent.trim();
+
+    if (!trimmedContent) {
+      Alert.alert('Contenu requis', 'Le Post ne peut pas être vide.');
+      return;
+    }
+
+    if (!onUpdate) {
+      return;
+    }
+
+    setIsSaving(true);
+
+    try {
+      await onUpdate(trimmedContent);
+      setIsEditing(false);
+    } finally {
+      setIsSaving(false);
+    }
+  }
+
+  function confirmDelete() {
+    if (!onDelete) {
+      return;
+    }
+
+    Alert.alert(
+      'Supprimer le Post',
+      'Cette action rendra le Post invisible dans le Feed.',
+      [
+        { text: 'Annuler', style: 'cancel' },
+        {
+          text: 'Supprimer',
+          style: 'destructive',
+          onPress: async () => {
+            setIsDeleting(true);
+
+            try {
+              await onDelete();
+            } finally {
+              setIsDeleting(false);
+            }
+          },
+        },
+      ],
+    );
+  }
+
   return (
     <Pressable
       accessibilityRole={onOpen ? 'button' : undefined}
-      disabled={!onOpen}
+      disabled={isEditing || !onOpen}
       onPress={onOpen}
       style={({ pressed }) => [styles.card, pressed && onOpen && styles.pressed]}
     >
@@ -31,11 +100,40 @@ export function PostCard({ disabled = false, onOpen, onReact, onRemoveReaction, 
         </View>
       </View>
 
-      <AppText style={styles.content}>{post.content}</AppText>
+      {isEditing ? (
+        <View style={styles.editForm}>
+          <AppInput
+            autoCapitalize="sentences"
+            label="Modifier le Post"
+            maxLength={1000}
+            multiline
+            onChangeText={setEditContent}
+            style={styles.textArea}
+            textAlignVertical="top"
+            value={editContent}
+          />
+          <View style={styles.actions}>
+            <AppButton label="Annuler" onPress={() => {
+              setEditContent(post.content);
+              setIsEditing(false);
+            }} variant="secondary" />
+            <AppButton label="Enregistrer" loading={isSaving} onPress={saveEdit} />
+          </View>
+        </View>
+      ) : (
+        <AppText style={styles.content}>{post.content}</AppText>
+      )}
 
       <View style={styles.meta}>
         <AppText variant="muted">{post.commentsCount} commentaire{post.commentsCount > 1 ? 's' : ''}</AppText>
       </View>
+
+      {canManage && !isEditing ? (
+        <View style={styles.actions}>
+          <AppButton label="Modifier" onPress={() => setIsEditing(true)} variant="secondary" />
+          <AppButton label="Supprimer" loading={isDeleting} onPress={confirmDelete} variant="ghost" />
+        </View>
+      ) : null}
 
       <ReactionButtons
         disabled={disabled}
@@ -106,5 +204,16 @@ const styles = StyleSheet.create({
     borderTopColor: theme.colors.border,
     borderTopWidth: 1,
     paddingTop: theme.spacing.md,
+  },
+  editForm: {
+    gap: theme.spacing.md,
+  },
+  textArea: {
+    minHeight: 88,
+    paddingTop: theme.spacing.md,
+  },
+  actions: {
+    flexDirection: 'row',
+    gap: theme.spacing.md,
   },
 });

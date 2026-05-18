@@ -67,6 +67,11 @@ final class SavingPostRepository implements PostRepositoryInterface
         return count($this->paginateVisible(1, 10));
     }
 
+    public function paginateVisibleForAdmin(int $page, int $limit): array
+    {
+        return $this->paginateVisible($page, $limit);
+    }
+
     public function countVisibleComments(Post $post): int
     {
         return 0;

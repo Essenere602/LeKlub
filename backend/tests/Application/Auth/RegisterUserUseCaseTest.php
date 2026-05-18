@@ -123,6 +123,16 @@ final class InMemoryUserRepository implements UserRepositoryInterface
         return [];
     }
 
+    public function paginateForAdmin(?string $query, int $page, int $limit): array
+    {
+        return [];
+    }
+
+    public function countForAdmin(?string $query): int
+    {
+        return count($this->usersByEmail);
+    }
+
     public function save(User $user): void
     {
         $this->usersByEmail[$user->getEmail()] = $user;

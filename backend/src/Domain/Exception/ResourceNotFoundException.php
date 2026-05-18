@@ -27,4 +27,9 @@ final class ResourceNotFoundException extends DomainException
     {
         return new self('CONVERSATION_NOT_FOUND');
     }
+
+    public static function message(): self
+    {
+        return new self('MESSAGE_NOT_FOUND');
+    }
 }

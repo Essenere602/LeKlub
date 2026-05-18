@@ -59,4 +59,31 @@ final class CommentRepository extends ServiceEntityRepository implements Comment
             ->getQuery()
             ->getSingleScalarResult();
     }
+
+    public function paginateVisibleForAdmin(int $page, int $limit): array
+    {
+        return $this->createQueryBuilder('comment')
+            ->join('comment.author', 'author')
+            ->join('comment.post', 'post')
+            ->leftJoin('author.profile', 'profile')
+            ->addSelect('author', 'post', 'profile')
+            ->andWhere('comment.deletedAt IS NULL')
+            ->andWhere('post.deletedAt IS NULL')
+            ->orderBy('comment.createdAt', 'DESC')
+            ->setFirstResult(($page - 1) * $limit)
+            ->setMaxResults($limit)
+            ->getQuery()
+            ->getResult();
+    }
+
+    public function countVisible(): int
+    {
+        return (int) $this->createQueryBuilder('comment')
+            ->select('COUNT(comment.id)')
+            ->join('comment.post', 'post')
+            ->andWhere('comment.deletedAt IS NULL')
+            ->andWhere('post.deletedAt IS NULL')
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
 }

@@ -19,4 +19,6 @@ interface ConversationRepositoryInterface
      * @return list<Conversation>
      */
     public function findForUser(User $user): array;
+
+    public function countAll(): int;
 }

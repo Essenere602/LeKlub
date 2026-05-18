@@ -25,13 +25,16 @@ Le backend Symfony est opérationnel pour les fonctionnalités suivantes :
 - inscription et connexion JWT
 - consultation et modification du profil utilisateur
 - création, affichage et suppression logique de Posts
-- ajout et suppression de Commentaires
+- modification et suppression logique de ses propres Posts côté utilisateur
+- ajout, modification et suppression logique de ses propres Commentaires
 - ajout, modification et retrait de Réactions `like` / `dislike`
 - modération simple par `ROLE_ADMIN`
 - création de Conversations privées
 - envoi, consultation et marquage comme lus des Messages privés
+- suppression de Messages privés pour soi uniquement
 - notification WebSocket simple lors d'un nouveau Message privé
 - données football en lecture seule : résultats, matchs à venir, classement et buteurs
+- Back Office Admin MVP : synthèse, liste utilisateurs sécurisée, modération des Posts et Commentaires
 
 Vérifications actuelles :
 
@@ -59,8 +62,11 @@ Choix assumés :
 - pas de Réactions sur les Commentaires
 - pas de groupes de conversation
 - pas de pièces jointes dans les Messages privés
+- pas de suppression de Message privé pour tout le monde
 - pas de microservice, Redis, Mercure ou architecture distribuée pour le temps réel
 - pas de persistance des données football tant que le besoin n'est pas démontré
+- pas de suppression physique utilisateur, bannissement ou gestion avancée des rôles dans l'admin MVP
+- pas de lecture des Messages privés dans l'admin
 
 Ces choix réduisent la complexité et permettent de démontrer clairement l'architecture, la sécurité, Docker, les tests, l'API REST et le temps réel.
 
@@ -215,8 +221,10 @@ GET    /api/feed
 POST   /api/feed
 GET    /api/feed/{id}
 DELETE /api/feed/{id}
+PATCH  /api/feed/{id}
 GET    /api/feed/{postId}/comments
 POST   /api/feed/{postId}/comments
+PATCH  /api/feed/comments/{id}
 DELETE /api/feed/comments/{id}
 PUT    /api/feed/{postId}/reaction
 DELETE /api/feed/{postId}/reaction
@@ -224,12 +232,19 @@ GET    /api/conversations
 POST   /api/conversations
 GET    /api/conversations/{id}/messages
 POST   /api/conversations/{id}/messages
+DELETE /api/conversations/{id}/messages/{messageId}
 PATCH  /api/conversations/{id}/read
 GET    /api/football/competitions
 GET    /api/football/competitions/{code}/results
 GET    /api/football/competitions/{code}/upcoming
 GET    /api/football/competitions/{code}/standings
 GET    /api/football/competitions/{code}/scorers
+GET    /api/admin/overview
+GET    /api/admin/users
+GET    /api/admin/posts
+DELETE /api/admin/posts/{id}
+GET    /api/admin/comments
+DELETE /api/admin/comments/{id}
 ```
 
 Le feed MVP gère les Posts texte, les Commentaires, les Réactions et la modération admin par suppression logique.
@@ -239,6 +254,8 @@ La messagerie MVP gère les Conversations privées entre deux utilisateurs, l'hi
 Les données football sont lues depuis football-data.org avec une normalisation côté backend. Les réponses brutes de l'API externe ne sont jamais renvoyées directement au mobile.
 
 Les résultats et matchs à venir peuvent être filtrés par journée avec le paramètre optionnel `matchday`.
+
+Le Back Office Admin MVP est protégé par `ROLE_ADMIN`. Il ne retourne pas l'email dans la liste utilisateurs et utilise uniquement la suppression logique pour la modération du Feed.
 
 ## CORS Et Expo Go
 
