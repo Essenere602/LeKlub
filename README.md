@@ -97,7 +97,11 @@ Ces choix réduisent la complexité et permettent de démontrer clairement l'arc
 
 ## Architecture
 
-Le backend suit une architecture en couches simple :
+Architecture officielle :
+
+> Architecture en couches orientee Use Cases, inspiree Clean Architecture, adaptee a Symfony.
+
+Le backend suit cette organisation :
 
 - Controller / API : réception des requêtes HTTP et réponses JSON
 - Application / Use Case : orchestration des cas d'utilisation
@@ -105,6 +109,8 @@ Le backend suit une architecture en couches simple :
 - Infrastructure : Doctrine, API externe, WebSocket, services techniques
 
 Le frontend est organisé par écrans, services API, navigation, hooks, composants et types.
+
+Cette architecture n'est pas un MVC Symfony classique, pas du DDD strict, pas une architecture hexagonale complète et pas une Clean Architecture stricte. Ces compromis sont documentés dans `docs/architecture.md`.
 
 ## Structure Du Projet
 
