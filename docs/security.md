@@ -82,7 +82,16 @@ La modération admin reste volontairement simple :
 - suppression logique via `deletedAt`
 - trace de l'utilisateur modérateur via `deletedBy`
 - pas de statut `pending` ou `approved`
-- pas de signalements utilisateurs dans le MVP
+
+Les signalements Feed ajoutent une étape de contrôle communautaire sans mélanger les responsabilités :
+
+- un utilisateur connecté peut signaler un Post ou un Commentaire visible
+- un contenu supprimé ne peut pas être signalé
+- un utilisateur ne peut signaler qu'une seule fois le même contenu
+- les raisons sont limitées à une liste validée côté backend
+- le détail optionnel est limité à 500 caractères, normalisé en texte brut et nullable si vide après `trim`
+- l'admin peut consulter et résoudre un signalement sans supprimer le contenu
+- si une suppression est nécessaire, l'admin utilise la modération existante par suppression logique
 
 Les contenus supprimés sont invisibles dans :
 
@@ -121,7 +130,6 @@ Le MVP admin ne contient pas :
 - suppression physique utilisateur
 - bannissement
 - gestion des rôles
-- signalements
 - dashboard complexe ou graphiques
 
 ## Messagerie Et WebSocket
@@ -201,7 +209,8 @@ Conséquence MVP : les endpoints football restent simples et peu nombreux pour �
 - pas de notifications push hors application ouverte
 - pas de reconnexion WebSocket avancée
 - pas de pagination de l'historique des Messages privés
-- pas de système de signalement utilisateur
+- pas de notifications automatiques liées aux signalements
+- pas d'escalade complexe des signalements
 - pas de cache des données football
 - pas de persistance des données football
 - dépendance à la disponibilité et au quota de football-data.org

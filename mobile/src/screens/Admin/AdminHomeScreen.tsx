@@ -21,7 +21,7 @@ type AdminModule = {
   id: string;
   title: string;
   description: string;
-  icon: 'people-outline' | 'shield-checkmark-outline';
+  icon: 'people-outline' | 'shield-checkmark-outline' | 'flag-outline';
   screen: keyof AdminStackParamList;
 };
 
@@ -39,6 +39,13 @@ const MODULES: AdminModule[] = [
     description: 'Supprimer logiquement Posts et Commentaires.',
     icon: 'shield-checkmark-outline',
     screen: 'AdminFeedModeration',
+  },
+  {
+    id: 'reports',
+    title: 'Signalements',
+    description: 'Consulter et résoudre les signalements utilisateurs.',
+    icon: 'flag-outline',
+    screen: 'AdminReports',
   },
 ];
 
@@ -87,6 +94,7 @@ export function AdminHomeScreen({ navigation }: AdminHomeScreenProps) {
                 <AdminStatCard icon="people-outline" label="Utilisateurs" value={overview.usersCount} />
                 <AdminStatCard icon="chatbubbles-outline" label="Posts" value={overview.postsCount} />
                 <AdminStatCard icon="text-outline" label="Commentaires" value={overview.commentsCount} />
+                <AdminStatCard icon="flag-outline" label="Signalements ouverts" value={overview.openReportsCount} />
                 <AdminStatCard icon="mail-outline" label="Conversations" value={overview.conversationsCount} />
                 <AdminStatCard icon="send-outline" label="Messages privés" value={overview.messagesCount} />
               </View>

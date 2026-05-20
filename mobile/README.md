@@ -191,8 +191,12 @@ Le Feed mobile MVP utilise :
 - `DELETE /api/feed/comments/{id}` pour supprimer logiquement son propre Commentaire
 - `PUT /api/feed/{postId}/reaction` pour liker ou disliker
 - `DELETE /api/feed/{postId}/reaction` pour retirer la Réaction
+- `POST /api/feed/{postId}/reports` pour signaler un Post visible
+- `POST /api/feed/comments/{commentId}/reports` pour signaler un Commentaire visible
 
 Le backend ne retourne pas encore la Réaction courante de l'utilisateur. L'interface affiche donc les compteurs serveur et propose les actions `Like`, `Dislike` et `Retirer`, sans état visuel actif du vote.
+
+Le signalement reste discret dans l'UI : un bouton `Signaler` ouvre une modal avec une raison prédéfinie et une précision optionnelle.
 
 ## Tests Manuels Feed
 
@@ -212,6 +216,9 @@ Le backend ne retourne pas encore la Réaction courante de l'utilisateur. L'inte
 - modifier un de ses propres Commentaires
 - supprimer un de ses propres Commentaires après confirmation
 - vérifier que les boutons modifier/supprimer ne sont pas affichés sur le contenu d'un autre utilisateur
+- signaler un Post d'un autre utilisateur
+- signaler un Commentaire d'un autre utilisateur
+- tenter de signaler deux fois le même contenu et vérifier le message propre
 - utiliser `Charger plus` si plus de 10 Posts existent
 - revenir au Feed après un commentaire et rafraîchir la liste
 
@@ -324,6 +331,8 @@ Le Back Office Admin mobile MVP utilise :
 - `DELETE /api/admin/posts/{id}` pour supprimer logiquement un Post
 - `GET /api/admin/comments?page=&limit=` pour lister les Commentaires à modérer
 - `DELETE /api/admin/comments/{id}` pour supprimer logiquement un Commentaire
+- `GET /api/admin/reports?page=&limit=&status=` pour consulter les signalements
+- `PATCH /api/admin/reports/{id}/resolve` pour résoudre un signalement sans supprimer le contenu
 
 Contraintes MVP :
 
@@ -331,6 +340,7 @@ Contraintes MVP :
 - pas de bannissement
 - pas de gestion des rôles
 - pas de lecture des Messages privés
+- les signalements et la modération restent deux actions séparées
 - confirmation avant chaque action de modération
 
 ### Tests Manuels Admin
@@ -346,6 +356,10 @@ Contraintes MVP :
 - basculer entre Posts et Commentaires
 - supprimer logiquement un Post ou Commentaire de test
 - vérifier que le contenu supprimé disparaît du Feed utilisateur
+- ouvrir les Signalements
+- basculer entre `Ouverts` et `Résolus`
+- résoudre un signalement sans supprimer le contenu
+- vérifier qu'un signalement résolu passe dans l'onglet `Résolus`
 
 ## Audit NPM
 

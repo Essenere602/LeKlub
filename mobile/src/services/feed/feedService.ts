@@ -1,6 +1,7 @@
 import { ApiResponse } from '../../types/api.types';
 import {
   Commentaire,
+  CreateReportPayload,
   CreateCommentPayload,
   CreatePostPayload,
   PaginatedComments,
@@ -101,6 +102,14 @@ export const feedService = {
 
   async deleteComment(commentId: number): Promise<void> {
     await apiClient.delete<ApiResponse<null>>(`/feed/comments/${commentId}`);
+  },
+
+  async reportPost(postId: number, payload: CreateReportPayload): Promise<void> {
+    await apiClient.post<ApiResponse<null>>(`/feed/${postId}/reports`, payload);
+  },
+
+  async reportComment(commentId: number, payload: CreateReportPayload): Promise<void> {
+    await apiClient.post<ApiResponse<null>>(`/feed/comments/${commentId}/reports`, payload);
   },
 
   async setReaction(postId: number, type: ReactionType): Promise<Post> {

@@ -350,6 +350,56 @@ Retire la Réaction de l'utilisateur connecté sur un Post visible.
 
 Codes possibles : `200`, `401`, `404`.
 
+## Signalements Feed
+
+Toutes les routes de signalement demandent un JWT.
+
+Le signalement et la modération restent séparés :
+
+- signaler crée un `FeedReport`
+- modérer reste une action admin distincte par suppression logique
+- un utilisateur ne peut signaler qu'une seule fois le même Post ou Commentaire
+- un contenu déjà supprimé retourne `404` et ne peut pas être signalé
+
+Raisons autorisées :
+
+```text
+spam
+insults
+harassment
+hate_content
+inappropriate_content
+other
+```
+
+Le champ `details` est optionnel, limité à 500 caractères, normalisé en texte brut et enregistré à `null` s'il est vide après `trim`.
+
+### POST /api/feed/{postId}/reports
+
+Signale un Post visible.
+
+```json
+{
+  "reason": "spam",
+  "details": "Message optionnel pour la modération"
+}
+```
+
+Codes possibles : `201`, `400`, `401`, `404`, `409`, `422`.
+
+### POST /api/feed/comments/{commentId}/reports
+
+Signale un Commentaire visible.
+
+```json
+{
+  "reason": "insults",
+  "details": null
+}
+```
+
+Codes possibles : `201`, `400`, `401`, `404`, `409`, `422`.
+
 ## Conversations Privées
 
 Toutes les routes de messagerie demandent un JWT.
@@ -522,6 +572,7 @@ Retourne des compteurs de supervision.
   "usersCount": 12,
   "postsCount": 34,
   "commentsCount": 51,
+  "openReportsCount": 2,
   "conversationsCount": 8,
   "messagesCount": 93
 }
@@ -571,6 +622,42 @@ Codes possibles : `200`, `401`, `403`.
 ### DELETE /api/admin/comments/{id}
 
 Supprime logiquement un Commentaire en renseignant `deletedAt` et `deletedBy`.
+
+Codes possibles : `200`, `401`, `403`, `404`.
+
+### GET /api/admin/reports?page=1&limit=10&status=open
+
+Retourne les signalements paginés.
+
+Le filtre `status` est optionnel :
+
+```text
+open
+resolved
+```
+
+Chaque signalement retourne :
+
+- le type de contenu : `post` ou `comment`
+- la raison
+- le détail optionnel
+- le statut
+- le reporter, sans email
+- un extrait du contenu signalé
+- l'auteur du contenu, sans email
+- la date de création
+- les informations de résolution si le signalement est résolu
+
+Codes possibles : `200`, `401`, `403`, `422`.
+
+### PATCH /api/admin/reports/{id}/resolve
+
+Marque un signalement comme résolu.
+
+Cette action ne supprime pas le contenu. Si nécessaire, l'admin utilise ensuite les endpoints de modération existants :
+
+- `DELETE /api/admin/posts/{id}`
+- `DELETE /api/admin/comments/{id}`
 
 Codes possibles : `200`, `401`, `403`, `404`.
 

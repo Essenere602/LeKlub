@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useState } from 'react';
-import { ActivityIndicator, FlatList, RefreshControl, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, Alert, FlatList, RefreshControl, StyleSheet, View } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 
 import { PostCard } from '../../components/feed/PostCard';
+import { ReportContentModal } from '../../components/feed/ReportContentModal';
 import { AppButton } from '../../components/ui/AppButton';
 import { AppInput } from '../../components/ui/AppInput';
 import { AppText } from '../../components/ui/AppText';
@@ -13,7 +14,7 @@ import { useAuth } from '../../hooks/useAuth';
 import { FeedStackParamList } from '../../navigation/navigation.types';
 import { toApiError } from '../../services/api/apiError';
 import { feedService } from '../../services/feed/feedService';
-import { Pagination, Post, ReactionType } from '../../types/feed.types';
+import { CreateReportPayload, Pagination, Post, ReactionType } from '../../types/feed.types';
 
 type FeedScreenProps = NativeStackScreenProps<FeedStackParamList, 'Feed'>;
 
@@ -30,6 +31,9 @@ export function FeedScreen({ navigation }: FeedScreenProps) {
   const [isCreating, setIsCreating] = useState(false);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [reactingPostId, setReactingPostId] = useState<number | null>(null);
+  const [reportingPostId, setReportingPostId] = useState<number | null>(null);
+  const [isReporting, setIsReporting] = useState(false);
+  const [reportError, setReportError] = useState<string | null>(null);
 
   const loadPosts = useCallback(async (page = 1, append = false) => {
     const result = await feedService.listPosts(page, FEED_LIMIT);
@@ -153,8 +157,39 @@ export function FeedScreen({ navigation }: FeedScreenProps) {
     }
   }
 
+  async function submitReport(payload: CreateReportPayload) {
+    if (reportingPostId === null) {
+      return;
+    }
+
+    setIsReporting(true);
+    setReportError(null);
+
+    try {
+      await feedService.reportPost(reportingPostId, payload);
+      setReportingPostId(null);
+      Alert.alert('Signalement envoyé', "L'équipe de modération pourra traiter ce contenu.");
+    } catch (caughtError) {
+      setReportError(toApiError(caughtError).message);
+      throw caughtError;
+    } finally {
+      setIsReporting(false);
+    }
+  }
+
   return (
     <Screen style={styles.screen}>
+      <ReportContentModal
+        error={reportError}
+        loading={isReporting}
+        targetLabel="Post"
+        visible={reportingPostId !== null}
+        onClose={() => {
+          setReportingPostId(null);
+          setReportError(null);
+        }}
+        onSubmit={submitReport}
+      />
       <FlatList
         contentContainerStyle={styles.content}
         data={posts}
@@ -211,6 +246,7 @@ export function FeedScreen({ navigation }: FeedScreenProps) {
             onOpen={() => navigation.navigate('PostDetail', { postId: item.id })}
             onReact={(type) => reactToPost(item.id, type)}
             onDelete={() => deletePost(item.id)}
+            onReport={() => setReportingPostId(item.id)}
             onRemoveReaction={() => removeReaction(item.id)}
             onUpdate={(updatedContent) => updatePost(item.id, updatedContent)}
             post={item}

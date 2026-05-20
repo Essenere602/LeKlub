@@ -54,3 +54,16 @@ export type UpdatePostPayload = {
 export type UpdateCommentPayload = {
   content: string;
 };
+
+export type ReportReason =
+  | 'spam'
+  | 'insults'
+  | 'harassment'
+  | 'hate_content'
+  | 'inappropriate_content'
+  | 'other';
+
+export type CreateReportPayload = {
+  reason: ReportReason;
+  details?: string | null;
+};

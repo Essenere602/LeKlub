@@ -53,6 +53,10 @@ function translateMessage(message: string): string {
       'Les données football sont temporairement indisponibles. Réessayez dans un instant.',
     'Competition not supported.':
       "Cette compétition n'est pas supportée par LeKlub.",
+    'Content already reported by this user.':
+      'Ce contenu a déjà été signalé avec votre compte.',
+    'Invalid report status.':
+      'Le filtre de signalement est invalide.',
   };
 
   return translations[message] ?? message;
@@ -71,6 +75,8 @@ function labelForField(field: string): string {
     favoriteTeamName: 'Équipe favorite',
     avatarUrl: 'URL avatar',
     content: 'Message',
+    reason: 'Raison',
+    details: 'Précision',
     recipientId: 'Destinataire',
   };
 

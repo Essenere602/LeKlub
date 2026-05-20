@@ -4,6 +4,7 @@ export type AdminOverview = {
   usersCount: number;
   postsCount: number;
   commentsCount: number;
+  openReportsCount: number;
   conversationsCount: number;
   messagesCount: number;
 };
@@ -57,5 +58,34 @@ export type PaginatedAdminPosts = {
 
 export type PaginatedAdminComments = {
   comments: AdminComment[];
+  pagination: Pagination;
+};
+
+export type AdminReportStatus = 'open' | 'resolved';
+
+export type AdminReport = {
+  id: number;
+  type: 'post' | 'comment';
+  reason: string;
+  details: string | null;
+  status: AdminReportStatus;
+  reporter: AdminAuthor;
+  content: {
+    id: number | null;
+    excerpt: string | null;
+    author: AdminAuthor | null;
+    deletedAt: string | null;
+  };
+  post: {
+    id: number;
+    excerpt: string;
+  } | null;
+  createdAt: string;
+  resolvedAt: string | null;
+  resolvedBy: AdminAuthor | null;
+};
+
+export type PaginatedAdminReports = {
+  reports: AdminReport[];
   pagination: Pagination;
 };

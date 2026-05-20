@@ -12,9 +12,10 @@ type CommentCardProps = {
   canManage?: boolean;
   onUpdate?: (content: string) => Promise<void>;
   onDelete?: () => Promise<void>;
+  onReport?: () => void;
 };
 
-export function CommentCard({ canManage = false, comment, onDelete, onUpdate }: CommentCardProps) {
+export function CommentCard({ canManage = false, comment, onDelete, onReport, onUpdate }: CommentCardProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [editContent, setEditContent] = useState(comment.content);
   const [isSaving, setIsSaving] = useState(false);
@@ -104,6 +105,11 @@ export function CommentCard({ canManage = false, comment, onDelete, onUpdate }: 
           <AppButton label="Supprimer" loading={isDeleting} onPress={confirmDelete} variant="ghost" />
         </View>
       ) : null}
+      {!canManage && !isEditing && onReport ? (
+        <View style={styles.reportAction}>
+          <AppButton label="Signaler" onPress={onReport} variant="ghost" />
+        </View>
+      ) : null}
     </View>
   );
 }
@@ -147,5 +153,8 @@ const styles = StyleSheet.create({
   actions: {
     flexDirection: 'row',
     gap: theme.spacing.md,
+  },
+  reportAction: {
+    alignItems: 'flex-start',
   },
 });

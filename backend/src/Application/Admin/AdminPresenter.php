@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Application\Admin;
 
 use App\Domain\Entity\Comment;
+use App\Domain\Entity\FeedReport;
 use App\Domain\Entity\Post;
 use App\Domain\Entity\User;
 use App\Domain\Repository\PostRepositoryInterface;
@@ -66,6 +67,39 @@ final class AdminPresenter
                 'excerpt' => mb_substr($post->getContent(), 0, 120),
             ],
             'createdAt' => $comment->getCreatedAt()->format(DATE_ATOM),
+        ];
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    public function report(FeedReport $report): array
+    {
+        $post = $report->getPost();
+        $comment = $report->getComment();
+        $content = $post ?? $comment;
+        $author = $content?->getAuthor();
+
+        return [
+            'id' => $report->getId(),
+            'type' => $post !== null ? 'post' : 'comment',
+            'reason' => $report->getReason()->value,
+            'details' => $report->getDetails(),
+            'status' => $report->getStatus()->value,
+            'reporter' => $this->author($report->getReporter()),
+            'content' => [
+                'id' => $content?->getId(),
+                'excerpt' => $content !== null ? mb_substr($content->getContent(), 0, 160) : null,
+                'author' => $author !== null ? $this->author($author) : null,
+                'deletedAt' => $content?->getDeletedAt()?->format(DATE_ATOM),
+            ],
+            'post' => $comment !== null ? [
+                'id' => $comment->getPost()->getId(),
+                'excerpt' => mb_substr($comment->getPost()->getContent(), 0, 120),
+            ] : null,
+            'createdAt' => $report->getCreatedAt()->format(DATE_ATOM),
+            'resolvedAt' => $report->getResolvedAt()?->format(DATE_ATOM),
+            'resolvedBy' => $report->getResolvedBy() !== null ? $this->author($report->getResolvedBy()) : null,
         ];
     }
 

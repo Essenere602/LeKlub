@@ -10,6 +10,7 @@ Le modele est volontairement simple, normalise raisonnablement et adapte au MVP 
 
 - utilisateurs et profils ;
 - feed social avec Posts, Commentaires et Reactions ;
+- signalements de Posts et Commentaires ;
 - messagerie privee entre deux utilisateurs ;
 - masquage d'un Message prive pour soi uniquement ;
 - moderation par suppression logique des contenus publics.
@@ -23,6 +24,7 @@ Le modele est volontairement simple, normalise raisonnablement et adapte au MVP 
 | `Post` | `post` | Publication texte du feed |
 | `Comment` | `feed_comment` | Commentaire rattache a un Post |
 | `PostReaction` | `post_reaction` | Like ou dislike d'un utilisateur sur un Post |
+| `FeedReport` | `feed_report` | Signalement utilisateur sur un Post ou Commentaire |
 | `Conversation` | `conversation` | Conversation privee entre deux utilisateurs |
 | `Message` | `message` | Message prive rattache a une Conversation |
 | `MessageHiddenForUser` | `message_hidden_for_user` | Masquage d'un Message pour un utilisateur donne |
@@ -35,6 +37,7 @@ erDiagram
     USER ||--o{ POST : publie
     USER ||--o{ COMMENT : ecrit
     USER ||--o{ POST_REACTION : reagit
+    USER ||--o{ FEED_REPORT : signale
     USER ||--o{ CONVERSATION : participant_one
     USER ||--o{ CONVERSATION : participant_two
     USER ||--o{ MESSAGE : envoie
@@ -42,6 +45,8 @@ erDiagram
 
     POST ||--o{ COMMENT : contient
     POST ||--o{ POST_REACTION : recoit
+    POST ||--o{ FEED_REPORT : est_signale
+    COMMENT ||--o{ FEED_REPORT : est_signale
     POST }o--|| USER : deleted_by
     COMMENT }o--|| USER : deleted_by
 
@@ -161,6 +166,8 @@ erDiagram
 - Un `Comment` appartient a un seul `Post` et a un seul auteur.
 - Un `Post` peut recevoir plusieurs `PostReaction`.
 - Un `User` ne peut avoir qu'une seule reaction par `Post`.
+- Un `User` peut signaler un `Post` ou un `Comment` visible.
+- Un `User` ne peut signaler qu'une seule fois le meme `Post` ou le meme `Comment`.
 
 ### Moderation
 
@@ -169,6 +176,11 @@ erDiagram
   - `deleted_at` indique la date de suppression ;
   - `deleted_by_id` indique l'utilisateur ou l'admin qui a realise la suppression.
 - Les contenus supprimes sont exclus du feed et des details publics.
+- Les signalements `FeedReport` ont un statut simple :
+  - `open` ;
+  - `resolved`.
+- Resoudre un signalement ne supprime pas le contenu. La suppression reste une action de moderation separee.
+- Les Messages prives ne sont jamais rattaches a un signalement admin.
 
 ### Messagerie Privee
 
@@ -199,6 +211,10 @@ erDiagram
 | `feed_comment` | `idx_comment_created_at` | Optimise le tri chronologique |
 | `post_reaction` | `uniq_post_reaction_post_user` | Garantit une seule reaction par utilisateur et par Post |
 | `post_reaction` | `idx_post_reaction_post_type` | Optimise le comptage likes/dislikes |
+| `feed_report` | `uniq_feed_report_reporter_post` | Aide a limiter un signalement par utilisateur et par Post |
+| `feed_report` | `uniq_feed_report_reporter_comment` | Aide a limiter un signalement par utilisateur et par Commentaire |
+| `feed_report` | `idx_feed_report_status` | Optimise le filtrage admin ouvert/resolu |
+| `feed_report` | `idx_feed_report_created_at` | Optimise le tri des signalements |
 | `conversation` | `idx_conversation_participant_one` | Optimise la recherche des Conversations d'un utilisateur |
 | `conversation` | `idx_conversation_participant_two` | Optimise la recherche des Conversations d'un utilisateur |
 | `message` | `idx_message_conversation_created` | Optimise l'historique et le dernier message |
@@ -256,6 +272,16 @@ classDiagram
         +changeType()
     }
 
+    class FeedReport {
+        +reporter
+        +post
+        +comment
+        +reason
+        +details
+        +status
+        +resolve()
+    }
+
     class Conversation {
         +participantOne
         +participantTwo
@@ -282,8 +308,11 @@ classDiagram
     User "1" --> "*" Post
     User "1" --> "*" Comment
     User "1" --> "*" PostReaction
+    User "1" --> "*" FeedReport
     Post "1" --> "*" Comment
     Post "1" --> "*" PostReaction
+    Post "1" --> "*" FeedReport
+    Comment "1" --> "*" FeedReport
     User "1" --> "*" Conversation
     Conversation "1" --> "*" Message
     User "1" --> "*" Message
@@ -377,6 +406,19 @@ Les Posts et Commentaires utilisent une suppression logique pour conserver une t
 
 Les contenus supprimes sont invisibles cote feed et detail public.
 
+### Signalements
+
+Les signalements publics reposent sur `feed_report` :
+
+- `reporter_id` identifie l'utilisateur qui signale ;
+- `post_id` ou `comment_id` cible le contenu public concerne ;
+- `reason` est limite a une liste controlee par le backend ;
+- `details` est optionnel, limite et stocke en texte brut ;
+- `status` permet a l'admin de suivre les signalements ouverts ou resolus ;
+- `resolved_at` et `resolved_by_id` gardent une trace simple du traitement.
+
+La base contient des contraintes uniques sur `(reporter_id, post_id)` et `(reporter_id, comment_id)`, mais la vraie protection anti-doublon reste dans le use case backend. Ce compromis est volontaire, car MySQL permet plusieurs lignes avec `NULL` dans une contrainte unique.
+
 ### Suppression Pour Soi
 
 Les Messages prives ne sont pas supprimes physiquement pour l'autre participant. Le masquage pour soi repose sur `message_hidden_for_user`, ce qui permet :
@@ -389,7 +431,7 @@ Les Messages prives ne sont pas supprimes physiquement pour l'autre participant.
 
 - Les Conversations ne portent pas encore de contrainte unique entre deux participants.
 - Les roles sont stockes en JSON dans `user.roles`, ce qui est simple mais limite pour une gestion avancee des permissions.
-- Il n'existe pas encore de table de signalements.
+- Les signalements restent simples : pas d'escalade, pas de notification et pas de workflow avance.
 - Il n'existe pas encore de suspension utilisateur.
 - Il n'existe pas encore de blocage utilisateur.
 - Les donnees football ne sont pas persistantes en base dans le MVP.
@@ -405,12 +447,13 @@ Ces limites sont acceptees pour le MVP actuel et pourront etre traitees dans les
 | `Version20260514220455` | Creation `conversation` et `message` |
 | `Version20260514220605` | Synchronisation de noms d'index Doctrine |
 | `Version20260517143000` | Creation `message_hidden_for_user` |
+| `Version20260521110000` | Creation `feed_report` |
 
 ## Comment L'Expliquer Au Jury CDA
 
 Formulation courte :
 
-> La base LeKlub est une base relationnelle MySQL geree par Doctrine. Elle est structuree autour des utilisateurs, du feed social et de la messagerie privee. Les contraintes garantissent l'unicite des comptes, une seule reaction par utilisateur et par Post, et un masquage de Message idempotent. Les Posts et Commentaires utilisent une suppression logique pour la moderation, tandis que les Messages prives ne sont jamais lus par l'admin.
+> La base LeKlub est une base relationnelle MySQL geree par Doctrine. Elle est structuree autour des utilisateurs, du feed social, des signalements publics et de la messagerie privee. Les contraintes garantissent l'unicite des comptes, une seule reaction par utilisateur et par Post, et un masquage de Message idempotent. Les Posts et Commentaires utilisent une suppression logique pour la moderation, les signalements restent traites par l'admin, et les Messages prives ne sont jamais lus par l'admin.
 
 Points forts a defendre :
 
