@@ -1,0 +1,26 @@
+sequenceDiagram
+    actor A as Utilisateur A
+    participant API as API Symfony
+    participant DB as MySQL
+    participant WS as WebSocket
+    actor B as Utilisateur B
+
+    A->>API: POST /api/conversations/{id}/messages
+    API->>DB: Enregistre Message
+    API->>WS: Notifie nouveau Message
+    WS-->>B: Notification de nouveau Message
+    B->>API: GET /api/conversations/{id}/messages
+    API->>DB: Charge Messages visibles pour B
+    API-->>B: Historique REST
+
+    B->>API: DELETE /api/conversations/{id}/messages/{messageId}
+    API->>DB: Cree MessageHiddenForUser(message, B)
+    API-->>B: Message masque pour B
+
+    B->>API: GET /api/conversations/{id}/messages
+    API->>DB: Filtre les Messages masques pour B
+    API-->>B: Historique sans le Message masque
+
+    A->>API: GET /api/conversations/{id}/messages
+    API->>DB: Charge Messages visibles pour A
+    API-->>A: Historique contenant encore le Message
