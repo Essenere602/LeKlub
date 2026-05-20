@@ -127,16 +127,24 @@ Si `/api/me` retourne `401`, le token est supprimé et l'utilisateur revient sur
 - un mauvais mot de passe affiche une erreur propre
 - une mauvaise URL API affiche une erreur réseau compréhensible
 
-## Profil Mobile
+## Compte Et Profil Mobile
 
-Le profil mobile MVP utilise :
+L'onglet Profil ouvre un espace `Compte` qui regroupe les informations utiles sans exposer de détail technique à l'utilisateur :
+
+- identité utilisateur, avatar ou initiale, rôle et équipe favorite
+- accès à la modification du profil
+- accès au changement de mot de passe
+- informations de sécurité de session
+- logout
+
+Le profil mobile utilise :
 
 - `GET /api/me` pour afficher l'utilisateur connecté et son profil
 - `PATCH /api/me/profile` pour modifier `displayName`, `bio`, `favoriteTeamName` et `avatarUrl`
 - `PATCH /api/me/password` pour modifier le mot de passe de l'utilisateur connecté
 - `AuthContext.refreshCurrentUser()` après modification pour recharger les données depuis le backend
 
-L'avatar reste une URL texte pour le MVP. Aucun upload d'image n'est prévu à cette étape.
+L'avatar reste une URL texte dans cette version afin de garder un flux simple et maîtrisé côté mobile.
 
 Le changement de mot de passe demande :
 
@@ -146,14 +154,16 @@ Le changement de mot de passe demande :
 
 La validation mobile reprend les règles backend : minimum 10 caractères, au moins une minuscule, une majuscule et un chiffre. Le logout n'est pas forcé après succès dans ce MVP.
 
-## Tests Manuels Profil
+## Tests Manuels Compte Et Profil
 
 À vérifier sur iPhone avec Expo Go :
 
-- depuis Home, ouvrir `Mon profil`
+- ouvrir l'onglet `Profil`
+- vérifier que l'écran `Compte` affiche l'identité, le rôle et l'équipe favorite si elle existe
+- ouvrir `Modifier mon profil`
 - modifier le nom affiché, la bio et l'équipe favorite
 - enregistrer et vérifier le message de succès
-- revenir à Home et vérifier que les données sont rafraîchies
+- revenir à l'écran `Compte` et vérifier que les données sont rafraîchies
 - saisir une URL avatar invalide et vérifier l'erreur de validation
 - vider un champ et vérifier qu'il est bien accepté comme valeur vide
 - ouvrir `Changer mon mot de passe`

@@ -36,6 +36,7 @@ export type MessagingStackParamList = {
 
 export type ProfileStackParamList = {
   Profile: undefined;
+  EditProfile: undefined;
   ChangePassword: undefined;
 };
 

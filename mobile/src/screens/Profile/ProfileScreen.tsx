@@ -1,241 +1,197 @@
-import { useMemo, useState } from 'react';
-import { Image, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, View } from 'react-native';
-import { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
-import { CompositeScreenProps } from '@react-navigation/native';
+import { Image, ScrollView, StyleSheet, View } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 
 import { AppButton } from '../../components/ui/AppButton';
-import { AppInput } from '../../components/ui/AppInput';
+import { AppCard } from '../../components/ui/AppCard';
+import { AppHeader } from '../../components/ui/AppHeader';
 import { AppText } from '../../components/ui/AppText';
-import { ErrorMessage } from '../../components/ui/ErrorMessage';
 import { Screen } from '../../components/ui/Screen';
+import { SettingsRow } from '../../components/ui/SettingsRow';
+import { StatusBadge } from '../../components/ui/StatusBadge';
 import { theme } from '../../config/theme';
 import { useAuth } from '../../hooks/useAuth';
-import { MainTabParamList, ProfileStackParamList } from '../../navigation/navigation.types';
-import { toApiError } from '../../services/api/apiError';
-import { profileService } from '../../services/user/profileService';
-import { UpdateProfilePayload } from '../../types/user.types';
+import { ProfileStackParamList } from '../../navigation/navigation.types';
 
-type ProfileScreenProps = CompositeScreenProps<
-  NativeStackScreenProps<ProfileStackParamList, 'Profile'>,
-  BottomTabScreenProps<MainTabParamList, 'ProfileTab'>
->;
-
-type ProfileForm = {
-  displayName: string;
-  bio: string;
-  favoriteTeamName: string;
-  avatarUrl: string;
-};
+type ProfileScreenProps = NativeStackScreenProps<ProfileStackParamList, 'Profile'>;
 
 export function ProfileScreen({ navigation }: ProfileScreenProps) {
-  const { logout, refreshCurrentUser, user } = useAuth();
-  const initialForm = useMemo<ProfileForm>(() => ({
-    displayName: user?.profile.displayName ?? '',
-    bio: user?.profile.bio ?? '',
-    favoriteTeamName: user?.profile.favoriteTeamName ?? '',
-    avatarUrl: user?.profile.avatarUrl ?? '',
-  }), [user]);
-
-  const [form, setForm] = useState<ProfileForm>(initialForm);
-  const [error, setError] = useState<string | null>(null);
-  const [successMessage, setSuccessMessage] = useState<string | null>(null);
-  const [isSaving, setIsSaving] = useState(false);
-
-  const trimmedAvatarUrl = form.avatarUrl.trim();
-
-  function updateField(field: keyof ProfileForm, value: string) {
-    setForm((currentForm) => ({ ...currentForm, [field]: value }));
-    setError(null);
-    setSuccessMessage(null);
-  }
-
-  async function submitProfile() {
-    setIsSaving(true);
-    setError(null);
-    setSuccessMessage(null);
-
-    const payload: UpdateProfilePayload = {
-      displayName: nullableTrim(form.displayName),
-      bio: nullableTrim(form.bio),
-      favoriteTeamName: nullableTrim(form.favoriteTeamName),
-      avatarUrl: nullableTrim(form.avatarUrl),
-    };
-
-    try {
-      await profileService.updateCurrentProfile(payload);
-      await refreshCurrentUser();
-      setSuccessMessage('Profil mis à jour.');
-    } catch (caughtError) {
-      setError(toApiError(caughtError).message);
-    } finally {
-      setIsSaving(false);
-    }
-  }
+  const { logout, user } = useAuth();
+  const profile = user?.profile;
+  const displayName = profile?.displayName || user?.username || 'Membre LeKlub';
+  const avatarUrl = profile?.avatarUrl?.trim();
+  const isAdmin = user?.roles.includes('ROLE_ADMIN') ?? false;
 
   return (
     <Screen style={styles.screen}>
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        style={styles.keyboard}
-      >
-        <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
-          <View style={styles.header}>
-            <AppText style={styles.kicker}>Profil LeKlub</AppText>
-            <AppText variant="title">Mon profil</AppText>
-            <AppText variant="subtitle">
-              Ces informations seront visibles dans les prochains écrans sociaux de l'application.
-            </AppText>
-          </View>
+      <ScrollView contentContainerStyle={styles.content}>
+        <AppHeader
+          kicker="Compte"
+          subtitle="Gère ton identité, ta sécurité et ta session LeKlub."
+          title="Mon espace"
+        />
 
-          <View style={styles.identityPanel}>
-            {trimmedAvatarUrl ? (
-              <Image source={{ uri: trimmedAvatarUrl }} style={styles.avatar} />
+        <AppCard style={styles.identityCard} variant="accent">
+          <View style={styles.identityTop}>
+            {avatarUrl ? (
+              <Image source={{ uri: avatarUrl }} style={styles.avatar} />
             ) : (
               <View style={styles.avatarFallback}>
-                <AppText style={styles.avatarInitial}>{(user?.username ?? 'L').slice(0, 1).toUpperCase()}</AppText>
+                <AppText style={styles.avatarInitial}>{displayName.slice(0, 1).toUpperCase()}</AppText>
               </View>
             )}
 
             <View style={styles.identityText}>
-              <AppText variant="label">{user?.username}</AppText>
-              <AppText variant="muted">{user?.email}</AppText>
-              <AppText variant="muted">Rôles : {user?.roles.join(', ')}</AppText>
+              <AppText style={styles.displayName}>{displayName}</AppText>
+              <AppText variant="muted">@{user?.username}</AppText>
             </View>
           </View>
 
-          <View style={styles.form}>
-            <AppInput
-              autoCapitalize="words"
-              label="Nom affiché"
-              maxLength={80}
-              onChangeText={(value) => updateField('displayName', value)}
-              placeholder="Ex. Samuel"
-              value={form.displayName}
-            />
-
-            <AppInput
-              autoCapitalize="sentences"
-              label="Bio"
-              maxLength={500}
-              multiline
-              onChangeText={(value) => updateField('bio', value)}
-              placeholder="Quelques mots sur toi"
-              style={styles.textArea}
-              textAlignVertical="top"
-              value={form.bio}
-            />
-
-            <AppInput
-              autoCapitalize="words"
-              label="Équipe favorite"
-              maxLength={100}
-              onChangeText={(value) => updateField('favoriteTeamName', value)}
-              placeholder="Ex. Paris Saint-Germain"
-              value={form.favoriteTeamName}
-            />
-
-            <AppInput
-              autoCapitalize="none"
-              keyboardType="url"
-              label="URL avatar"
-              maxLength={255}
-              onChangeText={(value) => updateField('avatarUrl', value)}
-              placeholder="https://..."
-              value={form.avatarUrl}
-            />
+          <View style={styles.badges}>
+            <StatusBadge label={isAdmin ? 'Admin' : 'Membre'} variant={isAdmin ? 'accent' : 'neutral'} />
+            {profile?.favoriteTeamName ? (
+              <StatusBadge label={profile.favoriteTeamName} variant="success" />
+            ) : null}
           </View>
+        </AppCard>
 
-          <ErrorMessage message={error} />
-          {successMessage ? <AppText style={styles.success}>{successMessage}</AppText> : null}
+        <AppCard style={styles.section}>
+          <SectionTitle title="Profil" />
+          <SettingsRow
+            onPress={() => navigation.navigate('EditProfile')}
+            subtitle={profile?.bio || 'Complète ton nom affiché, ta bio et ton équipe favorite.'}
+            title="Modifier mon profil"
+          />
+          <SettingsRow
+            meta={profile?.favoriteTeamName || 'Non renseignée'}
+            title="Équipe favorite"
+          />
+        </AppCard>
 
-          <View style={styles.actions}>
-            <AppButton label="Enregistrer" loading={isSaving} onPress={submitProfile} />
-            <AppButton label="Changer mon mot de passe" onPress={() => navigation.navigate('ChangePassword')} variant="secondary" />
-            <AppButton label="Retour accueil" onPress={() => navigation.navigate('Home')} variant="secondary" />
-            <AppButton label="Se déconnecter" onPress={logout} variant="ghost" />
-          </View>
-        </ScrollView>
-      </KeyboardAvoidingView>
+        <AppCard style={styles.section}>
+          <SectionTitle title="Sécurité" />
+          <SettingsRow
+            onPress={() => navigation.navigate('ChangePassword')}
+            subtitle="Ancien mot de passe, nouveau mot de passe et confirmation."
+            title="Changer mon mot de passe"
+          />
+          <SettingsRow
+            meta="Secure Store"
+            subtitle="Le token de connexion est conservé dans le stockage sécurisé du téléphone."
+            title="Session mobile"
+          />
+        </AppCard>
+
+        <AppCard style={styles.section}>
+          <SectionTitle title="Informations compte" />
+          <SettingsRow meta={user?.email ?? '-'} title="Email" />
+          <SettingsRow meta={formatRoles(user?.roles ?? [])} title="Rôle" />
+          <SettingsRow meta={formatDate(user?.createdAt)} title="Créé le" />
+          <SettingsRow
+            subtitle="Cette version privilégie un compte simple et sécurisé. Le changement d'email et la suppression de compte viendront dans une étape dédiée si nécessaire."
+            title="Version actuelle"
+          />
+        </AppCard>
+
+        <View style={styles.actions}>
+          <AppButton label="Se déconnecter" onPress={logout} variant="ghost" />
+        </View>
+      </ScrollView>
     </Screen>
   );
 }
 
-function nullableTrim(value: string): string | null {
-  const trimmedValue = value.trim();
+function SectionTitle({ title }: { title: string }) {
+  return <AppText style={styles.sectionTitle}>{title}</AppText>;
+}
 
-  return trimmedValue === '' ? null : trimmedValue;
+function formatRoles(roles: string[]): string {
+  if (roles.includes('ROLE_ADMIN')) {
+    return 'Admin';
+  }
+
+  return 'Membre';
+}
+
+function formatDate(value: string | undefined): string {
+  if (!value) {
+    return '-';
+  }
+
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return '-';
+  }
+
+  return new Intl.DateTimeFormat('fr-FR', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+  }).format(date);
 }
 
 const styles = StyleSheet.create({
   screen: {
     padding: 0,
   },
-  keyboard: {
-    flex: 1,
-  },
   content: {
-    gap: theme.spacing.xl,
+    gap: theme.spacing.lg,
     padding: theme.spacing.xl,
+    paddingBottom: theme.spacing['2xl'],
   },
-  header: {
-    gap: theme.spacing.sm,
+  identityCard: {
+    gap: theme.spacing.lg,
   },
-  kicker: {
-    color: theme.colors.accent,
-    fontSize: theme.typography.sizes.sm,
-    fontWeight: theme.typography.weights.bold,
-    textTransform: 'uppercase',
-  },
-  identityPanel: {
+  identityTop: {
     alignItems: 'center',
-    backgroundColor: theme.colors.surface,
-    borderColor: theme.colors.border,
-    borderRadius: theme.radius.md,
-    borderWidth: 1,
     flexDirection: 'row',
     gap: theme.spacing.md,
-    padding: theme.spacing.lg,
   },
   avatar: {
     backgroundColor: theme.colors.surfaceElevated,
-    borderRadius: 28,
-    height: 56,
-    width: 56,
+    borderRadius: 34,
+    height: 68,
+    width: 68,
   },
   avatarFallback: {
     alignItems: 'center',
     backgroundColor: theme.colors.accentSoft,
     borderColor: theme.colors.accent,
-    borderRadius: 28,
+    borderRadius: 34,
     borderWidth: 1,
-    height: 56,
+    height: 68,
     justifyContent: 'center',
-    width: 56,
+    width: 68,
   },
   avatarInitial: {
     color: theme.colors.accent,
-    fontSize: theme.typography.sizes.xl,
+    fontSize: theme.typography.sizes['2xl'],
     fontWeight: theme.typography.weights.bold,
   },
   identityText: {
     flex: 1,
     gap: theme.spacing.xs,
   },
-  form: {
-    gap: theme.spacing.lg,
+  displayName: {
+    fontSize: theme.typography.sizes.xl,
+    fontWeight: theme.typography.weights.bold,
   },
-  textArea: {
-    minHeight: 112,
-    paddingTop: theme.spacing.md,
+  badges: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: theme.spacing.sm,
   },
-  success: {
-    color: theme.colors.success,
+  section: {
+    paddingBottom: 0,
+  },
+  sectionTitle: {
+    color: theme.colors.accent,
     fontSize: theme.typography.sizes.sm,
-    fontWeight: theme.typography.weights.semibold,
+    fontWeight: theme.typography.weights.bold,
+    marginBottom: theme.spacing.sm,
+    textTransform: 'uppercase',
   },
   actions: {
-    gap: theme.spacing.md,
-    paddingBottom: theme.spacing.xl,
+    paddingTop: theme.spacing.sm,
   },
 });
