@@ -6,10 +6,10 @@ import { AdminStackNavigator } from './AdminStackNavigator';
 import { FeedStackNavigator } from './FeedStackNavigator';
 import { FootballStackNavigator } from './FootballStackNavigator';
 import { MessagingStackNavigator } from './MessagingStackNavigator';
+import { ProfileStackNavigator } from './ProfileStackNavigator';
 import { theme } from '../config/theme';
 import { useAuth } from '../hooks/useAuth';
 import { HomeScreen } from '../screens/Home/HomeScreen';
-import { ProfileScreen } from '../screens/Profile/ProfileScreen';
 
 const Tab = createBottomTabNavigator<MainTabParamList>();
 
@@ -44,7 +44,7 @@ export function MainTabsNavigator() {
       <Tab.Screen component={FeedStackNavigator} name="FeedTab" options={{ title: 'Feed' }} />
       <Tab.Screen component={FootballStackNavigator} name="FootballTab" options={{ title: 'Football' }} />
       <Tab.Screen component={MessagingStackNavigator} name="MessagingTab" options={{ title: 'Messages' }} />
-      <Tab.Screen component={ProfileScreen} name="ProfileTab" options={{ title: 'Profil' }} />
+      <Tab.Screen component={ProfileStackNavigator} name="ProfileTab" options={{ title: 'Profil' }} />
       {isAdmin ? <Tab.Screen component={AdminStackNavigator} name="AdminTab" options={{ title: 'Admin' }} /> : null}
     </Tab.Navigator>
   );

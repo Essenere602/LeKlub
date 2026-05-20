@@ -45,6 +45,8 @@ function translateMessage(message: string): string {
     'This value is too short. It should have 10 characters or more.': 'minimum 10 caractères.',
     'Password must contain at least one lowercase letter, one uppercase letter and one number.':
       'doit contenir au moins une minuscule, une majuscule et un chiffre.',
+    'Password confirmation does not match.': 'la confirmation ne correspond pas au nouveau mot de passe.',
+    'Unable to update password.': 'Impossible de mettre à jour le mot de passe.',
     'Username can only contain letters, numbers and underscores.':
       'lettres, chiffres et underscore uniquement.',
     'Football data is temporarily unavailable. Please try again later.':
@@ -61,6 +63,9 @@ function labelForField(field: string): string {
     email: 'Email',
     username: 'Nom utilisateur',
     password: 'Mot de passe',
+    currentPassword: 'Ancien mot de passe',
+    newPassword: 'Nouveau mot de passe',
+    newPasswordConfirmation: 'Confirmation',
     displayName: 'Nom affiché',
     bio: 'Bio',
     favoriteTeamName: 'Équipe favorite',

@@ -133,9 +133,18 @@ Le profil mobile MVP utilise :
 
 - `GET /api/me` pour afficher l'utilisateur connecté et son profil
 - `PATCH /api/me/profile` pour modifier `displayName`, `bio`, `favoriteTeamName` et `avatarUrl`
+- `PATCH /api/me/password` pour modifier le mot de passe de l'utilisateur connecté
 - `AuthContext.refreshCurrentUser()` après modification pour recharger les données depuis le backend
 
 L'avatar reste une URL texte pour le MVP. Aucun upload d'image n'est prévu à cette étape.
+
+Le changement de mot de passe demande :
+
+- ancien mot de passe
+- nouveau mot de passe
+- confirmation du nouveau mot de passe
+
+La validation mobile reprend les règles backend : minimum 10 caractères, au moins une minuscule, une majuscule et un chiffre. Le logout n'est pas forcé après succès dans ce MVP.
 
 ## Tests Manuels Profil
 
@@ -147,6 +156,14 @@ L'avatar reste une URL texte pour le MVP. Aucun upload d'image n'est prévu à c
 - revenir à Home et vérifier que les données sont rafraîchies
 - saisir une URL avatar invalide et vérifier l'erreur de validation
 - vider un champ et vérifier qu'il est bien accepté comme valeur vide
+- ouvrir `Changer mon mot de passe`
+- vérifier qu'un formulaire incomplet affiche une erreur
+- vérifier qu'une confirmation différente affiche une erreur
+- vérifier qu'un mot de passe trop faible affiche une erreur
+- saisir un ancien mot de passe incorrect et vérifier qu'une erreur générique est affichée
+- changer le mot de passe avec une valeur valide
+- vérifier que l'application ne force pas la déconnexion
+- tester une nouvelle connexion avec le nouveau mot de passe
 - utiliser Logout depuis l'écran Profil
 
 ## Feed Mobile

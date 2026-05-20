@@ -32,6 +32,19 @@ Les mots de passe sont hashés avec le password hasher Symfony configuré en mod
 
 Le mot de passe n'est jamais retourné dans les réponses API.
 
+Le changement de mot de passe est disponible pour l'utilisateur authentifié via `PATCH /api/me/password`.
+
+Mesures appliquées :
+
+- ancien mot de passe obligatoire
+- vérification de l'ancien mot de passe avec Symfony PasswordHasher
+- nouveau mot de passe validé avec les mêmes règles qu'à l'inscription
+- confirmation du nouveau mot de passe obligatoire
+- hash du nouveau mot de passe avec Symfony PasswordHasher
+- message générique si le changement est refusé
+- aucun mot de passe clair ou hash retourné dans l'API
+- aucune modification de l'email, du username ou des rôles
+
 ## Tokens JWT
 
 Les clés JWT sont générées localement dans `backend/config/jwt/`.
@@ -45,6 +58,8 @@ docker compose --env-file .env.example run --rm php php bin/console lexik:jwt:ge
 ```
 
 Pas de refresh token dans le MVP initial. Ce choix réduit la complexité et reste défendable pour une première version stable.
+
+Après un changement de mot de passe, les JWT déjà émis restent valides jusqu'à leur expiration. Cette limite est documentée et acceptée dans le MVP, car l'application ne gère pas encore de révocation de tokens ni de sessions serveur.
 
 ## Feed Et Modération
 
@@ -176,6 +191,7 @@ Conséquence MVP : les endpoints football restent simples et peu nombreux pour �
 ## Limites Connues Du MVP
 
 - pas de refresh token
+- pas de révocation des JWT déjà émis après changement de mot de passe
 - pas de vérification d'email
 - pas de reset password
 - pas de blocage de compte après plusieurs tentatives échouées

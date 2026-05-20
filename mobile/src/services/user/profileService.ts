@@ -1,5 +1,5 @@
 import { ApiResponse } from '../../types/api.types';
-import { UpdateProfilePayload, User } from '../../types/user.types';
+import { ChangePasswordPayload, UpdateProfilePayload, User } from '../../types/user.types';
 import { apiClient } from '../api/apiClient';
 
 type UpdateProfileResponseData = {
@@ -15,5 +15,9 @@ export const profileService = {
     }
 
     return response.data.data.user;
+  },
+
+  async changePassword(payload: ChangePasswordPayload): Promise<void> {
+    await apiClient.patch<ApiResponse<[]>>('/me/password', payload);
   },
 };
