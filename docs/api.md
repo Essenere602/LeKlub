@@ -124,6 +124,42 @@ Modifie uniquement le profil de l'utilisateur authentifié.
 
 Codes possibles : `200`, `400`, `401`, `422`.
 
+### PATCH /api/me/password
+
+Modifie le mot de passe de l'utilisateur authentifié.
+
+```json
+{
+  "currentPassword": "OldPassword123",
+  "newPassword": "NewPassword123",
+  "newPasswordConfirmation": "NewPassword123"
+}
+```
+
+Règles :
+
+- route protégée par JWT
+- ancien mot de passe obligatoire
+- nouveau mot de passe obligatoire
+- confirmation obligatoire
+- validation du nouveau mot de passe identique à l'inscription : minimum 10 caractères, maximum 128, au moins une minuscule, une majuscule et un chiffre
+- hash du nouveau mot de passe via Symfony PasswordHasher
+- aucun hash ou mot de passe n'est retourné
+- email, username et rôles ne sont pas modifiés
+
+En cas d'ancien mot de passe incorrect, l'API retourne un message générique :
+
+```json
+{
+  "success": false,
+  "data": null,
+  "message": "Unable to update password.",
+  "errors": []
+}
+```
+
+Codes possibles : `200`, `400`, `401`, `422`.
+
 ### GET /api/users?query=&limit=20
 
 Retourne un annuaire minimal des utilisateurs disponibles pour créer une Conversation privée.

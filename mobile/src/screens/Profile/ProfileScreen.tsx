@@ -1,6 +1,8 @@
 import { useMemo, useState } from 'react';
 import { Image, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, View } from 'react-native';
 import { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
+import { CompositeScreenProps } from '@react-navigation/native';
+import { NativeStackScreenProps } from '@react-navigation/native-stack';
 
 import { AppButton } from '../../components/ui/AppButton';
 import { AppInput } from '../../components/ui/AppInput';
@@ -9,12 +11,15 @@ import { ErrorMessage } from '../../components/ui/ErrorMessage';
 import { Screen } from '../../components/ui/Screen';
 import { theme } from '../../config/theme';
 import { useAuth } from '../../hooks/useAuth';
-import { MainTabParamList } from '../../navigation/navigation.types';
+import { MainTabParamList, ProfileStackParamList } from '../../navigation/navigation.types';
 import { toApiError } from '../../services/api/apiError';
 import { profileService } from '../../services/user/profileService';
 import { UpdateProfilePayload } from '../../types/user.types';
 
-type ProfileScreenProps = BottomTabScreenProps<MainTabParamList, 'ProfileTab'>;
+type ProfileScreenProps = CompositeScreenProps<
+  NativeStackScreenProps<ProfileStackParamList, 'Profile'>,
+  BottomTabScreenProps<MainTabParamList, 'ProfileTab'>
+>;
 
 type ProfileForm = {
   displayName: string;
@@ -146,6 +151,7 @@ export function ProfileScreen({ navigation }: ProfileScreenProps) {
 
           <View style={styles.actions}>
             <AppButton label="Enregistrer" loading={isSaving} onPress={submitProfile} />
+            <AppButton label="Changer mon mot de passe" onPress={() => navigation.navigate('ChangePassword')} variant="secondary" />
             <AppButton label="Retour accueil" onPress={() => navigation.navigate('Home')} variant="secondary" />
             <AppButton label="Se déconnecter" onPress={logout} variant="ghost" />
           </View>

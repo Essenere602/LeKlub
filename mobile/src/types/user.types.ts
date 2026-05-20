@@ -15,3 +15,9 @@ export type UserProfile = {
 };
 
 export type UpdateProfilePayload = Partial<UserProfile>;
+
+export type ChangePasswordPayload = {
+  currentPassword: string;
+  newPassword: string;
+  newPasswordConfirmation: string;
+};

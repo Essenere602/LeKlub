@@ -24,6 +24,7 @@ Le backend Symfony est opérationnel pour les fonctionnalités suivantes :
 
 - inscription et connexion JWT
 - consultation et modification du profil utilisateur
+- modification sécurisée du mot de passe utilisateur connecté
 - création, affichage et suppression logique de Posts
 - modification et suppression logique de ses propres Posts côté utilisateur
 - ajout, modification et suppression logique de ses propres Commentaires
