@@ -30,6 +30,9 @@ Le backend Symfony est opérationnel pour les fonctionnalités suivantes :
 - ajout, modification et suppression logique de ses propres Commentaires
 - ajout, modification et retrait de Réactions `like` / `dislike`
 - signalement de Posts et Commentaires
+- arbitrage admin des signalements : rejet ou suppression du contenu signalé
+- notifications système liées aux décisions de modération
+- avertissements et suspension temporaire après plusieurs contenus supprimés
 - modération simple par `ROLE_ADMIN`
 - création de Conversations privées
 - envoi, consultation et marquage comme lus des Messages privés

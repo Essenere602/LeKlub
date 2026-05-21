@@ -91,7 +91,10 @@ Les signalements Feed ajoutent une étape de contrôle communautaire sans mélan
 - les raisons sont limitées à une liste validée côté backend
 - le détail optionnel est limité à 500 caractères, normalisé en texte brut et nullable si vide après `trim`
 - l'admin peut consulter et résoudre un signalement sans supprimer le contenu
-- si une suppression est nécessaire, l'admin utilise la modération existante par suppression logique
+- l'admin peut rejeter un signalement sans supprimer le contenu
+- l'admin peut supprimer directement le contenu signalé et avertir l'auteur
+- après 3 avertissements, le compte de l'auteur est suspendu temporairement 7 jours pour les actions d'écriture
+- les notifications système informent le reporter et l'auteur sans utiliser la messagerie privée
 
 Les contenus supprimés sont invisibles dans :
 
@@ -124,6 +127,8 @@ Les endpoints admin appliquent un principe de minimisation :
 - les Messages privés ne sont jamais lus ni affichés dans l'admin
 - les actions de modération utilisent la suppression logique existante
 - `deletedBy` conserve une trace du modérateur
+- les décisions de signalement gardent `resolvedAt`, `resolvedBy`, `decision` et une note admin optionnelle
+- les notifications système sont séparées des Messages privés
 
 Le MVP admin ne contient pas :
 
@@ -131,6 +136,21 @@ Le MVP admin ne contient pas :
 - bannissement
 - gestion des rôles
 - dashboard complexe ou graphiques
+
+## Suspension Temporaire
+
+La suspension est volontairement simple :
+
+- chaque contenu supprimé suite à un signalement validé crée un avertissement
+- à partir de 3 avertissements, le compte est suspendu temporairement 7 jours
+- la lecture de l'application reste possible
+- les actions d'écriture sont bloquées :
+  - créer ou modifier un Post
+  - créer ou modifier un Commentaire
+  - réagir à un Post
+  - signaler un contenu
+  - envoyer un Message privé
+- il n'y a pas de bannissement définitif dans cette version
 
 ## Messagerie Et WebSocket
 

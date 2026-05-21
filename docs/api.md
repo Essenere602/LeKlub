@@ -160,6 +160,22 @@ En cas d'ancien mot de passe incorrect, l'API retourne un message générique :
 
 Codes possibles : `200`, `400`, `401`, `422`.
 
+### GET /api/me/notifications?page=1&limit=10
+
+Retourne les notifications système de l'utilisateur connecté.
+
+Ces notifications sont distinctes de la messagerie privée.
+
+Codes possibles : `200`, `401`.
+
+### PATCH /api/me/notifications/{id}/read
+
+Marque une notification système comme lue.
+
+Un utilisateur ne peut marquer comme lue que ses propres notifications.
+
+Codes possibles : `200`, `401`, `404`.
+
 ### GET /api/users?query=&limit=20
 
 Retourne un annuaire minimal des utilisateurs disponibles pour créer une Conversation privée.
@@ -652,14 +668,34 @@ Codes possibles : `200`, `401`, `403`, `422`.
 
 ### PATCH /api/admin/reports/{id}/resolve
 
-Marque un signalement comme résolu.
+Arbitre un signalement.
 
-Cette action ne supprime pas le contenu. Si nécessaire, l'admin utilise ensuite les endpoints de modération existants :
+Payload :
 
-- `DELETE /api/admin/posts/{id}`
-- `DELETE /api/admin/comments/{id}`
+```json
+{
+  "decision": "rejected",
+  "adminNote": "Note optionnelle"
+}
+```
 
-Codes possibles : `200`, `401`, `403`, `404`.
+Décisions possibles :
+
+- `rejected` : le signalement n'est pas retenu, le contenu reste visible
+- `content_removed` : le contenu est supprimé logiquement, l'auteur reçoit un avertissement
+
+Si un utilisateur atteint 3 avertissements, son compte est temporairement suspendu 7 jours pour les actions d'écriture.
+
+Le champ `adminNote` est optionnel, limité à 500 caractères et stocké en texte brut.
+
+Cette action crée des notifications système :
+
+- reporter notifié si son signalement est rejeté
+- reporter notifié si le contenu est supprimé
+- auteur notifié en cas d'avertissement
+- auteur notifié en cas de suspension
+
+Codes possibles : `200`, `400`, `401`, `403`, `404`, `409`, `422`.
 
 ## Football
 

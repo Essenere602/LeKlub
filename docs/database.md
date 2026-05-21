@@ -25,6 +25,8 @@ Le modele est volontairement simple, normalise raisonnablement et adapte au MVP 
 | `Comment` | `feed_comment` | Commentaire rattache a un Post |
 | `PostReaction` | `post_reaction` | Like ou dislike d'un utilisateur sur un Post |
 | `FeedReport` | `feed_report` | Signalement utilisateur sur un Post ou Commentaire |
+| `UserWarning` | `user_warning` | Avertissement suite a moderation justifiee |
+| `SystemNotification` | `system_notification` | Notification systeme visible par l'utilisateur |
 | `Conversation` | `conversation` | Conversation privee entre deux utilisateurs |
 | `Message` | `message` | Message prive rattache a une Conversation |
 | `MessageHiddenForUser` | `message_hidden_for_user` | Masquage d'un Message pour un utilisateur donne |
@@ -38,6 +40,8 @@ erDiagram
     USER ||--o{ COMMENT : ecrit
     USER ||--o{ POST_REACTION : reagit
     USER ||--o{ FEED_REPORT : signale
+    USER ||--o{ USER_WARNING : recoit
+    USER ||--o{ SYSTEM_NOTIFICATION : recoit
     USER ||--o{ CONVERSATION : participant_one
     USER ||--o{ CONVERSATION : participant_two
     USER ||--o{ MESSAGE : envoie
@@ -180,6 +184,12 @@ erDiagram
   - `open` ;
   - `resolved`.
 - Resoudre un signalement ne supprime pas le contenu. La suppression reste une action de moderation separee.
+- Une decision admin est stockee :
+  - `rejected` ;
+  - `content_removed`.
+- Si un contenu est supprime suite a signalement, l'auteur recoit un `UserWarning`.
+- A partir de 3 avertissements, `user.suspended_until` suspend temporairement les actions d'ecriture.
+- Les notifications systeme sont stockees dans `system_notification` et restent separees des Messages prives.
 - Les Messages prives ne sont jamais rattaches a un signalement admin.
 
 ### Messagerie Privee
@@ -215,6 +225,9 @@ erDiagram
 | `feed_report` | `uniq_feed_report_reporter_comment` | Aide a limiter un signalement par utilisateur et par Commentaire |
 | `feed_report` | `idx_feed_report_status` | Optimise le filtrage admin ouvert/resolu |
 | `feed_report` | `idx_feed_report_created_at` | Optimise le tri des signalements |
+| `user_warning` | `idx_user_warning_user` | Optimise le comptage des avertissements |
+| `system_notification` | `idx_system_notification_recipient` | Optimise la liste des notifications utilisateur |
+| `system_notification` | `idx_system_notification_read_at` | Optimise le suivi lu/non lu |
 | `conversation` | `idx_conversation_participant_one` | Optimise la recherche des Conversations d'un utilisateur |
 | `conversation` | `idx_conversation_participant_two` | Optimise la recherche des Conversations d'un utilisateur |
 | `message` | `idx_message_conversation_created` | Optimise l'historique et le dernier message |
@@ -279,7 +292,25 @@ classDiagram
         +reason
         +details
         +status
+        +decision
+        +adminNote
         +resolve()
+    }
+
+    class UserWarning {
+        +user
+        +report
+        +contentType
+        +contentId
+    }
+
+    class SystemNotification {
+        +recipient
+        +type
+        +title
+        +message
+        +readAt
+        +markAsRead()
     }
 
     class Conversation {
@@ -313,6 +344,8 @@ classDiagram
     Post "1" --> "*" PostReaction
     Post "1" --> "*" FeedReport
     Comment "1" --> "*" FeedReport
+    User "1" --> "*" UserWarning
+    User "1" --> "*" SystemNotification
     User "1" --> "*" Conversation
     Conversation "1" --> "*" Message
     User "1" --> "*" Message
@@ -415,9 +448,24 @@ Les signalements publics reposent sur `feed_report` :
 - `reason` est limite a une liste controlee par le backend ;
 - `details` est optionnel, limite et stocke en texte brut ;
 - `status` permet a l'admin de suivre les signalements ouverts ou resolus ;
+- `decision` indique si le signalement est rejete ou si le contenu est supprime ;
+- `admin_note` conserve une note optionnelle de moderation ;
 - `resolved_at` et `resolved_by_id` gardent une trace simple du traitement.
 
 La base contient des contraintes uniques sur `(reporter_id, post_id)` et `(reporter_id, comment_id)`, mais la vraie protection anti-doublon reste dans le use case backend. Ce compromis est volontaire, car MySQL permet plusieurs lignes avec `NULL` dans une contrainte unique.
+
+### Avertissements Et Notifications
+
+`user_warning` trace les avertissements crees quand un contenu est supprime suite a un signalement justifie.
+
+`system_notification` informe les utilisateurs :
+
+- signalement rejete ;
+- signalement confirme ;
+- avertissement ;
+- suspension temporaire.
+
+Ces notifications ne sont pas des Messages prives et ne sont pas envoyees en push dans le MVP.
 
 ### Suppression Pour Soi
 
@@ -448,6 +496,8 @@ Ces limites sont acceptees pour le MVP actuel et pourront etre traitees dans les
 | `Version20260514220605` | Synchronisation de noms d'index Doctrine |
 | `Version20260517143000` | Creation `message_hidden_for_user` |
 | `Version20260521110000` | Creation `feed_report` |
+| `Version20260521123000` | Decision de signalement, avertissements et suspension temporaire |
+| `Version20260521124500` | Creation `system_notification` |
 
 ## Comment L'Expliquer Au Jury CDA
 

@@ -9,15 +9,18 @@ use App\Application\Feed\DeletePostUseCase;
 use App\Domain\Entity\Comment;
 use App\Domain\Entity\FeedReport;
 use App\Domain\Entity\Post;
+use App\Domain\Entity\SystemNotification;
 use App\Domain\Entity\User;
 use App\Domain\Entity\UserWarning;
 use App\Domain\Exception\FeedReportException;
 use App\Domain\Exception\ResourceNotFoundException;
 use App\Domain\Repository\FeedReportRepositoryInterface;
+use App\Domain\Repository\SystemNotificationRepositoryInterface;
 use App\Domain\Repository\UserRepositoryInterface;
 use App\Domain\Repository\UserWarningRepositoryInterface;
 use App\Domain\ValueObject\FeedReportDecision;
 use App\Domain\ValueObject\FeedReportStatus;
+use App\Domain\ValueObject\SystemNotificationType;
 use App\DTO\Admin\ResolveFeedReportRequest;
 use DateInterval;
 use DateTimeImmutable;
@@ -31,6 +34,7 @@ final class ResolveFeedReportUseCase
         private readonly FeedReportRepositoryInterface $reports,
         private readonly UserWarningRepositoryInterface $warnings,
         private readonly UserRepositoryInterface $users,
+        private readonly SystemNotificationRepositoryInterface $notifications,
         private readonly DeletePostUseCase $deletePost,
         private readonly DeleteCommentUseCase $deleteComment,
         private readonly AdminPresenter $presenter,
@@ -56,6 +60,13 @@ final class ResolveFeedReportUseCase
 
         if ($decision === FeedReportDecision::ContentRemoved) {
             $this->removeReportedContentAndWarnAuthor($report, $admin, $request->adminNote);
+        } else {
+            $this->notifications->save(new SystemNotification(
+                $report->getReporter(),
+                SystemNotificationType::ReportRejected,
+                'Signalement traité',
+                "Votre signalement a été étudié. Il n'a pas été retenu par la modération."
+            ));
         }
 
         $report->resolve($admin, $decision, $request->adminNote);
@@ -98,9 +109,30 @@ final class ResolveFeedReportUseCase
         );
         $this->warnings->save($warning);
 
+        $this->notifications->save(new SystemNotification(
+            $report->getReporter(),
+            SystemNotificationType::ReportAccepted,
+            'Signalement confirmé',
+            'Merci pour votre signalement. Le contenu concerné a été supprimé par la modération.'
+        ));
+
+        $this->notifications->save(new SystemNotification(
+            $author,
+            SystemNotificationType::Warning,
+            'Avertissement',
+            'Un de vos contenus a été supprimé suite à un signalement validé par la modération.'
+        ));
+
         if ($this->warnings->countForUser($author) >= self::WARNING_SUSPENSION_THRESHOLD) {
             $author->suspendUntil((new DateTimeImmutable())->add(new DateInterval('P'.self::SUSPENSION_DAYS.'D')));
             $this->users->save($author);
+
+            $this->notifications->save(new SystemNotification(
+                $author,
+                SystemNotificationType::Suspension,
+                'Compte temporairement suspendu',
+                'Votre compte est temporairement suspendu pour 7 jours après plusieurs avertissements.'
+            ));
         }
     }
 }

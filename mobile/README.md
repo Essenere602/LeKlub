@@ -134,12 +134,15 @@ L'onglet Profil ouvre un espace `Compte` qui regroupe les informations utiles sa
 - identité utilisateur, avatar ou initiale, rôle et équipe favorite
 - accès à la modification du profil
 - accès au changement de mot de passe
+- accès aux notifications système
 - informations de sécurité de session
 - logout
 
 Le profil mobile utilise :
 
 - `GET /api/me` pour afficher l'utilisateur connecté et son profil
+- `GET /api/me/notifications?page=&limit=` pour afficher les notifications système
+- `PATCH /api/me/notifications/{id}/read` pour marquer une notification comme lue
 - `PATCH /api/me/profile` pour modifier `displayName`, `bio`, `favoriteTeamName` et `avatarUrl`
 - `PATCH /api/me/password` pour modifier le mot de passe de l'utilisateur connecté
 - `AuthContext.refreshCurrentUser()` après modification pour recharger les données depuis le backend
@@ -161,6 +164,8 @@ La validation mobile reprend les règles backend : minimum 10 caractères, au mo
 - ouvrir l'onglet `Profil`
 - vérifier que l'écran `Compte` affiche l'identité, le rôle et l'équipe favorite si elle existe
 - ouvrir `Modifier mon profil`
+- ouvrir `Notifications`
+- marquer une notification comme lue si disponible
 - modifier le nom affiché, la bio et l'équipe favorite
 - enregistrer et vérifier le message de succès
 - revenir à l'écran `Compte` et vérifier que les données sont rafraîchies
@@ -332,7 +337,7 @@ Le Back Office Admin mobile MVP utilise :
 - `GET /api/admin/comments?page=&limit=` pour lister les Commentaires à modérer
 - `DELETE /api/admin/comments/{id}` pour supprimer logiquement un Commentaire
 - `GET /api/admin/reports?page=&limit=&status=` pour consulter les signalements
-- `PATCH /api/admin/reports/{id}/resolve` pour résoudre un signalement sans supprimer le contenu
+- `PATCH /api/admin/reports/{id}/resolve` pour rejeter un signalement ou supprimer le contenu signalé
 
 Contraintes MVP :
 
@@ -341,6 +346,9 @@ Contraintes MVP :
 - pas de gestion des rôles
 - pas de lecture des Messages privés
 - les signalements et la modération restent deux actions séparées
+- supprimer depuis un signalement crée un avertissement pour l'auteur
+- après 3 avertissements, l'auteur est suspendu temporairement des actions d'écriture
+- les notifications système restent séparées de la messagerie privée
 - confirmation avant chaque action de modération
 
 ### Tests Manuels Admin
@@ -358,8 +366,9 @@ Contraintes MVP :
 - vérifier que le contenu supprimé disparaît du Feed utilisateur
 - ouvrir les Signalements
 - basculer entre `Ouverts` et `Résolus`
-- résoudre un signalement sans supprimer le contenu
-- vérifier qu'un signalement résolu passe dans l'onglet `Résolus`
+- rejeter un signalement et vérifier qu'il passe dans `Résolus`
+- supprimer un contenu depuis un signalement et vérifier que le contenu disparaît du Feed
+- vérifier que le reporter et l'auteur reçoivent une notification système
 
 ## Audit NPM
 

@@ -11,6 +11,7 @@ use App\Application\Feed\DeletePostUseCase;
 use App\Domain\Entity\Comment;
 use App\Domain\Entity\FeedReport;
 use App\Domain\Entity\Post;
+use App\Domain\Entity\SystemNotification;
 use App\Domain\Entity\User;
 use App\Domain\Entity\UserWarning;
 use App\Domain\Exception\FeedReportException;
@@ -18,6 +19,7 @@ use App\Domain\Exception\ResourceNotFoundException;
 use App\Domain\Repository\CommentRepositoryInterface;
 use App\Domain\Repository\FeedReportRepositoryInterface;
 use App\Domain\Repository\PostRepositoryInterface;
+use App\Domain\Repository\SystemNotificationRepositoryInterface;
 use App\Domain\Repository\UserRepositoryInterface;
 use App\Domain\Repository\UserWarningRepositoryInterface;
 use App\Domain\ValueObject\FeedReportDecision;
@@ -35,7 +37,8 @@ final class ResolveFeedReportUseCaseTest extends TestCase
         $post = new Post(new User('author@example.com', 'author', 'hash'), 'Reported content');
         $report = FeedReport::forPost(new User('reporter@example.com', 'reporter', 'hash'), $post, FeedReportReason::Spam, null);
         $reports = new ResolvingFeedReportRepository($report);
-        $useCase = self::useCase($reports);
+        $notifications = new ResolvingNotificationRepository();
+        $useCase = self::useCase($reports, notifications: $notifications);
 
         $result = $useCase->execute(1, $admin, ResolveFeedReportRequest::fromArray([
             'decision' => 'rejected',
@@ -49,6 +52,7 @@ final class ResolveFeedReportUseCaseTest extends TestCase
         self::assertSame($admin, $report->getResolvedBy());
         self::assertSame($report, $reports->savedReport);
         self::assertSame('rejected', $result['decision']);
+        self::assertCount(1, $notifications->savedNotifications);
     }
 
     public function testItRemovesReportedPostAndWarnsAuthor(): void
@@ -59,7 +63,8 @@ final class ResolveFeedReportUseCaseTest extends TestCase
         $report = FeedReport::forPost(new User('reporter@example.com', 'reporter', 'hash'), $post, FeedReportReason::Spam, null);
         $reports = new ResolvingFeedReportRepository($report);
         $warnings = new ResolvingWarningRepository();
-        $useCase = self::useCase($reports, $warnings);
+        $notifications = new ResolvingNotificationRepository();
+        $useCase = self::useCase($reports, $warnings, notifications: $notifications);
 
         $useCase->execute(1, $admin, ResolveFeedReportRequest::fromArray([
             'decision' => 'content_removed',
@@ -71,6 +76,7 @@ final class ResolveFeedReportUseCaseTest extends TestCase
         self::assertSame(FeedReportDecision::ContentRemoved, $report->getDecision());
         self::assertInstanceOf(UserWarning::class, $warnings->savedWarning);
         self::assertSame($author, $warnings->savedWarning->getUser());
+        self::assertCount(2, $notifications->savedNotifications);
     }
 
     public function testItSuspendsAuthorAfterThreeWarnings(): void
@@ -82,7 +88,8 @@ final class ResolveFeedReportUseCaseTest extends TestCase
         $warnings = new ResolvingWarningRepository();
         $warnings->warningCount = 3;
         $users = new ResolvingUserRepository();
-        $useCase = self::useCase(new ResolvingFeedReportRepository($report), $warnings, $users);
+        $notifications = new ResolvingNotificationRepository();
+        $useCase = self::useCase(new ResolvingFeedReportRepository($report), $warnings, $users, $notifications);
 
         $useCase->execute(1, $admin, ResolveFeedReportRequest::fromArray([
             'decision' => 'content_removed',
@@ -90,6 +97,7 @@ final class ResolveFeedReportUseCaseTest extends TestCase
 
         self::assertTrue($author->isSuspended());
         self::assertSame($author, $users->savedUser);
+        self::assertCount(3, $notifications->savedNotifications);
     }
 
     public function testItRejectsAlreadyResolvedReport(): void
@@ -124,6 +132,7 @@ final class ResolveFeedReportUseCaseTest extends TestCase
         ?ResolvingFeedReportRepository $reports = null,
         ?ResolvingWarningRepository $warnings = null,
         ?ResolvingUserRepository $users = null,
+        ?ResolvingNotificationRepository $notifications = null,
     ): ResolveFeedReportUseCase {
         $postRepository = new ResolvingPostRepository();
         $commentRepository = new ResolvingCommentRepository();
@@ -132,10 +141,39 @@ final class ResolveFeedReportUseCaseTest extends TestCase
             $reports ?? new ResolvingFeedReportRepository(null),
             $warnings ?? new ResolvingWarningRepository(),
             $users ?? new ResolvingUserRepository(),
+            $notifications ?? new ResolvingNotificationRepository(),
             new DeletePostUseCase($postRepository),
             new DeleteCommentUseCase($commentRepository),
             new AdminPresenter($postRepository),
         );
+    }
+}
+
+final class ResolvingNotificationRepository implements SystemNotificationRepositoryInterface
+{
+    /**
+     * @var list<SystemNotification>
+     */
+    public array $savedNotifications = [];
+
+    public function save(SystemNotification $notification): void
+    {
+        $this->savedNotifications[] = $notification;
+    }
+
+    public function findForUser(int $id, User $user): ?SystemNotification
+    {
+        return null;
+    }
+
+    public function paginateForUser(User $user, int $page, int $limit): array
+    {
+        return [];
+    }
+
+    public function countForUser(User $user): int
+    {
+        return 0;
     }
 }
 
