@@ -14,6 +14,7 @@ type PostCardProps = {
   canManage?: boolean;
   onOpen?: () => void;
   onReact: (type: ReactionType) => void;
+  onReport?: () => void;
   onRemoveReaction: () => void;
   onUpdate?: (content: string) => Promise<void>;
   onDelete?: () => Promise<void>;
@@ -25,6 +26,7 @@ export function PostCard({
   onDelete,
   onOpen,
   onReact,
+  onReport,
   onRemoveReaction,
   onUpdate,
   post,
@@ -135,6 +137,12 @@ export function PostCard({
         </View>
       ) : null}
 
+      {!canManage && !isEditing && onReport ? (
+        <View style={styles.reportAction}>
+          <AppButton label="Signaler" onPress={onReport} variant="ghost" />
+        </View>
+      ) : null}
+
       <ReactionButtons
         disabled={disabled}
         dislikesCount={post.dislikesCount}
@@ -215,5 +223,8 @@ const styles = StyleSheet.create({
   actions: {
     flexDirection: 'row',
     gap: theme.spacing.md,
+  },
+  reportAction: {
+    alignItems: 'flex-start',
   },
 });

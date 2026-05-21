@@ -25,8 +25,8 @@ final class ReactToPostUseCaseTest extends TestCase
         $posts = new VisiblePostRepository($post);
         $reactions = new InMemoryPostReactionRepository();
         $presenter = new FeedPresenter($posts);
-        $react = new ReactToPostUseCase($posts, $reactions, $presenter);
-        $remove = new RemovePostReactionUseCase($posts, $reactions, $presenter);
+        $react = new ReactToPostUseCase($posts, $reactions, $presenter, new \App\Application\User\SuspensionGuard());
+        $remove = new RemovePostReactionUseCase($posts, $reactions, $presenter, new \App\Application\User\SuspensionGuard());
 
         $likedPost = $react->execute(1, $user, ReactToPostRequest::fromArray(['type' => 'like']));
 

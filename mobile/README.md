@@ -134,12 +134,15 @@ L'onglet Profil ouvre un espace `Compte` qui regroupe les informations utiles sa
 - identité utilisateur, avatar ou initiale, rôle et équipe favorite
 - accès à la modification du profil
 - accès au changement de mot de passe
+- accès aux notifications système
 - informations de sécurité de session
 - logout
 
 Le profil mobile utilise :
 
 - `GET /api/me` pour afficher l'utilisateur connecté et son profil
+- `GET /api/me/notifications?page=&limit=` pour afficher les notifications système
+- `PATCH /api/me/notifications/{id}/read` pour marquer une notification comme lue
 - `PATCH /api/me/profile` pour modifier `displayName`, `bio`, `favoriteTeamName` et `avatarUrl`
 - `PATCH /api/me/password` pour modifier le mot de passe de l'utilisateur connecté
 - `AuthContext.refreshCurrentUser()` après modification pour recharger les données depuis le backend
@@ -161,6 +164,8 @@ La validation mobile reprend les règles backend : minimum 10 caractères, au mo
 - ouvrir l'onglet `Profil`
 - vérifier que l'écran `Compte` affiche l'identité, le rôle et l'équipe favorite si elle existe
 - ouvrir `Modifier mon profil`
+- ouvrir `Notifications`
+- marquer une notification comme lue si disponible
 - modifier le nom affiché, la bio et l'équipe favorite
 - enregistrer et vérifier le message de succès
 - revenir à l'écran `Compte` et vérifier que les données sont rafraîchies
@@ -191,8 +196,12 @@ Le Feed mobile MVP utilise :
 - `DELETE /api/feed/comments/{id}` pour supprimer logiquement son propre Commentaire
 - `PUT /api/feed/{postId}/reaction` pour liker ou disliker
 - `DELETE /api/feed/{postId}/reaction` pour retirer la Réaction
+- `POST /api/feed/{postId}/reports` pour signaler un Post visible
+- `POST /api/feed/comments/{commentId}/reports` pour signaler un Commentaire visible
 
 Le backend ne retourne pas encore la Réaction courante de l'utilisateur. L'interface affiche donc les compteurs serveur et propose les actions `Like`, `Dislike` et `Retirer`, sans état visuel actif du vote.
+
+Le signalement reste discret dans l'UI : un bouton `Signaler` ouvre une modal avec une raison prédéfinie et une précision optionnelle.
 
 ## Tests Manuels Feed
 
@@ -212,6 +221,9 @@ Le backend ne retourne pas encore la Réaction courante de l'utilisateur. L'inte
 - modifier un de ses propres Commentaires
 - supprimer un de ses propres Commentaires après confirmation
 - vérifier que les boutons modifier/supprimer ne sont pas affichés sur le contenu d'un autre utilisateur
+- signaler un Post d'un autre utilisateur
+- signaler un Commentaire d'un autre utilisateur
+- tenter de signaler deux fois le même contenu et vérifier le message propre
 - utiliser `Charger plus` si plus de 10 Posts existent
 - revenir au Feed après un commentaire et rafraîchir la liste
 
@@ -324,6 +336,9 @@ Le Back Office Admin mobile MVP utilise :
 - `DELETE /api/admin/posts/{id}` pour supprimer logiquement un Post
 - `GET /api/admin/comments?page=&limit=` pour lister les Commentaires à modérer
 - `DELETE /api/admin/comments/{id}` pour supprimer logiquement un Commentaire
+- `GET /api/admin/reports?page=&limit=&status=` pour consulter les signalements
+- `PATCH /api/admin/reports/{id}/resolve` pour rejeter un signalement ou supprimer le contenu signalé
+- `GET /api/admin/warnings?page=&limit=&userId=&suspendedOnly=` pour suivre les avertissements et suspensions temporaires
 
 Contraintes MVP :
 
@@ -331,6 +346,11 @@ Contraintes MVP :
 - pas de bannissement
 - pas de gestion des rôles
 - pas de lecture des Messages privés
+- les signalements et la modération restent deux actions séparées
+- supprimer depuis un signalement crée un avertissement pour l'auteur
+- après 3 avertissements, l'auteur est suspendu temporairement des actions d'écriture
+- les notifications système restent séparées de la messagerie privée
+- les avertissements admin sont consultables mais non modifiables
 - confirmation avant chaque action de modération
 
 ### Tests Manuels Admin
@@ -346,6 +366,14 @@ Contraintes MVP :
 - basculer entre Posts et Commentaires
 - supprimer logiquement un Post ou Commentaire de test
 - vérifier que le contenu supprimé disparaît du Feed utilisateur
+- ouvrir les Signalements
+- basculer entre `Ouverts` et `Résolus`
+- rejeter un signalement et vérifier qu'il passe dans `Résolus`
+- supprimer un contenu depuis un signalement et vérifier que le contenu disparaît du Feed
+- vérifier que le reporter et l'auteur reçoivent une notification système
+- ouvrir les Avertissements
+- vérifier que l'utilisateur averti, le contenu concerné, le modérateur et le signalement lié sont visibles
+- basculer sur `Suspendus` et vérifier l'état vide ou les suspensions actives
 
 ## Audit NPM
 

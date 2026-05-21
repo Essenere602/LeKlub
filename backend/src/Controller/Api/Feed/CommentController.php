@@ -10,6 +10,7 @@ use App\Application\Feed\ListPostCommentsUseCase;
 use App\Application\Feed\UpdateCommentUseCase;
 use App\Domain\Entity\User;
 use App\Domain\Exception\ResourceNotFoundException;
+use App\Domain\Exception\UserSuspendedException;
 use App\Domain\Repository\CommentRepositoryInterface;
 use App\DTO\Feed\CreateCommentRequest;
 use App\DTO\Feed\UpdateCommentRequest;
@@ -65,6 +66,8 @@ final class CommentController
             ], 'Comment created successfully.', 201);
         } catch (ResourceNotFoundException) {
             return ApiResponse::error('Post not found.', [], 404);
+        } catch (UserSuspendedException $exception) {
+            return ApiResponse::error($exception->getMessage(), [], 403);
         }
     }
 
@@ -100,6 +103,8 @@ final class CommentController
             ], 'Comment updated successfully.');
         } catch (ResourceNotFoundException) {
             return ApiResponse::error('Comment not found.', [], 404);
+        } catch (UserSuspendedException $exception) {
+            return ApiResponse::error($exception->getMessage(), [], 403);
         }
     }
 

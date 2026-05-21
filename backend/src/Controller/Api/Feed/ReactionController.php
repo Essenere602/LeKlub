@@ -8,6 +8,7 @@ use App\Application\Feed\ReactToPostUseCase;
 use App\Application\Feed\RemovePostReactionUseCase;
 use App\Domain\Entity\User;
 use App\Domain\Exception\ResourceNotFoundException;
+use App\Domain\Exception\UserSuspendedException;
 use App\DTO\Feed\ReactToPostRequest;
 use App\Shared\Api\ApiResponse;
 use JsonException;
@@ -48,6 +49,8 @@ final class ReactionController
             ], 'Reaction saved successfully.');
         } catch (ResourceNotFoundException) {
             return ApiResponse::error('Post not found.', [], 404);
+        } catch (UserSuspendedException $exception) {
+            return ApiResponse::error($exception->getMessage(), [], 403);
         }
     }
 
@@ -60,6 +63,8 @@ final class ReactionController
             ], 'Reaction removed successfully.');
         } catch (ResourceNotFoundException) {
             return ApiResponse::error('Post not found.', [], 404);
+        } catch (UserSuspendedException $exception) {
+            return ApiResponse::error($exception->getMessage(), [], 403);
         }
     }
 

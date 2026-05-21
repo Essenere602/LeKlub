@@ -82,7 +82,19 @@ La modération admin reste volontairement simple :
 - suppression logique via `deletedAt`
 - trace de l'utilisateur modérateur via `deletedBy`
 - pas de statut `pending` ou `approved`
-- pas de signalements utilisateurs dans le MVP
+
+Les signalements Feed ajoutent une étape de contrôle communautaire sans mélanger les responsabilités :
+
+- un utilisateur connecté peut signaler un Post ou un Commentaire visible
+- un contenu supprimé ne peut pas être signalé
+- un utilisateur ne peut signaler qu'une seule fois le même contenu
+- les raisons sont limitées à une liste validée côté backend
+- le détail optionnel est limité à 500 caractères, normalisé en texte brut et nullable si vide après `trim`
+- l'admin peut consulter et résoudre un signalement sans supprimer le contenu
+- l'admin peut rejeter un signalement sans supprimer le contenu
+- l'admin peut supprimer directement le contenu signalé et avertir l'auteur
+- après 3 avertissements, le compte de l'auteur est suspendu temporairement 7 jours pour les actions d'écriture
+- les notifications système informent le reporter et l'auteur sans utiliser la messagerie privée
 
 Les contenus supprimés sont invisibles dans :
 
@@ -115,14 +127,32 @@ Les endpoints admin appliquent un principe de minimisation :
 - les Messages privés ne sont jamais lus ni affichés dans l'admin
 - les actions de modération utilisent la suppression logique existante
 - `deletedBy` conserve une trace du modérateur
+- les décisions de signalement gardent `resolvedAt`, `resolvedBy`, `decision` et une note admin optionnelle
+- les notifications système sont séparées des Messages privés
 
 Le MVP admin ne contient pas :
 
 - suppression physique utilisateur
 - bannissement
 - gestion des rôles
-- signalements
 - dashboard complexe ou graphiques
+
+## Suspension Temporaire
+
+La suspension est volontairement simple :
+
+- chaque contenu supprimé suite à un signalement validé crée un avertissement
+- les avertissements sont consultables par `ROLE_ADMIN` via `/api/admin/warnings`
+- à partir de 3 avertissements, le compte est suspendu temporairement 7 jours
+- la lecture de l'application reste possible
+- les actions d'écriture sont bloquées :
+  - créer ou modifier un Post
+  - créer ou modifier un Commentaire
+  - réagir à un Post
+  - signaler un contenu
+  - envoyer un Message privé
+- il n'y a pas de bannissement définitif dans cette version
+- l'admin ne peut pas supprimer ou modifier manuellement un avertissement dans le MVP
 
 ## Messagerie Et WebSocket
 
@@ -201,7 +231,8 @@ Conséquence MVP : les endpoints football restent simples et peu nombreux pour �
 - pas de notifications push hors application ouverte
 - pas de reconnexion WebSocket avancée
 - pas de pagination de l'historique des Messages privés
-- pas de système de signalement utilisateur
+- pas de notifications automatiques liées aux signalements
+- pas d'escalade complexe des signalements
 - pas de cache des données football
 - pas de persistance des données football
 - dépendance à la disponibilité et au quota de football-data.org

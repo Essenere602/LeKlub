@@ -41,6 +41,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column]
     private DateTimeImmutable $updatedAt;
 
+    #[ORM\Column(nullable: true)]
+    private ?DateTimeImmutable $suspendedUntil = null;
+
     public function __construct(string $email, string $username, string $hashedPassword)
     {
         $now = new DateTimeImmutable();
@@ -120,6 +123,26 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function getUpdatedAt(): DateTimeImmutable
     {
         return $this->updatedAt;
+    }
+
+    public function getSuspendedUntil(): ?DateTimeImmutable
+    {
+        return $this->suspendedUntil;
+    }
+
+    public function isSuspended(): bool
+    {
+        return $this->suspendedUntil !== null && $this->suspendedUntil > new DateTimeImmutable();
+    }
+
+    public function suspendUntil(DateTimeImmutable $suspendedUntil): void
+    {
+        if ($this->suspendedUntil !== null && $this->suspendedUntil >= $suspendedUntil) {
+            return;
+        }
+
+        $this->suspendedUntil = $suspendedUntil;
+        $this->touch();
     }
 
     public function eraseCredentials(): void

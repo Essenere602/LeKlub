@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useState } from 'react';
-import { ActivityIndicator, ScrollView, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, Alert, ScrollView, StyleSheet, View } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 
 import { CommentCard } from '../../components/feed/CommentCard';
 import { PostCard } from '../../components/feed/PostCard';
+import { ReportContentModal } from '../../components/feed/ReportContentModal';
 import { AppButton } from '../../components/ui/AppButton';
 import { AppInput } from '../../components/ui/AppInput';
 import { AppText } from '../../components/ui/AppText';
@@ -14,7 +15,7 @@ import { useAuth } from '../../hooks/useAuth';
 import { FeedStackParamList } from '../../navigation/navigation.types';
 import { toApiError } from '../../services/api/apiError';
 import { feedService } from '../../services/feed/feedService';
-import { Commentaire, Pagination, Post, ReactionType } from '../../types/feed.types';
+import { Commentaire, CreateReportPayload, Pagination, Post, ReactionType } from '../../types/feed.types';
 
 type PostDetailScreenProps = NativeStackScreenProps<FeedStackParamList, 'PostDetail'>;
 
@@ -30,6 +31,9 @@ export function PostDetailScreen({ navigation, route }: PostDetailScreenProps) {
   const [isCreatingComment, setIsCreatingComment] = useState(false);
   const [isLoadingMoreComments, setIsLoadingMoreComments] = useState(false);
   const [isReacting, setIsReacting] = useState(false);
+  const [reportTarget, setReportTarget] = useState<{ type: 'Post'; id: number } | { type: 'Commentaire'; id: number } | null>(null);
+  const [isReporting, setIsReporting] = useState(false);
+  const [reportError, setReportError] = useState<string | null>(null);
 
   const loadPostDetail = useCallback(async () => {
     setError(null);
@@ -179,8 +183,44 @@ export function PostDetailScreen({ navigation, route }: PostDetailScreenProps) {
     }
   }
 
+  async function submitReport(payload: CreateReportPayload) {
+    if (reportTarget === null) {
+      return;
+    }
+
+    setIsReporting(true);
+    setReportError(null);
+
+    try {
+      if (reportTarget.type === 'Post') {
+        await feedService.reportPost(reportTarget.id, payload);
+      } else {
+        await feedService.reportComment(reportTarget.id, payload);
+      }
+
+      setReportTarget(null);
+      Alert.alert('Signalement envoyé', "L'équipe de modération pourra traiter ce contenu.");
+    } catch (caughtError) {
+      setReportError(toApiError(caughtError).message);
+      throw caughtError;
+    } finally {
+      setIsReporting(false);
+    }
+  }
+
   return (
     <Screen style={styles.screen}>
+      <ReportContentModal
+        error={reportError}
+        loading={isReporting}
+        targetLabel={reportTarget?.type ?? 'Post'}
+        visible={reportTarget !== null}
+        onClose={() => {
+          setReportTarget(null);
+          setReportError(null);
+        }}
+        onSubmit={submitReport}
+      />
       <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
         <View style={styles.header}>
           <AppText style={styles.kicker}>Discussion</AppText>
@@ -198,6 +238,7 @@ export function PostDetailScreen({ navigation, route }: PostDetailScreenProps) {
             disabled={isReacting}
             onDelete={deletePost}
             onReact={reactToPost}
+            onReport={() => setReportTarget({ type: 'Post', id: post.id })}
             onRemoveReaction={removeReaction}
             onUpdate={updatePost}
             post={post}
@@ -230,6 +271,7 @@ export function PostDetailScreen({ navigation, route }: PostDetailScreenProps) {
               comment={comment}
               key={comment.id}
               onDelete={() => deleteComment(comment.id)}
+              onReport={() => setReportTarget({ type: 'Commentaire', id: comment.id })}
               onUpdate={(updatedContent) => updateComment(comment.id, updatedContent)}
             />
           ))}

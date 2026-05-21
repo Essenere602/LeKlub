@@ -23,7 +23,7 @@ final class UpdateCommentUseCaseTest extends TestCase
         $author = new User('author@example.com', 'author', 'hash');
         $comment = new Comment(new Post($author, 'Post'), $author, 'Old comment');
         $comments = new UpdatingCommentRepository();
-        $useCase = new UpdateCommentUseCase($comments, new FeedPresenter(new EmptyPostRepositoryForCommentUpdate()));
+        $useCase = new UpdateCommentUseCase($comments, new FeedPresenter(new EmptyPostRepositoryForCommentUpdate()), new \App\Application\User\SuspensionGuard());
 
         $result = $useCase->execute($comment, UpdateCommentRequest::fromArray([
             'content' => ' <em>Updated comment</em> ',
@@ -40,7 +40,7 @@ final class UpdateCommentUseCaseTest extends TestCase
         $comment = new Comment(new Post($author, 'Post'), $author, 'Old comment');
         $comment->delete($author);
         $comments = new UpdatingCommentRepository();
-        $useCase = new UpdateCommentUseCase($comments, new FeedPresenter(new EmptyPostRepositoryForCommentUpdate()));
+        $useCase = new UpdateCommentUseCase($comments, new FeedPresenter(new EmptyPostRepositoryForCommentUpdate()), new \App\Application\User\SuspensionGuard());
 
         $this->expectException(ResourceNotFoundException::class);
 

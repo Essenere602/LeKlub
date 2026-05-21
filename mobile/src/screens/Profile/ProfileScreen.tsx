@@ -70,6 +70,11 @@ export function ProfileScreen({ navigation }: ProfileScreenProps) {
         <AppCard style={styles.section}>
           <SectionTitle title="Sécurité" />
           <SettingsRow
+            onPress={() => navigation.navigate('Notifications')}
+            subtitle="Suivi des décisions de modération et messages système."
+            title="Notifications"
+          />
+          <SettingsRow
             onPress={() => navigation.navigate('ChangePassword')}
             subtitle="Ancien mot de passe, nouveau mot de passe et confirmation."
             title="Changer mon mot de passe"

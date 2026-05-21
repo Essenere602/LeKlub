@@ -38,10 +38,13 @@ export type ProfileStackParamList = {
   Profile: undefined;
   EditProfile: undefined;
   ChangePassword: undefined;
+  Notifications: undefined;
 };
 
 export type AdminStackParamList = {
   AdminHome: undefined;
   AdminUsers: undefined;
   AdminFeedModeration: undefined;
+  AdminReports: undefined;
+  AdminWarnings: undefined;
 };

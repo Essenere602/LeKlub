@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Application\Feed;
 
+use App\Application\User\SuspensionGuard;
 use App\Domain\Entity\Comment;
 use App\Domain\Entity\User;
 use App\Domain\Exception\ResourceNotFoundException;
@@ -17,6 +18,7 @@ final class AddCommentUseCase
         private readonly PostRepositoryInterface $posts,
         private readonly CommentRepositoryInterface $comments,
         private readonly FeedPresenter $presenter,
+        private readonly SuspensionGuard $suspensionGuard,
     ) {
     }
 
@@ -25,6 +27,8 @@ final class AddCommentUseCase
      */
     public function execute(int $postId, User $author, CreateCommentRequest $request): array
     {
+        $this->suspensionGuard->assertCanWrite($author);
+
         $post = $this->posts->findVisibleById($postId);
 
         if ($post === null) {

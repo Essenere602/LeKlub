@@ -160,6 +160,22 @@ En cas d'ancien mot de passe incorrect, l'API retourne un message générique :
 
 Codes possibles : `200`, `400`, `401`, `422`.
 
+### GET /api/me/notifications?page=1&limit=10
+
+Retourne les notifications système de l'utilisateur connecté.
+
+Ces notifications sont distinctes de la messagerie privée.
+
+Codes possibles : `200`, `401`.
+
+### PATCH /api/me/notifications/{id}/read
+
+Marque une notification système comme lue.
+
+Un utilisateur ne peut marquer comme lue que ses propres notifications.
+
+Codes possibles : `200`, `401`, `404`.
+
 ### GET /api/users?query=&limit=20
 
 Retourne un annuaire minimal des utilisateurs disponibles pour créer une Conversation privée.
@@ -350,6 +366,56 @@ Retire la Réaction de l'utilisateur connecté sur un Post visible.
 
 Codes possibles : `200`, `401`, `404`.
 
+## Signalements Feed
+
+Toutes les routes de signalement demandent un JWT.
+
+Le signalement et la modération restent séparés :
+
+- signaler crée un `FeedReport`
+- modérer reste une action admin distincte par suppression logique
+- un utilisateur ne peut signaler qu'une seule fois le même Post ou Commentaire
+- un contenu déjà supprimé retourne `404` et ne peut pas être signalé
+
+Raisons autorisées :
+
+```text
+spam
+insults
+harassment
+hate_content
+inappropriate_content
+other
+```
+
+Le champ `details` est optionnel, limité à 500 caractères, normalisé en texte brut et enregistré à `null` s'il est vide après `trim`.
+
+### POST /api/feed/{postId}/reports
+
+Signale un Post visible.
+
+```json
+{
+  "reason": "spam",
+  "details": "Message optionnel pour la modération"
+}
+```
+
+Codes possibles : `201`, `400`, `401`, `404`, `409`, `422`.
+
+### POST /api/feed/comments/{commentId}/reports
+
+Signale un Commentaire visible.
+
+```json
+{
+  "reason": "insults",
+  "details": null
+}
+```
+
+Codes possibles : `201`, `400`, `401`, `404`, `409`, `422`.
+
 ## Conversations Privées
 
 Toutes les routes de messagerie demandent un JWT.
@@ -522,6 +588,7 @@ Retourne des compteurs de supervision.
   "usersCount": 12,
   "postsCount": 34,
   "commentsCount": 51,
+  "openReportsCount": 2,
   "conversationsCount": 8,
   "messagesCount": 93
 }
@@ -573,6 +640,85 @@ Codes possibles : `200`, `401`, `403`.
 Supprime logiquement un Commentaire en renseignant `deletedAt` et `deletedBy`.
 
 Codes possibles : `200`, `401`, `403`, `404`.
+
+### GET /api/admin/reports?page=1&limit=10&status=open
+
+Retourne les signalements paginés.
+
+Le filtre `status` est optionnel :
+
+```text
+open
+resolved
+```
+
+Chaque signalement retourne :
+
+- le type de contenu : `post` ou `comment`
+- la raison
+- le détail optionnel
+- le statut
+- le reporter, sans email
+- un extrait du contenu signalé
+- l'auteur du contenu, sans email
+- la date de création
+- les informations de résolution si le signalement est résolu
+
+Codes possibles : `200`, `401`, `403`, `422`.
+
+### PATCH /api/admin/reports/{id}/resolve
+
+Arbitre un signalement.
+
+Payload :
+
+```json
+{
+  "decision": "rejected",
+  "adminNote": "Note optionnelle"
+}
+```
+
+Décisions possibles :
+
+- `rejected` : le signalement n'est pas retenu, le contenu reste visible
+- `content_removed` : le contenu est supprimé logiquement, l'auteur reçoit un avertissement
+
+Si un utilisateur atteint 3 avertissements, son compte est temporairement suspendu 7 jours pour les actions d'écriture.
+
+Le champ `adminNote` est optionnel, limité à 500 caractères et stocké en texte brut.
+
+Cette action crée des notifications système :
+
+- reporter notifié si son signalement est rejeté
+- reporter notifié si le contenu est supprimé
+- auteur notifié en cas d'avertissement
+- auteur notifié en cas de suspension
+
+Codes possibles : `200`, `400`, `401`, `403`, `404`, `409`, `422`.
+
+### GET /api/admin/warnings?page=1&limit=10&userId=7&suspendedOnly=false
+
+Retourne les avertissements utilisateurs créés après suppression d'un contenu signalé.
+
+Filtres optionnels :
+
+- `userId` : limite la liste aux avertissements d'un utilisateur
+- `suspendedOnly` : retourne uniquement les utilisateurs actuellement suspendus
+
+Chaque avertissement retourne :
+
+- l'utilisateur averti, sans email
+- la raison ou note de modération
+- le type de contenu concerné : `post` ou `comment`
+- l'identifiant du contenu concerné
+- la date de création
+- le modérateur à l'origine de l'avertissement, sans email
+- le signalement lié
+- le nombre d'avertissements de l'utilisateur
+- l'état de suspension temporaire éventuel
+
+Codes possibles : `200`, `401`, `403`, `422`.
 
 ## Football
 

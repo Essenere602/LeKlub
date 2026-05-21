@@ -29,13 +29,17 @@ Le backend Symfony est opérationnel pour les fonctionnalités suivantes :
 - modification et suppression logique de ses propres Posts côté utilisateur
 - ajout, modification et suppression logique de ses propres Commentaires
 - ajout, modification et retrait de Réactions `like` / `dislike`
+- signalement de Posts et Commentaires
+- arbitrage admin des signalements : rejet ou suppression du contenu signalé
+- notifications système liées aux décisions de modération
+- avertissements et suspension temporaire après plusieurs contenus supprimés
 - modération simple par `ROLE_ADMIN`
 - création de Conversations privées
 - envoi, consultation et marquage comme lus des Messages privés
 - suppression de Messages privés pour soi uniquement
 - notification WebSocket simple lors d'un nouveau Message privé
 - données football en lecture seule : résultats, matchs à venir, classement et buteurs
-- Back Office Admin MVP : synthèse, liste utilisateurs sécurisée, modération des Posts et Commentaires
+- Back Office Admin MVP : synthèse, liste utilisateurs sécurisée, signalements, avertissements, suspensions temporaires, modération des Posts et Commentaires
 
 Vérifications actuelles :
 
@@ -255,7 +259,7 @@ GET    /api/admin/comments
 DELETE /api/admin/comments/{id}
 ```
 
-Le feed MVP gère les Posts texte, les Commentaires, les Réactions et la modération admin par suppression logique.
+Le feed MVP gère les Posts texte, les Commentaires, les Réactions, les signalements et la modération admin par suppression logique.
 
 La messagerie MVP gère les Conversations privées entre deux utilisateurs, l'historique des Messages privés, le marquage comme lu et une notification WebSocket simple pour les nouveaux Messages privés.
 
@@ -263,7 +267,7 @@ Les données football sont lues depuis football-data.org avec une normalisation 
 
 Les résultats et matchs à venir peuvent être filtrés par journée avec le paramètre optionnel `matchday`.
 
-Le Back Office Admin MVP est protégé par `ROLE_ADMIN`. Il ne retourne pas l'email dans la liste utilisateurs et utilise uniquement la suppression logique pour la modération du Feed.
+Le Back Office Admin MVP est protégé par `ROLE_ADMIN`. Il ne retourne pas l'email dans la liste utilisateurs, permet de consulter/résoudre les signalements publics et utilise uniquement la suppression logique pour la modération du Feed.
 
 ## CORS Et Expo Go
 

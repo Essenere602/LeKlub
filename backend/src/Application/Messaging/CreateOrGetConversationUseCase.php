@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Application\Messaging;
 
+use App\Application\User\SuspensionGuard;
 use App\Domain\Entity\Conversation;
 use App\Domain\Entity\Message;
 use App\Domain\Entity\User;
@@ -23,6 +24,7 @@ final class CreateOrGetConversationUseCase
         private readonly MessageRepositoryInterface $messages,
         private readonly MessagingPresenter $presenter,
         private readonly MessageNotifierInterface $notifier,
+        private readonly SuspensionGuard $suspensionGuard,
     ) {
     }
 
@@ -31,6 +33,10 @@ final class CreateOrGetConversationUseCase
      */
     public function execute(User $sender, CreateConversationRequest $request): array
     {
+        if ($request->firstMessage !== null) {
+            $this->suspensionGuard->assertCanWrite($sender);
+        }
+
         if ($sender->getId() === $request->recipientId) {
             throw MessagingException::cannotMessageSelf();
         }

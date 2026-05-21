@@ -1,9 +1,13 @@
 import { ApiResponse } from '../../types/api.types';
 import {
   AdminOverview,
+  AdminReportStatus,
   PaginatedAdminComments,
   PaginatedAdminPosts,
+  PaginatedAdminReports,
   PaginatedAdminUsers,
+  PaginatedAdminWarnings,
+  ResolveReportPayload,
 } from '../../types/admin.types';
 import { apiClient } from '../api/apiClient';
 
@@ -60,5 +64,38 @@ export const adminService = {
 
   async deleteComment(commentId: number): Promise<void> {
     await apiClient.delete<ApiResponse<null>>(`/admin/comments/${commentId}`);
+  },
+
+  async listReports(page = 1, limit = 10, status?: AdminReportStatus): Promise<PaginatedAdminReports> {
+    const response = await apiClient.get<ApiResponse<PaginatedAdminReports>>('/admin/reports', {
+      params: { page, limit, status },
+    });
+
+    if (!response.data.data) {
+      throw new Error(response.data.message ?? 'Unable to load admin reports.');
+    }
+
+    return response.data.data;
+  },
+
+  async resolveReport(reportId: number, payload: ResolveReportPayload): Promise<void> {
+    await apiClient.patch<ApiResponse<null>>(`/admin/reports/${reportId}/resolve`, payload);
+  },
+
+  async listWarnings(
+    page = 1,
+    limit = 10,
+    userId?: number,
+    suspendedOnly = false,
+  ): Promise<PaginatedAdminWarnings> {
+    const response = await apiClient.get<ApiResponse<PaginatedAdminWarnings>>('/admin/warnings', {
+      params: { page, limit, userId, suspendedOnly },
+    });
+
+    if (!response.data.data) {
+      throw new Error(response.data.message ?? 'Unable to load admin warnings.');
+    }
+
+    return response.data.data;
   },
 };
