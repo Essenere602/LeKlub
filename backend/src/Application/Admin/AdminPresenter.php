@@ -8,13 +8,16 @@ use App\Domain\Entity\Comment;
 use App\Domain\Entity\FeedReport;
 use App\Domain\Entity\Post;
 use App\Domain\Entity\User;
+use App\Domain\Entity\UserWarning;
 use App\Domain\Repository\PostRepositoryInterface;
+use App\Domain\Repository\UserWarningRepositoryInterface;
 use App\Domain\ValueObject\PostReactionType;
 
 final class AdminPresenter
 {
     public function __construct(
         private readonly PostRepositoryInterface $posts,
+        private readonly UserWarningRepositoryInterface $warnings,
     ) {
     }
 
@@ -103,6 +106,37 @@ final class AdminPresenter
             'resolvedAt' => $report->getResolvedAt()?->format(DATE_ATOM),
             'resolvedBy' => $report->getResolvedBy() !== null ? $this->author($report->getResolvedBy()) : null,
         ];
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    public function warning(UserWarning $warning): array
+    {
+        $user = $warning->getUser();
+
+        return [
+            'id' => $warning->getId(),
+            'user' => $this->author($user),
+            'reason' => $warning->getReason(),
+            'contentType' => $warning->getContentType(),
+            'contentId' => $warning->getContentId(),
+            'createdAt' => $warning->getCreatedAt()->format(DATE_ATOM),
+            'createdBy' => $this->author($warning->getCreatedBy()),
+            'report' => [
+                'id' => $warning->getReport()->getId(),
+                'reason' => $warning->getReport()->getReason()->value,
+                'decision' => $warning->getReport()->getDecision()?->value,
+            ],
+            'warningCount' => $this->warningsCount($user),
+            'isSuspended' => $user->isSuspended(),
+            'suspendedUntil' => $user->getSuspendedUntil()?->format(DATE_ATOM),
+        ];
+    }
+
+    private function warningsCount(User $user): int
+    {
+        return $this->warnings->countForUser($user);
     }
 
     /**

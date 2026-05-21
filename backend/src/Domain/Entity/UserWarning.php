@@ -57,4 +57,39 @@ class UserWarning
     {
         return $this->user;
     }
+
+    public function getId(): ?int
+    {
+        return $this->id;
+    }
+
+    public function getReport(): FeedReport
+    {
+        return $this->report;
+    }
+
+    public function getCreatedBy(): User
+    {
+        return $this->createdBy;
+    }
+
+    public function getContentType(): string
+    {
+        return $this->contentType;
+    }
+
+    public function getContentId(): int
+    {
+        return $this->contentId;
+    }
+
+    public function getReason(): ?string
+    {
+        return $this->reason;
+    }
+
+    public function getCreatedAt(): DateTimeImmutable
+    {
+        return $this->createdAt;
+    }
 }

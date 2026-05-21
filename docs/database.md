@@ -458,6 +458,14 @@ La base contient des contraintes uniques sur `(reporter_id, post_id)` et `(repor
 
 `user_warning` trace les avertissements crees quand un contenu est supprime suite a un signalement justifie.
 
+Ces avertissements sont consultables dans le Back Office Admin pour suivre :
+
+- l'utilisateur averti ;
+- le contenu concerne ;
+- le moderateur a l'origine de l'avertissement ;
+- le signalement lie ;
+- les utilisateurs proches du seuil de suspension.
+
 `system_notification` informe les utilisateurs :
 
 - signalement rejete ;
@@ -479,8 +487,8 @@ Les Messages prives ne sont pas supprimes physiquement pour l'autre participant.
 
 - Les Conversations ne portent pas encore de contrainte unique entre deux participants.
 - Les roles sont stockes en JSON dans `user.roles`, ce qui est simple mais limite pour une gestion avancee des permissions.
-- Les signalements restent simples : pas d'escalade, pas de notification et pas de workflow avance.
-- Il n'existe pas encore de suspension utilisateur.
+- Les signalements restent simples : pas d'escalade complexe et pas de workflow multi-etapes.
+- La suspension utilisateur est temporaire et automatique apres 3 avertissements ; il n'existe pas encore de bannissement definitif.
 - Il n'existe pas encore de blocage utilisateur.
 - Les donnees football ne sont pas persistantes en base dans le MVP.
 

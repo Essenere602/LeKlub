@@ -6,6 +6,7 @@ import {
   PaginatedAdminPosts,
   PaginatedAdminReports,
   PaginatedAdminUsers,
+  PaginatedAdminWarnings,
   ResolveReportPayload,
 } from '../../types/admin.types';
 import { apiClient } from '../api/apiClient';
@@ -79,5 +80,22 @@ export const adminService = {
 
   async resolveReport(reportId: number, payload: ResolveReportPayload): Promise<void> {
     await apiClient.patch<ApiResponse<null>>(`/admin/reports/${reportId}/resolve`, payload);
+  },
+
+  async listWarnings(
+    page = 1,
+    limit = 10,
+    userId?: number,
+    suspendedOnly = false,
+  ): Promise<PaginatedAdminWarnings> {
+    const response = await apiClient.get<ApiResponse<PaginatedAdminWarnings>>('/admin/warnings', {
+      params: { page, limit, userId, suspendedOnly },
+    });
+
+    if (!response.data.data) {
+      throw new Error(response.data.message ?? 'Unable to load admin warnings.');
+    }
+
+    return response.data.data;
   },
 };

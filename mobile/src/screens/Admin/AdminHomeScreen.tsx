@@ -21,7 +21,7 @@ type AdminModule = {
   id: string;
   title: string;
   description: string;
-  icon: 'people-outline' | 'shield-checkmark-outline' | 'flag-outline';
+  icon: 'people-outline' | 'shield-checkmark-outline' | 'flag-outline' | 'warning-outline';
   screen: keyof AdminStackParamList;
 };
 
@@ -46,6 +46,13 @@ const MODULES: AdminModule[] = [
     description: 'Consulter et résoudre les signalements utilisateurs.',
     icon: 'flag-outline',
     screen: 'AdminReports',
+  },
+  {
+    id: 'warnings',
+    title: 'Avertissements',
+    description: 'Suivre les avertissements et suspensions temporaires.',
+    icon: 'warning-outline',
+    screen: 'AdminWarnings',
   },
 ];
 

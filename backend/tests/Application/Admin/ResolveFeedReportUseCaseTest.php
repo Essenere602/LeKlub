@@ -144,7 +144,7 @@ final class ResolveFeedReportUseCaseTest extends TestCase
             $notifications ?? new ResolvingNotificationRepository(),
             new DeletePostUseCase($postRepository),
             new DeleteCommentUseCase($commentRepository),
-            new AdminPresenter($postRepository),
+            new AdminPresenter($postRepository, $warnings ?? new ResolvingWarningRepository()),
         );
     }
 }
@@ -229,6 +229,16 @@ final class ResolvingWarningRepository implements UserWarningRepositoryInterface
     public function countForUser(User $user): int
     {
         return $this->warningCount;
+    }
+
+    public function paginateForAdmin(int $page, int $limit, ?int $userId, bool $suspendedOnly): array
+    {
+        return $this->savedWarning !== null ? [$this->savedWarning] : [];
+    }
+
+    public function countForAdmin(?int $userId, bool $suspendedOnly): int
+    {
+        return $this->savedWarning !== null ? 1 : 0;
     }
 }
 

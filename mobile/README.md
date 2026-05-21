@@ -338,6 +338,7 @@ Le Back Office Admin mobile MVP utilise :
 - `DELETE /api/admin/comments/{id}` pour supprimer logiquement un Commentaire
 - `GET /api/admin/reports?page=&limit=&status=` pour consulter les signalements
 - `PATCH /api/admin/reports/{id}/resolve` pour rejeter un signalement ou supprimer le contenu signalé
+- `GET /api/admin/warnings?page=&limit=&userId=&suspendedOnly=` pour suivre les avertissements et suspensions temporaires
 
 Contraintes MVP :
 
@@ -349,6 +350,7 @@ Contraintes MVP :
 - supprimer depuis un signalement crée un avertissement pour l'auteur
 - après 3 avertissements, l'auteur est suspendu temporairement des actions d'écriture
 - les notifications système restent séparées de la messagerie privée
+- les avertissements admin sont consultables mais non modifiables
 - confirmation avant chaque action de modération
 
 ### Tests Manuels Admin
@@ -369,6 +371,9 @@ Contraintes MVP :
 - rejeter un signalement et vérifier qu'il passe dans `Résolus`
 - supprimer un contenu depuis un signalement et vérifier que le contenu disparaît du Feed
 - vérifier que le reporter et l'auteur reçoivent une notification système
+- ouvrir les Avertissements
+- vérifier que l'utilisateur averti, le contenu concerné, le modérateur et le signalement lié sont visibles
+- basculer sur `Suspendus` et vérifier l'état vide ou les suspensions actives
 
 ## Audit NPM
 

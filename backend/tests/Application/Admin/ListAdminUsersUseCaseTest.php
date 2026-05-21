@@ -9,8 +9,10 @@ use App\Application\Admin\ListAdminUsersUseCase;
 use App\Domain\Entity\Post;
 use App\Domain\Entity\User;
 use App\Domain\Entity\UserProfile;
+use App\Domain\Entity\UserWarning;
 use App\Domain\Repository\PostRepositoryInterface;
 use App\Domain\Repository\UserRepositoryInterface;
+use App\Domain\Repository\UserWarningRepositoryInterface;
 use App\Domain\ValueObject\PostReactionType;
 use App\Shared\Api\Pagination;
 use PHPUnit\Framework\TestCase;
@@ -25,7 +27,7 @@ final class ListAdminUsersUseCaseTest extends TestCase
         $profile->update('Alex Paris', null, null, 'https://example.com/avatar.png');
 
         $repository = new AdminUserRepository([$user], 1);
-        $useCase = new ListAdminUsersUseCase($repository, new AdminPresenter(new EmptyAdminPostRepository()));
+        $useCase = new ListAdminUsersUseCase($repository, new AdminPresenter(new EmptyAdminPostRepository(), new EmptyAdminWarningRepository()));
 
         $result = $useCase->execute(new Pagination(1, 20), ' alex ');
 
@@ -134,6 +136,28 @@ final class EmptyAdminPostRepository implements PostRepositoryInterface
     }
 
     public function countReactions(Post $post, PostReactionType $type): int
+    {
+        return 0;
+    }
+}
+
+final class EmptyAdminWarningRepository implements UserWarningRepositoryInterface
+{
+    public function save(UserWarning $warning): void
+    {
+    }
+
+    public function countForUser(User $user): int
+    {
+        return 0;
+    }
+
+    public function paginateForAdmin(int $page, int $limit, ?int $userId, bool $suspendedOnly): array
+    {
+        return [];
+    }
+
+    public function countForAdmin(?int $userId, bool $suspendedOnly): int
     {
         return 0;
     }

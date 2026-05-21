@@ -96,3 +96,26 @@ export type PaginatedAdminReports = {
   reports: AdminReport[];
   pagination: Pagination;
 };
+
+export type AdminWarning = {
+  id: number;
+  user: AdminAuthor;
+  reason: string | null;
+  contentType: 'post' | 'comment';
+  contentId: number;
+  createdAt: string;
+  createdBy: AdminAuthor;
+  report: {
+    id: number | null;
+    reason: string;
+    decision: 'rejected' | 'content_removed' | null;
+  };
+  warningCount: number;
+  isSuspended: boolean;
+  suspendedUntil: string | null;
+};
+
+export type PaginatedAdminWarnings = {
+  warnings: AdminWarning[];
+  pagination: Pagination;
+};

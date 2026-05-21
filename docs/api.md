@@ -697,6 +697,29 @@ Cette action crée des notifications système :
 
 Codes possibles : `200`, `400`, `401`, `403`, `404`, `409`, `422`.
 
+### GET /api/admin/warnings?page=1&limit=10&userId=7&suspendedOnly=false
+
+Retourne les avertissements utilisateurs créés après suppression d'un contenu signalé.
+
+Filtres optionnels :
+
+- `userId` : limite la liste aux avertissements d'un utilisateur
+- `suspendedOnly` : retourne uniquement les utilisateurs actuellement suspendus
+
+Chaque avertissement retourne :
+
+- l'utilisateur averti, sans email
+- la raison ou note de modération
+- le type de contenu concerné : `post` ou `comment`
+- l'identifiant du contenu concerné
+- la date de création
+- le modérateur à l'origine de l'avertissement, sans email
+- le signalement lié
+- le nombre d'avertissements de l'utilisateur
+- l'état de suspension temporaire éventuel
+
+Codes possibles : `200`, `401`, `403`, `422`.
+
 ## Football
 
 Toutes les routes football demandent un JWT.

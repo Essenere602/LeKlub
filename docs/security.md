@@ -142,6 +142,7 @@ Le MVP admin ne contient pas :
 La suspension est volontairement simple :
 
 - chaque contenu supprimé suite à un signalement validé crée un avertissement
+- les avertissements sont consultables par `ROLE_ADMIN` via `/api/admin/warnings`
 - à partir de 3 avertissements, le compte est suspendu temporairement 7 jours
 - la lecture de l'application reste possible
 - les actions d'écriture sont bloquées :
@@ -151,6 +152,7 @@ La suspension est volontairement simple :
   - signaler un contenu
   - envoyer un Message privé
 - il n'y a pas de bannissement définitif dans cette version
+- l'admin ne peut pas supprimer ou modifier manuellement un avertissement dans le MVP
 
 ## Messagerie Et WebSocket
 

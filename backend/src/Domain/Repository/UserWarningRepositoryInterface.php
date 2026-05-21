@@ -12,4 +12,11 @@ interface UserWarningRepositoryInterface
     public function save(UserWarning $warning): void;
 
     public function countForUser(User $user): int;
+
+    /**
+     * @return list<UserWarning>
+     */
+    public function paginateForAdmin(int $page, int $limit, ?int $userId, bool $suspendedOnly): array;
+
+    public function countForAdmin(?int $userId, bool $suspendedOnly): int;
 }
