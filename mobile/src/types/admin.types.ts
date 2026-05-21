@@ -69,6 +69,8 @@ export type AdminReport = {
   reason: string;
   details: string | null;
   status: AdminReportStatus;
+  decision: 'rejected' | 'content_removed' | null;
+  adminNote: string | null;
   reporter: AdminAuthor;
   content: {
     id: number | null;
@@ -83,6 +85,11 @@ export type AdminReport = {
   createdAt: string;
   resolvedAt: string | null;
   resolvedBy: AdminAuthor | null;
+};
+
+export type ResolveReportPayload = {
+  decision: 'rejected' | 'content_removed';
+  adminNote?: string | null;
 };
 
 export type PaginatedAdminReports = {

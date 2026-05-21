@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Application\Messaging;
 
+use App\Application\User\SuspensionGuard;
 use App\Domain\Entity\Conversation;
 use App\Domain\Entity\Message;
 use App\Domain\Entity\User;
@@ -19,6 +20,7 @@ final class SendMessageUseCase
         private readonly ConversationRepositoryInterface $conversations,
         private readonly MessagingPresenter $presenter,
         private readonly MessageNotifierInterface $notifier,
+        private readonly SuspensionGuard $suspensionGuard,
     ) {
     }
 
@@ -27,6 +29,8 @@ final class SendMessageUseCase
      */
     public function execute(Conversation $conversation, User $sender, SendMessageRequest $request): array
     {
+        $this->suspensionGuard->assertCanWrite($sender);
+
         $message = new Message($conversation, $sender, $request->content);
         $this->messages->save($message);
         $this->conversations->save($conversation);

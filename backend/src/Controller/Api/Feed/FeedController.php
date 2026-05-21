@@ -11,6 +11,7 @@ use App\Application\Feed\ListFeedUseCase;
 use App\Application\Feed\UpdatePostUseCase;
 use App\Domain\Entity\User;
 use App\Domain\Exception\ResourceNotFoundException;
+use App\Domain\Exception\UserSuspendedException;
 use App\Domain\Repository\PostRepositoryInterface;
 use App\DTO\Feed\CreatePostRequest;
 use App\DTO\Feed\UpdatePostRequest;
@@ -57,9 +58,13 @@ final class FeedController
             return ApiResponse::validationError($violations);
         }
 
-        return ApiResponse::success([
-            'post' => $useCase->execute($user, $dto),
-        ], 'Post created successfully.', 201);
+        try {
+            return ApiResponse::success([
+                'post' => $useCase->execute($user, $dto),
+            ], 'Post created successfully.', 201);
+        } catch (UserSuspendedException $exception) {
+            return ApiResponse::error($exception->getMessage(), [], 403);
+        }
     }
 
     #[Route('/{id}', name: 'api_feed_show', methods: ['GET'], requirements: ['id' => '\d+'])]
@@ -106,6 +111,8 @@ final class FeedController
             ], 'Post updated successfully.');
         } catch (ResourceNotFoundException) {
             return ApiResponse::error('Post not found.', [], 404);
+        } catch (UserSuspendedException $exception) {
+            return ApiResponse::error($exception->getMessage(), [], 403);
         }
     }
 

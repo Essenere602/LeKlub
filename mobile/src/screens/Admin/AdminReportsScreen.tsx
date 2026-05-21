@@ -83,12 +83,12 @@ export function AdminReportsScreen({ navigation }: AdminReportsScreenProps) {
     }
   }
 
-  async function resolveReport(reportId: number) {
+  async function resolveReport(reportId: number, decision: 'rejected' | 'content_removed') {
     setResolvingId(reportId);
     setError(null);
 
     try {
-      await adminService.resolveReport(reportId);
+      await adminService.resolveReport(reportId, { decision });
       await loadReports();
     } catch (caughtError) {
       setError(toApiError(caughtError).message);
@@ -135,7 +135,8 @@ export function AdminReportsScreen({ navigation }: AdminReportsScreenProps) {
           <AdminReportCard
             report={item}
             resolving={resolvingId === item.id}
-            onResolve={() => resolveReport(item.id)}
+            onReject={() => resolveReport(item.id, 'rejected')}
+            onRemoveContent={() => resolveReport(item.id, 'content_removed')}
           />
         )}
       />

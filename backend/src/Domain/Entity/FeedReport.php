@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Entity;
 
+use App\Domain\ValueObject\FeedReportDecision;
 use App\Domain\ValueObject\FeedReportReason;
 use App\Domain\ValueObject\FeedReportStatus;
 use DateTimeImmutable;
@@ -44,6 +45,12 @@ class FeedReport
 
     #[ORM\Column(length: 20, enumType: FeedReportStatus::class)]
     private FeedReportStatus $status = FeedReportStatus::Open;
+
+    #[ORM\Column(length: 40, nullable: true, enumType: FeedReportDecision::class)]
+    private ?FeedReportDecision $decision = null;
+
+    #[ORM\Column(type: 'text', nullable: true)]
+    private ?string $adminNote = null;
 
     #[ORM\Column]
     private DateTimeImmutable $createdAt;
@@ -114,6 +121,16 @@ class FeedReport
         return $this->status;
     }
 
+    public function getDecision(): ?FeedReportDecision
+    {
+        return $this->decision;
+    }
+
+    public function getAdminNote(): ?string
+    {
+        return $this->adminNote;
+    }
+
     public function getCreatedAt(): DateTimeImmutable
     {
         return $this->createdAt;
@@ -129,13 +146,15 @@ class FeedReport
         return $this->resolvedBy;
     }
 
-    public function resolve(User $admin): void
+    public function resolve(User $admin, FeedReportDecision $decision, ?string $adminNote): void
     {
         if ($this->status === FeedReportStatus::Resolved) {
             return;
         }
 
         $this->status = FeedReportStatus::Resolved;
+        $this->decision = $decision;
+        $this->adminNote = $adminNote;
         $this->resolvedAt = new DateTimeImmutable();
         $this->resolvedBy = $admin;
     }

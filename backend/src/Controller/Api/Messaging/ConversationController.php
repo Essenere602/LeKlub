@@ -9,6 +9,7 @@ use App\Application\Messaging\ListConversationsUseCase;
 use App\Domain\Entity\User;
 use App\Domain\Exception\MessagingException;
 use App\Domain\Exception\ResourceNotFoundException;
+use App\Domain\Exception\UserSuspendedException;
 use App\DTO\Messaging\CreateConversationRequest;
 use App\Shared\Api\ApiResponse;
 use JsonException;
@@ -59,6 +60,8 @@ final class ConversationController
             return ApiResponse::error('Cannot create a conversation with yourself.', [], 400);
         } catch (ResourceNotFoundException) {
             return ApiResponse::error('Recipient not found.', [], 404);
+        } catch (UserSuspendedException $exception) {
+            return ApiResponse::error($exception->getMessage(), [], 403);
         }
     }
 

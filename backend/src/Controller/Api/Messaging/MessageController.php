@@ -10,6 +10,7 @@ use App\Application\Messaging\MarkConversationAsReadUseCase;
 use App\Application\Messaging\SendMessageUseCase;
 use App\Domain\Entity\User;
 use App\Domain\Exception\ResourceNotFoundException;
+use App\Domain\Exception\UserSuspendedException;
 use App\Domain\Repository\ConversationRepositoryInterface;
 use App\DTO\Messaging\SendMessageRequest;
 use App\Security\Voter\ConversationVoter;
@@ -74,9 +75,13 @@ final class MessageController
             return ApiResponse::validationError($violations);
         }
 
-        return ApiResponse::success([
-            'message' => $useCase->execute($conversation, $this->currentUser(), $dto),
-        ], 'Message sent.', 201);
+        try {
+            return ApiResponse::success([
+                'message' => $useCase->execute($conversation, $this->currentUser(), $dto),
+            ], 'Message sent.', 201);
+        } catch (UserSuspendedException $exception) {
+            return ApiResponse::error($exception->getMessage(), [], 403);
+        }
     }
 
     #[Route('/{id}/read', name: 'api_conversation_mark_read', methods: ['PATCH'], requirements: ['id' => '\d+'])]

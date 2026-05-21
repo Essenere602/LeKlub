@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Application\Feed;
 
+use App\Application\User\SuspensionGuard;
 use App\Domain\Entity\User;
 use App\Domain\Exception\ResourceNotFoundException;
 use App\Domain\Repository\PostReactionRepositoryInterface;
@@ -15,6 +16,7 @@ final class RemovePostReactionUseCase
         private readonly PostRepositoryInterface $posts,
         private readonly PostReactionRepositoryInterface $reactions,
         private readonly FeedPresenter $presenter,
+        private readonly SuspensionGuard $suspensionGuard,
     ) {
     }
 
@@ -23,6 +25,8 @@ final class RemovePostReactionUseCase
      */
     public function execute(int $postId, User $user): array
     {
+        $this->suspensionGuard->assertCanWrite($user);
+
         $post = $this->posts->findVisibleById($postId);
 
         if ($post === null) {

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Application\Feed;
 
+use App\Application\User\SuspensionGuard;
 use App\Domain\Entity\FeedReport;
 use App\Domain\Entity\User;
 use App\Domain\Exception\FeedReportException;
@@ -17,11 +18,14 @@ final class ReportCommentUseCase
     public function __construct(
         private readonly CommentRepositoryInterface $comments,
         private readonly FeedReportRepositoryInterface $reports,
+        private readonly SuspensionGuard $suspensionGuard,
     ) {
     }
 
     public function execute(int $commentId, User $reporter, CreateFeedReportRequest $request): FeedReport
     {
+        $this->suspensionGuard->assertCanWrite($reporter);
+
         $comment = $this->comments->findVisibleById($commentId);
 
         if ($comment === null) {

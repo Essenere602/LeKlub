@@ -20,7 +20,7 @@ final class UpdatePostUseCaseTest extends TestCase
     {
         $post = new Post(new User('author@example.com', 'author', 'hash'), 'Old content');
         $repository = new UpdatingPostRepository();
-        $useCase = new UpdatePostUseCase($repository, new FeedPresenter($repository));
+        $useCase = new UpdatePostUseCase($repository, new FeedPresenter($repository), new \App\Application\User\SuspensionGuard());
 
         $result = $useCase->execute($post, UpdatePostRequest::fromArray([
             'content' => ' <strong>Updated content</strong> ',
@@ -37,7 +37,7 @@ final class UpdatePostUseCaseTest extends TestCase
         $post = new Post($author, 'Old content');
         $post->delete($author);
         $repository = new UpdatingPostRepository();
-        $useCase = new UpdatePostUseCase($repository, new FeedPresenter($repository));
+        $useCase = new UpdatePostUseCase($repository, new FeedPresenter($repository), new \App\Application\User\SuspensionGuard());
 
         $this->expectException(ResourceNotFoundException::class);
 

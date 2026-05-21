@@ -6,6 +6,7 @@ import {
   PaginatedAdminPosts,
   PaginatedAdminReports,
   PaginatedAdminUsers,
+  ResolveReportPayload,
 } from '../../types/admin.types';
 import { apiClient } from '../api/apiClient';
 
@@ -76,7 +77,7 @@ export const adminService = {
     return response.data.data;
   },
 
-  async resolveReport(reportId: number): Promise<void> {
-    await apiClient.patch<ApiResponse<null>>(`/admin/reports/${reportId}/resolve`);
+  async resolveReport(reportId: number, payload: ResolveReportPayload): Promise<void> {
+    await apiClient.patch<ApiResponse<null>>(`/admin/reports/${reportId}/resolve`, payload);
   },
 };

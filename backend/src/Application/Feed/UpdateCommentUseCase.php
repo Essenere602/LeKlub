@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Application\Feed;
 
+use App\Application\User\SuspensionGuard;
 use App\Domain\Entity\Comment;
 use App\Domain\Exception\ResourceNotFoundException;
 use App\Domain\Repository\CommentRepositoryInterface;
@@ -14,6 +15,7 @@ final class UpdateCommentUseCase
     public function __construct(
         private readonly CommentRepositoryInterface $comments,
         private readonly FeedPresenter $presenter,
+        private readonly SuspensionGuard $suspensionGuard,
     ) {
     }
 
@@ -22,6 +24,8 @@ final class UpdateCommentUseCase
      */
     public function execute(Comment $comment, UpdateCommentRequest $request): array
     {
+        $this->suspensionGuard->assertCanWrite($comment->getAuthor());
+
         if ($comment->isDeleted() || $comment->getPost()->isDeleted()) {
             throw ResourceNotFoundException::comment();
         }

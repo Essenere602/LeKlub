@@ -8,12 +8,14 @@ use App\Domain\Entity\Post;
 use App\Domain\Entity\User;
 use App\Domain\Repository\PostRepositoryInterface;
 use App\DTO\Feed\CreatePostRequest;
+use App\Application\User\SuspensionGuard;
 
 final class CreatePostUseCase
 {
     public function __construct(
         private readonly PostRepositoryInterface $posts,
         private readonly FeedPresenter $presenter,
+        private readonly SuspensionGuard $suspensionGuard,
     ) {
     }
 
@@ -22,6 +24,8 @@ final class CreatePostUseCase
      */
     public function execute(User $author, CreatePostRequest $request): array
     {
+        $this->suspensionGuard->assertCanWrite($author);
+
         $post = new Post($author, $request->content);
 
         $this->posts->save($post);

@@ -9,6 +9,7 @@ use App\Application\Feed\ReportPostUseCase;
 use App\Domain\Entity\User;
 use App\Domain\Exception\FeedReportException;
 use App\Domain\Exception\ResourceNotFoundException;
+use App\Domain\Exception\UserSuspendedException;
 use App\DTO\Feed\CreateFeedReportRequest;
 use App\Shared\Api\ApiResponse;
 use JsonException;
@@ -56,6 +57,8 @@ final class ReportController
             return ApiResponse::error('Post not found.', [], 404);
         } catch (FeedReportException $exception) {
             return ApiResponse::error($exception->getMessage(), [], 409);
+        } catch (UserSuspendedException $exception) {
+            return ApiResponse::error($exception->getMessage(), [], 403);
         }
     }
 
@@ -88,6 +91,8 @@ final class ReportController
             return ApiResponse::error('Comment not found.', [], 404);
         } catch (FeedReportException $exception) {
             return ApiResponse::error($exception->getMessage(), [], 409);
+        } catch (UserSuspendedException $exception) {
+            return ApiResponse::error($exception->getMessage(), [], 403);
         }
     }
 

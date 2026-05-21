@@ -29,6 +29,7 @@ final class CreateOrGetConversationUseCaseTest extends TestCase
             new MessagingMessageRepository(),
             new MessagingPresenter(new MessagingMessageRepository()),
             new SpyMessageNotifier(),
+            new \App\Application\User\SuspensionGuard(),
         );
 
         $this->expectException(MessagingException::class);
@@ -54,6 +55,7 @@ final class CreateOrGetConversationUseCaseTest extends TestCase
             $messages,
             new MessagingPresenter($messages),
             $notifier,
+            new \App\Application\User\SuspensionGuard(),
         );
 
         $result = $useCase->execute($sender, CreateConversationRequest::fromArray([

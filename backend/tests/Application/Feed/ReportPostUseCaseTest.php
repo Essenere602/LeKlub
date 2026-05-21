@@ -25,7 +25,7 @@ final class ReportPostUseCaseTest extends TestCase
         $post = new Post(new User('author@example.com', 'author', 'hash'), 'Reported content');
         $posts = new ReportingPostRepository($post);
         $reports = new ReportingFeedReportRepository();
-        $useCase = new ReportPostUseCase($posts, $reports);
+        $useCase = new ReportPostUseCase($posts, $reports, new \App\Application\User\SuspensionGuard());
 
         $report = $useCase->execute(12, $reporter, CreateFeedReportRequest::fromArray([
             'reason' => 'spam',
@@ -47,7 +47,7 @@ final class ReportPostUseCaseTest extends TestCase
         $posts = new ReportingPostRepository(new Post(new User('author@example.com', 'author', 'hash'), 'Content'));
         $reports = new ReportingFeedReportRepository();
         $reports->postAlreadyReported = true;
-        $useCase = new ReportPostUseCase($posts, $reports);
+        $useCase = new ReportPostUseCase($posts, $reports, new \App\Application\User\SuspensionGuard());
 
         $this->expectException(FeedReportException::class);
 
@@ -59,7 +59,8 @@ final class ReportPostUseCaseTest extends TestCase
         $reporter = new User('reporter@example.com', 'reporter', 'hash');
         $useCase = new ReportPostUseCase(
             new ReportingPostRepository(null),
-            new ReportingFeedReportRepository()
+            new ReportingFeedReportRepository(),
+            new \App\Application\User\SuspensionGuard()
         );
 
         $this->expectException(ResourceNotFoundException::class);

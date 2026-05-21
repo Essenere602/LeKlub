@@ -86,6 +86,8 @@ final class AdminPresenter
             'reason' => $report->getReason()->value,
             'details' => $report->getDetails(),
             'status' => $report->getStatus()->value,
+            'decision' => $report->getDecision()?->value,
+            'adminNote' => $report->getAdminNote(),
             'reporter' => $this->author($report->getReporter()),
             'content' => [
                 'id' => $content?->getId(),

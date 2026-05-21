@@ -57,6 +57,12 @@ function translateMessage(message: string): string {
       'Ce contenu a déjà été signalé avec votre compte.',
     'Invalid report status.':
       'Le filtre de signalement est invalide.',
+    'Report already resolved.':
+      'Ce signalement a déjà été traité.',
+    'Reported content is no longer available.':
+      "Le contenu signalé n'est plus disponible.",
+    'Account temporarily suspended.':
+      'Votre compte est temporairement suspendu pour les actions de publication.',
   };
 
   return translations[message] ?? message;

@@ -26,7 +26,7 @@ final class ReportCommentUseCaseTest extends TestCase
         $comment = new Comment($post, new User('commenter@example.com', 'commenter', 'hash'), 'Comment');
         $comments = new ReportingCommentRepository($comment);
         $reports = new CommentReportingFeedReportRepository();
-        $useCase = new ReportCommentUseCase($comments, $reports);
+        $useCase = new ReportCommentUseCase($comments, $reports, new \App\Application\User\SuspensionGuard());
 
         $report = $useCase->execute(18, $reporter, CreateFeedReportRequest::fromArray([
             'reason' => 'insults',
@@ -45,7 +45,7 @@ final class ReportCommentUseCaseTest extends TestCase
         $comment = new Comment($post, new User('commenter@example.com', 'commenter', 'hash'), 'Comment');
         $reports = new CommentReportingFeedReportRepository();
         $reports->commentAlreadyReported = true;
-        $useCase = new ReportCommentUseCase(new ReportingCommentRepository($comment), $reports);
+        $useCase = new ReportCommentUseCase(new ReportingCommentRepository($comment), $reports, new \App\Application\User\SuspensionGuard());
 
         $this->expectException(FeedReportException::class);
 
@@ -56,7 +56,8 @@ final class ReportCommentUseCaseTest extends TestCase
     {
         $useCase = new ReportCommentUseCase(
             new ReportingCommentRepository(null),
-            new CommentReportingFeedReportRepository()
+            new CommentReportingFeedReportRepository(),
+            new \App\Application\User\SuspensionGuard()
         );
 
         $this->expectException(ResourceNotFoundException::class);

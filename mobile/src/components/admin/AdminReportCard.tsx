@@ -10,17 +10,29 @@ import { StatusBadge } from '../ui/StatusBadge';
 type AdminReportCardProps = {
   report: AdminReport;
   resolving?: boolean;
-  onResolve: () => void;
+  onReject: () => void;
+  onRemoveContent: () => void;
 };
 
-export function AdminReportCard({ onResolve, report, resolving = false }: AdminReportCardProps) {
-  function confirmResolve() {
+export function AdminReportCard({ onReject, onRemoveContent, report, resolving = false }: AdminReportCardProps) {
+  function confirmReject() {
     Alert.alert(
-      'Résoudre le signalement',
-      'Le contenu ne sera pas supprimé automatiquement. La modération reste une action séparée.',
+      'Rejeter le signalement',
+      'Le contenu restera visible et le signalement sera marqué comme résolu.',
       [
         { text: 'Annuler', style: 'cancel' },
-        { text: 'Résoudre', onPress: onResolve },
+        { text: 'Rejeter', onPress: onReject },
+      ],
+    );
+  }
+
+  function confirmRemoveContent() {
+    Alert.alert(
+      'Supprimer et avertir',
+      "Le contenu sera supprimé logiquement, l'auteur recevra un avertissement et pourra être suspendu après 3 avertissements.",
+      [
+        { text: 'Annuler', style: 'cancel' },
+        { text: 'Supprimer', onPress: onRemoveContent, style: 'destructive' },
       ],
     );
   }
@@ -36,14 +48,24 @@ export function AdminReportCard({ onResolve, report, resolving = false }: AdminR
           />
         </View>
         {report.status === 'open' ? (
-          <Pressable
-            accessibilityRole="button"
-            disabled={resolving}
-            onPress={confirmResolve}
-            style={({ pressed }) => [styles.resolveButton, pressed && styles.pressed, resolving && styles.disabled]}
-          >
-            <Ionicons color={theme.colors.accent} name="checkmark-done-outline" size={18} />
-          </Pressable>
+          <View style={styles.headerActions}>
+            <Pressable
+              accessibilityRole="button"
+              disabled={resolving}
+              onPress={confirmReject}
+              style={({ pressed }) => [styles.resolveButton, pressed && styles.pressed, resolving && styles.disabled]}
+            >
+              <Ionicons color={theme.colors.accent} name="close-circle-outline" size={18} />
+            </Pressable>
+            <Pressable
+              accessibilityRole="button"
+              disabled={resolving}
+              onPress={confirmRemoveContent}
+              style={({ pressed }) => [styles.deleteButton, pressed && styles.pressed, resolving && styles.disabled]}
+            >
+              <Ionicons color={theme.colors.danger} name="trash-outline" size={18} />
+            </Pressable>
+          </View>
         ) : null}
       </View>
 
@@ -62,10 +84,16 @@ export function AdminReportCard({ onResolve, report, resolving = false }: AdminR
       </View>
 
       {report.resolvedAt ? (
-        <AppText variant="muted">
-          Résolu le {formatDate(report.resolvedAt)}
-          {report.resolvedBy ? ` par @${report.resolvedBy.username}` : ''}
-        </AppText>
+        <View style={styles.resolution}>
+          <AppText variant="muted">
+            Décision : {labelForDecision(report.decision)}
+          </AppText>
+          {report.adminNote ? <AppText variant="muted">Note : {report.adminNote}</AppText> : null}
+          <AppText variant="muted">
+            Résolu le {formatDate(report.resolvedAt)}
+            {report.resolvedBy ? ` par @${report.resolvedBy.username}` : ''}
+          </AppText>
+        </View>
       ) : null}
     </AppCard>
   );
@@ -82,6 +110,18 @@ function labelForReason(reason: string): string {
   };
 
   return labels[reason] ?? reason;
+}
+
+function labelForDecision(decision: AdminReport['decision']): string {
+  if (decision === 'rejected') {
+    return 'Signalement rejeté';
+  }
+
+  if (decision === 'content_removed') {
+    return 'Contenu supprimé';
+  }
+
+  return 'Non renseignée';
 }
 
 function formatDate(value: string): string {
@@ -115,10 +155,24 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     gap: theme.spacing.sm,
   },
+  headerActions: {
+    flexDirection: 'row',
+    gap: theme.spacing.sm,
+  },
   resolveButton: {
     alignItems: 'center',
     backgroundColor: theme.colors.accentSoft,
     borderColor: theme.colors.accent,
+    borderRadius: theme.radius.md,
+    borderWidth: 1,
+    height: 40,
+    justifyContent: 'center',
+    width: 40,
+  },
+  deleteButton: {
+    alignItems: 'center',
+    backgroundColor: 'rgba(255, 59, 92, 0.1)',
+    borderColor: theme.colors.danger,
     borderRadius: theme.radius.md,
     borderWidth: 1,
     height: 40,
@@ -149,5 +203,11 @@ const styles = StyleSheet.create({
   excerpt: {
     fontSize: theme.typography.sizes.sm,
     lineHeight: 20,
+  },
+  resolution: {
+    borderTopColor: theme.colors.border,
+    borderTopWidth: 1,
+    gap: theme.spacing.xs,
+    paddingTop: theme.spacing.md,
   },
 });
