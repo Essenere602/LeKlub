@@ -51,6 +51,8 @@ final class AdminPresenter
             'dislikesCount' => $this->posts->countReactions($post, PostReactionType::Dislike),
             'commentsCount' => $this->posts->countVisibleComments($post),
             'createdAt' => $post->getCreatedAt()->format(DATE_ATOM),
+            'deletedAt' => $post->getDeletedAt()?->format(DATE_ATOM),
+            'deletedBy' => $post->getDeletedBy() !== null ? $this->author($post->getDeletedBy()) : null,
         ];
     }
 
@@ -70,6 +72,8 @@ final class AdminPresenter
                 'excerpt' => mb_substr($post->getContent(), 0, 120),
             ],
             'createdAt' => $comment->getCreatedAt()->format(DATE_ATOM),
+            'deletedAt' => $comment->getDeletedAt()?->format(DATE_ATOM),
+            'deletedBy' => $comment->getDeletedBy() !== null ? $this->author($comment->getDeletedBy()) : null,
         ];
     }
 
