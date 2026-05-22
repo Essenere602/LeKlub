@@ -6,11 +6,14 @@ namespace App\Infrastructure\Doctrine\Repository;
 
 use App\Domain\Entity\Comment;
 use App\Domain\Entity\Post;
+use App\Domain\Repository\AdminCommentModerationRepositoryInterface;
 use App\Domain\Repository\CommentRepositoryInterface;
+use App\Domain\ValueObject\AdminContentStatus;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\ORM\QueryBuilder;
 use Doctrine\Persistence\ManagerRegistry;
 
-final class CommentRepository extends ServiceEntityRepository implements CommentRepositoryInterface
+final class CommentRepository extends ServiceEntityRepository implements CommentRepositoryInterface, AdminCommentModerationRepositoryInterface
 {
     public function __construct(ManagerRegistry $registry)
     {
@@ -85,5 +88,53 @@ final class CommentRepository extends ServiceEntityRepository implements Comment
             ->andWhere('post.deletedAt IS NULL')
             ->getQuery()
             ->getSingleScalarResult();
+    }
+
+    public function paginateForModeration(AdminContentStatus $status, ?string $query, int $page, int $limit): array
+    {
+        return $this->createModerationQueryBuilder($status, $query)
+            ->orderBy('comment.createdAt', 'DESC')
+            ->setFirstResult(($page - 1) * $limit)
+            ->setMaxResults($limit)
+            ->getQuery()
+            ->getResult();
+    }
+
+    public function countForModeration(AdminContentStatus $status, ?string $query): int
+    {
+        return (int) $this->createModerationQueryBuilder($status, $query)
+            ->select('COUNT(comment.id)')
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
+
+    private function createModerationQueryBuilder(AdminContentStatus $status, ?string $query): QueryBuilder
+    {
+        $queryBuilder = $this->createQueryBuilder('comment')
+            ->join('comment.author', 'author')
+            ->join('comment.post', 'post')
+            ->leftJoin('author.profile', 'profile')
+            ->leftJoin('comment.deletedBy', 'deletedBy')
+            ->leftJoin('deletedBy.profile', 'deletedByProfile')
+            ->addSelect('author', 'post', 'profile', 'deletedBy', 'deletedByProfile');
+
+        if ($status === AdminContentStatus::Active) {
+            $queryBuilder
+                ->andWhere('comment.deletedAt IS NULL')
+                ->andWhere('post.deletedAt IS NULL');
+        }
+
+        if ($status === AdminContentStatus::Deleted) {
+            $queryBuilder->andWhere('comment.deletedAt IS NOT NULL');
+        }
+
+        if ($query !== null && $query !== '') {
+            $search = mb_strtolower($query);
+            $queryBuilder
+                ->andWhere('LOWER(comment.content) LIKE :query OR LOWER(author.username) LIKE :query OR LOWER(profile.displayName) LIKE :query OR LOWER(post.content) LIKE :query')
+                ->setParameter('query', '%'.$search.'%');
+        }
+
+        return $queryBuilder;
     }
 }

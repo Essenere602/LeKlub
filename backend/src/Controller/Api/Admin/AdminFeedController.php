@@ -10,6 +10,7 @@ use App\Application\Admin\ListAdminCommentsUseCase;
 use App\Application\Admin\ListAdminPostsUseCase;
 use App\Domain\Entity\User;
 use App\Domain\Exception\ResourceNotFoundException;
+use App\Domain\ValueObject\AdminContentStatus;
 use App\Shared\Api\ApiResponse;
 use App\Shared\Api\Pagination;
 use Symfony\Bundle\SecurityBundle\Security;
@@ -30,7 +31,11 @@ final class AdminFeedController
     #[Route('/posts', name: 'api_admin_posts_list', methods: ['GET'])]
     public function listPosts(Request $request, ListAdminPostsUseCase $useCase): JsonResponse
     {
-        return ApiResponse::success($useCase->execute(Pagination::fromRequest($request)));
+        return ApiResponse::success($useCase->execute(
+            Pagination::fromRequest($request),
+            AdminContentStatus::fromQuery($request->query->get('status')),
+            $this->query($request)
+        ));
     }
 
     #[Route('/posts/{id}', name: 'api_admin_posts_delete', methods: ['DELETE'], requirements: ['id' => '\d+'])]
@@ -48,7 +53,11 @@ final class AdminFeedController
     #[Route('/comments', name: 'api_admin_comments_list', methods: ['GET'])]
     public function listComments(Request $request, ListAdminCommentsUseCase $useCase): JsonResponse
     {
-        return ApiResponse::success($useCase->execute(Pagination::fromRequest($request)));
+        return ApiResponse::success($useCase->execute(
+            Pagination::fromRequest($request),
+            AdminContentStatus::fromQuery($request->query->get('status')),
+            $this->query($request)
+        ));
     }
 
     #[Route('/comments/{id}', name: 'api_admin_comments_delete', methods: ['DELETE'], requirements: ['id' => '\d+'])]
@@ -72,5 +81,12 @@ final class AdminFeedController
         }
 
         return $user;
+    }
+
+    private function query(Request $request): ?string
+    {
+        $query = trim((string) $request->query->get('query', ''));
+
+        return $query !== '' ? $query : null;
     }
 }

@@ -97,13 +97,27 @@ export function AdminHomeScreen({ navigation }: AdminHomeScreenProps) {
             {error ? <ErrorState message={error} onRetry={loadOverview} title="Admin indisponible" /> : null}
 
             {overview && !isLoading && !error ? (
-              <View style={styles.statsGrid}>
-                <AdminStatCard icon="people-outline" label="Utilisateurs" value={overview.usersCount} />
-                <AdminStatCard icon="chatbubbles-outline" label="Posts" value={overview.postsCount} />
-                <AdminStatCard icon="text-outline" label="Commentaires" value={overview.commentsCount} />
-                <AdminStatCard icon="flag-outline" label="Signalements ouverts" value={overview.openReportsCount} />
-                <AdminStatCard icon="mail-outline" label="Conversations" value={overview.conversationsCount} />
-                <AdminStatCard icon="send-outline" label="Messages privés" value={overview.messagesCount} />
+              <View style={styles.statsSections}>
+                <View style={styles.statsGrid}>
+                  <AdminStatCard icon="people-outline" label="Utilisateurs" value={overview.usersCount} />
+                  <AdminStatCard icon="pause-circle-outline" label="Suspendus" value={overview.suspendedUsersCount} />
+                </View>
+                <View style={styles.statsGrid}>
+                  <AdminStatCard icon="chatbubbles-outline" label="Posts actifs" value={overview.postsCount} />
+                  <AdminStatCard icon="archive-outline" label="Posts supprimés" value={overview.deletedPostsCount} />
+                </View>
+                <View style={styles.statsGrid}>
+                  <AdminStatCard icon="text-outline" label="Commentaires actifs" value={overview.commentsCount} />
+                  <AdminStatCard icon="file-tray-outline" label="Commentaires supprimés" value={overview.deletedCommentsCount} />
+                </View>
+                <View style={styles.statsGrid}>
+                  <AdminStatCard icon="flag-outline" label="Signalements ouverts" value={overview.openReportsCount} />
+                  <AdminStatCard icon="warning-outline" label="Avertissements" value={overview.warningsCount} />
+                </View>
+                <View style={styles.statsGrid}>
+                  <AdminStatCard icon="mail-outline" label="Conversations" value={overview.conversationsCount} />
+                  <AdminStatCard icon="send-outline" label="Messages privés" value={overview.messagesCount} />
+                </View>
               </View>
             ) : null}
           </View>
@@ -135,6 +149,9 @@ const styles = StyleSheet.create({
   statsGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
+    gap: theme.spacing.md,
+  },
+  statsSections: {
     gap: theme.spacing.md,
   },
 });

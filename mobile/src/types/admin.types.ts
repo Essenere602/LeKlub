@@ -7,6 +7,10 @@ export type AdminOverview = {
   openReportsCount: number;
   conversationsCount: number;
   messagesCount: number;
+  deletedPostsCount: number;
+  deletedCommentsCount: number;
+  suspendedUsersCount: number;
+  warningsCount: number;
 };
 
 export type AdminUser = {
@@ -33,6 +37,8 @@ export type AdminPost = {
   dislikesCount: number;
   commentsCount: number;
   createdAt: string;
+  deletedAt: string | null;
+  deletedBy: AdminAuthor | null;
 };
 
 export type AdminComment = {
@@ -44,7 +50,11 @@ export type AdminComment = {
     excerpt: string;
   };
   createdAt: string;
+  deletedAt: string | null;
+  deletedBy: AdminAuthor | null;
 };
+
+export type AdminContentStatus = 'active' | 'deleted';
 
 export type PaginatedAdminUsers = {
   users: AdminUser[];

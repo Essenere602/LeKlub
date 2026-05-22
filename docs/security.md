@@ -129,6 +129,8 @@ Les endpoints admin appliquent un principe de minimisation :
 - `deletedBy` conserve une trace du modérateur
 - les décisions de signalement gardent `resolvedAt`, `resolvedBy`, `decision` et une note admin optionnelle
 - les notifications système sont séparées des Messages privés
+- la supervision admin peut consulter les Posts et Commentaires actifs ou supprimés, mais toujours sans email, mot de passe, token ou hash
+- les contenus supprimés restent des suppressions logiques avec `deletedAt` et `deletedBy`
 
 Le MVP admin ne contient pas :
 

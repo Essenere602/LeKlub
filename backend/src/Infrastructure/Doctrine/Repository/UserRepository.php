@@ -5,11 +5,12 @@ declare(strict_types=1);
 namespace App\Infrastructure\Doctrine\Repository;
 
 use App\Domain\Entity\User;
+use App\Domain\Repository\AdminUserStatsRepositoryInterface;
 use App\Domain\Repository\UserRepositoryInterface;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
-final class UserRepository extends ServiceEntityRepository implements UserRepositoryInterface
+final class UserRepository extends ServiceEntityRepository implements UserRepositoryInterface, AdminUserStatsRepositoryInterface
 {
     public function __construct(ManagerRegistry $registry)
     {
@@ -73,6 +74,16 @@ final class UserRepository extends ServiceEntityRepository implements UserReposi
         $entityManager = $this->getEntityManager();
         $entityManager->persist($user);
         $entityManager->flush();
+    }
+
+    public function countSuspendedUsers(): int
+    {
+        return (int) $this->createQueryBuilder('user')
+            ->select('COUNT(user.id)')
+            ->andWhere('user.suspendedUntil IS NOT NULL')
+            ->andWhere('user.suspendedUntil > CURRENT_TIMESTAMP()')
+            ->getQuery()
+            ->getSingleScalarResult();
     }
 
     private function createAdminQueryBuilder(?string $query): \Doctrine\ORM\QueryBuilder

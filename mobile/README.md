@@ -330,11 +330,11 @@ L'onglet `Admin` apparaît uniquement pour un utilisateur ayant `ROLE_ADMIN`.
 
 Le Back Office Admin mobile MVP utilise :
 
-- `GET /api/admin/overview` pour la synthèse
+- `GET /api/admin/overview` pour la synthèse enrichie
 - `GET /api/admin/users?page=&limit=&query=` pour consulter les utilisateurs
-- `GET /api/admin/posts?page=&limit=` pour lister les Posts à modérer
+- `GET /api/admin/posts?page=&limit=&status=&query=` pour lister les Posts actifs ou supprimés à superviser
 - `DELETE /api/admin/posts/{id}` pour supprimer logiquement un Post
-- `GET /api/admin/comments?page=&limit=` pour lister les Commentaires à modérer
+- `GET /api/admin/comments?page=&limit=&status=&query=` pour lister les Commentaires actifs ou supprimés à superviser
 - `DELETE /api/admin/comments/{id}` pour supprimer logiquement un Commentaire
 - `GET /api/admin/reports?page=&limit=&status=` pour consulter les signalements
 - `PATCH /api/admin/reports/{id}/resolve` pour rejeter un signalement ou supprimer le contenu signalé
@@ -351,6 +351,7 @@ Contraintes MVP :
 - après 3 avertissements, l'auteur est suspendu temporairement des actions d'écriture
 - les notifications système restent séparées de la messagerie privée
 - les avertissements admin sont consultables mais non modifiables
+- les contenus supprimés sont visibles côté admin uniquement avec `deletedAt` et `deletedBy`
 - confirmation avant chaque action de modération
 
 ### Tests Manuels Admin
@@ -364,8 +365,11 @@ Contraintes MVP :
 - rechercher un utilisateur
 - ouvrir la modération Feed
 - basculer entre Posts et Commentaires
+- basculer entre `Actifs` et `Supprimés`
+- rechercher un contenu ou un auteur
 - supprimer logiquement un Post ou Commentaire de test
 - vérifier que le contenu supprimé disparaît du Feed utilisateur
+- vérifier que le contenu supprimé apparaît dans le filtre `Supprimés` avec date et modérateur
 - ouvrir les Signalements
 - basculer entre `Ouverts` et `Résolus`
 - rejeter un signalement et vérifier qu'il passe dans `Résolus`

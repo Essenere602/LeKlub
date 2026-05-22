@@ -590,9 +590,15 @@ Retourne des compteurs de supervision.
   "commentsCount": 51,
   "openReportsCount": 2,
   "conversationsCount": 8,
-  "messagesCount": 93
+  "messagesCount": 93,
+  "deletedPostsCount": 3,
+  "deletedCommentsCount": 5,
+  "suspendedUsersCount": 1,
+  "warningsCount": 7
 }
 ```
+
+Cette synthèse ne retourne jamais le contenu des Messages privés.
 
 Codes possibles : `200`, `401`, `403`.
 
@@ -617,9 +623,21 @@ La réponse ne retourne pas `email`, `password`, token JWT ou donnée sensible.
 
 Codes possibles : `200`, `401`, `403`.
 
-### GET /api/admin/posts?page=1&limit=10
+### GET /api/admin/posts?page=1&limit=10&status=active&query=texte
 
-Retourne les Posts visibles à modérer.
+Retourne les Posts à superviser dans la modération admin.
+
+Paramètres :
+
+- `status` : `active`, `deleted` ou `all`, défaut `active`
+- `query` : recherche simple sur le contenu, username ou displayName auteur
+
+Chaque Post retourne :
+
+- l'auteur, sans email
+- le contenu
+- les compteurs utiles
+- `deletedAt` et `deletedBy` si le Post est supprimé logiquement
 
 Codes possibles : `200`, `401`, `403`.
 
@@ -629,9 +647,21 @@ Supprime logiquement un Post en renseignant `deletedAt` et `deletedBy`.
 
 Codes possibles : `200`, `401`, `403`, `404`.
 
-### GET /api/admin/comments?page=1&limit=10
+### GET /api/admin/comments?page=1&limit=10&status=active&query=texte
 
-Retourne les Commentaires visibles à modérer.
+Retourne les Commentaires à superviser dans la modération admin.
+
+Paramètres :
+
+- `status` : `active`, `deleted` ou `all`, défaut `active`
+- `query` : recherche simple sur le contenu, le Post parent, username ou displayName auteur
+
+Chaque Commentaire retourne :
+
+- l'auteur, sans email
+- le contenu
+- un extrait du Post parent
+- `deletedAt` et `deletedBy` si le Commentaire est supprimé logiquement
 
 Codes possibles : `200`, `401`, `403`.
 

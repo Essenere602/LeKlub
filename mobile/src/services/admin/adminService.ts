@@ -1,6 +1,7 @@
 import { ApiResponse } from '../../types/api.types';
 import {
   AdminOverview,
+  AdminContentStatus,
   AdminReportStatus,
   PaginatedAdminComments,
   PaginatedAdminPosts,
@@ -34,9 +35,9 @@ export const adminService = {
     return response.data.data;
   },
 
-  async listPosts(page = 1, limit = 10): Promise<PaginatedAdminPosts> {
+  async listPosts(page = 1, limit = 10, status: AdminContentStatus = 'active', query = ''): Promise<PaginatedAdminPosts> {
     const response = await apiClient.get<ApiResponse<PaginatedAdminPosts>>('/admin/posts', {
-      params: { page, limit },
+      params: { page, limit, status, query },
     });
 
     if (!response.data.data) {
@@ -50,9 +51,14 @@ export const adminService = {
     await apiClient.delete<ApiResponse<null>>(`/admin/posts/${postId}`);
   },
 
-  async listComments(page = 1, limit = 10): Promise<PaginatedAdminComments> {
+  async listComments(
+    page = 1,
+    limit = 10,
+    status: AdminContentStatus = 'active',
+    query = '',
+  ): Promise<PaginatedAdminComments> {
     const response = await apiClient.get<ApiResponse<PaginatedAdminComments>>('/admin/comments', {
-      params: { page, limit },
+      params: { page, limit, status, query },
     });
 
     if (!response.data.data) {

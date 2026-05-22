@@ -5,6 +5,7 @@ import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { AdminModerationCard } from '../../components/admin/AdminModerationCard';
 import { AppButton } from '../../components/ui/AppButton';
 import { AppHeader } from '../../components/ui/AppHeader';
+import { AppInput } from '../../components/ui/AppInput';
 import { EmptyState } from '../../components/ui/EmptyState';
 import { ErrorState } from '../../components/ui/ErrorState';
 import { LoadingState } from '../../components/ui/LoadingState';
@@ -13,7 +14,7 @@ import { theme } from '../../config/theme';
 import { AdminStackParamList } from '../../navigation/navigation.types';
 import { toApiError } from '../../services/api/apiError';
 import { adminService } from '../../services/admin/adminService';
-import { AdminComment, AdminPost } from '../../types/admin.types';
+import { AdminComment, AdminContentStatus, AdminPost } from '../../types/admin.types';
 import { Pagination } from '../../types/feed.types';
 
 type AdminFeedModerationScreenProps = NativeStackScreenProps<AdminStackParamList, 'AdminFeedModeration'>;
@@ -23,6 +24,8 @@ const LIMIT = 10;
 
 export function AdminFeedModerationScreen({ navigation }: AdminFeedModerationScreenProps) {
   const [tab, setTab] = useState<ModerationTab>('posts');
+  const [status, setStatus] = useState<AdminContentStatus>('active');
+  const [query, setQuery] = useState('');
   const [posts, setPosts] = useState<AdminPost[]>([]);
   const [comments, setComments] = useState<AdminComment[]>([]);
   const [pagination, setPagination] = useState<Pagination | null>(null);
@@ -34,16 +37,16 @@ export function AdminFeedModerationScreen({ navigation }: AdminFeedModerationScr
 
   const loadItems = useCallback(async (page = 1, append = false) => {
     if (tab === 'posts') {
-      const result = await adminService.listPosts(page, LIMIT);
+      const result = await adminService.listPosts(page, LIMIT, status, query.trim());
       setPagination(result.pagination);
       setPosts((currentPosts) => (append ? [...currentPosts, ...result.posts] : result.posts));
       return;
     }
 
-    const result = await adminService.listComments(page, LIMIT);
+    const result = await adminService.listComments(page, LIMIT, status, query.trim());
     setPagination(result.pagination);
     setComments((currentComments) => (append ? [...currentComments, ...result.comments] : result.comments));
-  }, [tab]);
+  }, [query, status, tab]);
 
   const loadInitialItems = useCallback(async () => {
     setError(null);
@@ -120,7 +123,14 @@ export function AdminFeedModerationScreen({ navigation }: AdminFeedModerationScr
         data={data}
         keyExtractor={(item) => String(item.id)}
         ListEmptyComponent={!isLoading && !error ? (
-          <EmptyState message="Aucun contenu visible à modérer pour cette section." title="Rien à modérer" />
+          <EmptyState
+            message={
+              status === 'active'
+                ? 'Aucun contenu actif ne correspond aux filtres actuels.'
+                : 'Aucun contenu supprimé ne correspond aux filtres actuels.'
+            }
+            title="Rien à modérer"
+          />
         ) : null}
         ListFooterComponent={pagination && pagination.page < pagination.pages ? (
           <AppButton label="Charger plus" loading={isLoadingMore} onPress={loadMoreItems} variant="secondary" />
@@ -137,6 +147,17 @@ export function AdminFeedModerationScreen({ navigation }: AdminFeedModerationScr
               <TabButton active={tab === 'posts'} label="Posts" onPress={() => setTab('posts')} />
               <TabButton active={tab === 'comments'} label="Commentaires" onPress={() => setTab('comments')} />
             </View>
+            <View style={styles.tabs}>
+              <TabButton active={status === 'active'} label="Actifs" onPress={() => setStatus('active')} />
+              <TabButton active={status === 'deleted'} label="Supprimés" onPress={() => setStatus('deleted')} />
+            </View>
+            <AppInput
+              label="Recherche"
+              onChangeText={setQuery}
+              placeholder="Contenu, auteur..."
+              returnKeyType="search"
+              value={query}
+            />
             {isLoading ? <LoadingState message="Chargement des contenus..." /> : null}
             {error ? <ErrorState message={error} onRetry={loadInitialItems} /> : null}
           </View>
