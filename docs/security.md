@@ -146,6 +146,9 @@ La suspension est volontairement simple :
 - chaque contenu supprimé suite à un signalement validé crée un avertissement
 - les avertissements sont consultables par `ROLE_ADMIN` via `/api/admin/warnings`
 - à partir de 3 avertissements, le compte est suspendu temporairement 7 jours
+- un admin peut suspendre manuellement un utilisateur pour 1, 7 ou 30 jours avec une raison obligatoire
+- l'auto-suspension admin est interdite
+- la suspension manuelle d'un autre `ROLE_ADMIN` est interdite dans cette version
 - la lecture de l'application reste possible
 - les actions d'écriture sont bloquées :
   - créer ou modifier un Post
@@ -155,6 +158,8 @@ La suspension est volontairement simple :
   - envoyer un Message privé
 - il n'y a pas de bannissement définitif dans cette version
 - l'admin ne peut pas supprimer ou modifier manuellement un avertissement dans le MVP
+- les JWT existants restent valides pendant une suspension, mais les endpoints d'écriture restent protégés côté backend
+- les notifications système `user_suspended` et `user_unsuspended` informent l'utilisateur concerné
 
 ## Messagerie Et WebSocket
 

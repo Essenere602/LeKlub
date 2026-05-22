@@ -20,6 +20,17 @@ export type AdminUser = {
   avatarUrl: string | null;
   roles: string[];
   createdAt: string;
+  isSuspended: boolean;
+  suspendedUntil: string | null;
+};
+
+export type SuspendUserPayload = {
+  durationDays: 1 | 7 | 30;
+  reason: string;
+};
+
+export type UnsuspendUserPayload = {
+  reason?: string | null;
 };
 
 export type AdminAuthor = {

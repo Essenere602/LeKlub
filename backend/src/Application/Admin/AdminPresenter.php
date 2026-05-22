@@ -35,6 +35,8 @@ final class AdminPresenter
             'avatarUrl' => $profile?->getAvatarUrl(),
             'roles' => $user->getRoles(),
             'createdAt' => $user->getCreatedAt()->format(DATE_ATOM),
+            'isSuspended' => $user->isSuspended(),
+            'suspendedUntil' => $user->getSuspendedUntil()?->format(DATE_ATOM),
         ];
     }
 

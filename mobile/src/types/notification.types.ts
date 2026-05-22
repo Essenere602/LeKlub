@@ -1,8 +1,16 @@
 import { Pagination } from './feed.types';
 
+export type SystemNotificationType =
+  | 'report_rejected'
+  | 'report_accepted'
+  | 'warning'
+  | 'suspension'
+  | 'user_suspended'
+  | 'user_unsuspended';
+
 export type SystemNotification = {
   id: number;
-  type: 'report_rejected' | 'report_accepted' | 'warning' | 'suspension';
+  type: SystemNotificationType;
   title: string;
   message: string;
   createdAt: string;

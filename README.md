@@ -39,7 +39,7 @@ Le backend Symfony est opérationnel pour les fonctionnalités suivantes :
 - suppression de Messages privés pour soi uniquement
 - notification WebSocket simple lors d'un nouveau Message privé
 - données football en lecture seule : résultats, matchs à venir, classement et buteurs
-- Back Office Admin MVP : synthèse enrichie, liste utilisateurs sécurisée, signalements, avertissements, suspensions temporaires, supervision des contenus actifs/supprimés et modération des Posts et Commentaires
+- Back Office Admin MVP : synthèse enrichie, liste utilisateurs sécurisée, suspension temporaire manuelle, signalements, avertissements, suspensions automatiques, supervision des contenus actifs/supprimés et modération des Posts et Commentaires
 
 Vérifications actuelles :
 
