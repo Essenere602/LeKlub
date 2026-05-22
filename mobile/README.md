@@ -334,6 +334,8 @@ Le Back Office Admin mobile MVP utilise :
 - `GET /api/admin/users?page=&limit=&query=` pour consulter les utilisateurs
 - `PATCH /api/admin/users/{id}/suspend` pour suspendre temporairement un utilisateur
 - `PATCH /api/admin/users/{id}/unsuspend` pour lever une suspension temporaire
+- `PATCH /api/admin/users/{id}/promote-admin` pour attribuer `ROLE_ADMIN`
+- `PATCH /api/admin/users/{id}/demote-admin` pour retirer `ROLE_ADMIN`
 - `GET /api/admin/posts?page=&limit=&status=&query=` pour lister les Posts actifs ou supprimés à superviser
 - `DELETE /api/admin/posts/{id}` pour supprimer logiquement un Post
 - `GET /api/admin/comments?page=&limit=&status=&query=` pour lister les Commentaires actifs ou supprimés à superviser
@@ -346,7 +348,7 @@ Contraintes MVP :
 
 - pas de suppression physique utilisateur
 - pas de bannissement
-- pas de gestion des rôles
+- pas de RBAC complexe ou permissions avancées
 - pas de suspension manuelle d'un `ROLE_ADMIN`
 - pas de lecture des Messages privés
 - les signalements et la modération restent deux actions séparées
@@ -354,6 +356,9 @@ Contraintes MVP :
 - après 3 avertissements, l'auteur est suspendu temporairement des actions d'écriture
 - l'admin peut suspendre manuellement un utilisateur pour `1`, `7` ou `30` jours avec une raison obligatoire
 - l'admin peut lever une suspension de façon idempotente
+- l'admin peut promouvoir un utilisateur actif en administrateur
+- l'admin peut retirer le rôle admin à un autre administrateur
+- l'auto-modification des rôles et la rétrogradation du dernier admin sont refusées côté backend
 - les notifications système restent séparées de la messagerie privée
 - les avertissements admin sont consultables mais non modifiables
 - les contenus supprimés sont visibles côté admin uniquement avec `deletedAt` et `deletedBy`

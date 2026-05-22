@@ -46,6 +46,14 @@ export const adminService = {
     await apiClient.patch<ApiResponse<{ user: AdminUser }>>(`/admin/users/${userId}/unsuspend`, payload);
   },
 
+  async promoteUserToAdmin(userId: number): Promise<void> {
+    await apiClient.patch<ApiResponse<{ user: AdminUser }>>(`/admin/users/${userId}/promote-admin`);
+  },
+
+  async demoteAdminUser(userId: number): Promise<void> {
+    await apiClient.patch<ApiResponse<{ user: AdminUser }>>(`/admin/users/${userId}/demote-admin`);
+  },
+
   async listPosts(page = 1, limit = 10, status: AdminContentStatus = 'active', query = ''): Promise<PaginatedAdminPosts> {
     const response = await apiClient.get<ApiResponse<PaginatedAdminPosts>>('/admin/posts', {
       params: { page, limit, status, query },

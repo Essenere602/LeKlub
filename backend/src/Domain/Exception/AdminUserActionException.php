@@ -22,4 +22,19 @@ final class AdminUserActionException extends RuntimeException
     {
         return new self('Manual suspension of an admin user is not allowed.');
     }
+
+    public static function selfRoleChangeForbidden(): self
+    {
+        return new self('An admin cannot modify their own roles.');
+    }
+
+    public static function suspendedUserPromotionForbidden(): self
+    {
+        return new self('A suspended user cannot be promoted to admin.');
+    }
+
+    public static function lastAdminDemotionForbidden(): self
+    {
+        return new self('The last admin cannot be demoted.');
+    }
 }

@@ -575,9 +575,10 @@ Le Back Office Admin MVP est volontairement limité :
 - liste utilisateurs sans email
 - modération des Posts
 - modération des Commentaires
+- gestion contrôlée du rôle administrateur
 - suppression logique uniquement
 
-Il ne permet pas de lire les Messages privés, de supprimer physiquement un utilisateur, de bannir un compte ou de gérer les rôles.
+Il ne permet pas de lire les Messages privés, de supprimer physiquement un utilisateur, de bannir un compte ou de gérer des permissions avancées.
 
 ### GET /api/admin/overview
 
@@ -665,6 +666,39 @@ Payload optionnel :
 L'action est idempotente : lever une suspension inexistante retourne un succès propre. Une notification système `user_unsuspended` est créée.
 
 Codes possibles : `200`, `401`, `403`, `404`, `422`.
+
+### PATCH /api/admin/users/{id}/promote-admin
+
+Attribue le rôle `ROLE_ADMIN` à un utilisateur non suspendu.
+
+Payload : aucun.
+
+Règles :
+
+- `ROLE_ADMIN` obligatoire
+- un admin ne peut pas modifier ses propres rôles
+- un utilisateur suspendu ne peut pas être promu
+- seuls les rôles `ROLE_USER` et `ROLE_ADMIN` sont gérés
+- le tableau `roles` ne duplique pas `ROLE_USER` ou `ROLE_ADMIN`
+- une notification système `admin_role_granted` est créée
+
+Codes possibles : `200`, `401`, `403`, `404`.
+
+### PATCH /api/admin/users/{id}/demote-admin
+
+Retire le rôle `ROLE_ADMIN` à un autre administrateur.
+
+Payload : aucun.
+
+Règles :
+
+- `ROLE_ADMIN` obligatoire
+- un admin ne peut pas modifier ses propres rôles
+- le dernier administrateur ne peut pas être rétrogradé
+- seuls les rôles `ROLE_USER` et `ROLE_ADMIN` sont gérés
+- une notification système `admin_role_removed` est créée
+
+Codes possibles : `200`, `401`, `403`, `404`.
 
 ### GET /api/admin/posts?page=1&limit=10&status=active&query=texte
 

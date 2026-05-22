@@ -12,4 +12,6 @@ enum SystemNotificationType: string
     case Suspension = 'suspension';
     case UserSuspended = 'user_suspended';
     case UserUnsuspended = 'user_unsuspended';
+    case AdminRoleGranted = 'admin_role_granted';
+    case AdminRoleRemoved = 'admin_role_removed';
 }

@@ -131,12 +131,17 @@ Les endpoints admin appliquent un principe de minimisation :
 - les notifications système sont séparées des Messages privés
 - la supervision admin peut consulter les Posts et Commentaires actifs ou supprimés, mais toujours sans email, mot de passe, token ou hash
 - les contenus supprimés restent des suppressions logiques avec `deletedAt` et `deletedBy`
+- la gestion du rôle admin reste limitée à `ROLE_USER` / `ROLE_ADMIN`
+- un admin ne peut pas modifier ses propres rôles
+- le dernier administrateur ne peut pas être rétrogradé
+- un utilisateur suspendu ne peut pas être promu administrateur
+- les notifications système `admin_role_granted` et `admin_role_removed` informent l'utilisateur concerné
 
 Le MVP admin ne contient pas :
 
 - suppression physique utilisateur
 - bannissement
-- gestion des rôles
+- RBAC complexe ou permissions fines
 - dashboard complexe ou graphiques
 
 ## Suspension Temporaire

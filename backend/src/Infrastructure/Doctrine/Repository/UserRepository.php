@@ -5,12 +5,13 @@ declare(strict_types=1);
 namespace App\Infrastructure\Doctrine\Repository;
 
 use App\Domain\Entity\User;
+use App\Domain\Repository\AdminRoleUserRepositoryInterface;
 use App\Domain\Repository\AdminUserStatsRepositoryInterface;
 use App\Domain\Repository\UserRepositoryInterface;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
-final class UserRepository extends ServiceEntityRepository implements UserRepositoryInterface, AdminUserStatsRepositoryInterface
+final class UserRepository extends ServiceEntityRepository implements UserRepositoryInterface, AdminUserStatsRepositoryInterface, AdminRoleUserRepositoryInterface
 {
     public function __construct(ManagerRegistry $registry)
     {
@@ -67,6 +68,14 @@ final class UserRepository extends ServiceEntityRepository implements UserReposi
             ->select('COUNT(user.id)')
             ->getQuery()
             ->getSingleScalarResult();
+    }
+
+    public function countAdmins(): int
+    {
+        return (int) $this->getEntityManager()->getConnection()->fetchOne(
+            'SELECT COUNT(id) FROM `user` WHERE JSON_CONTAINS(roles, :role) = 1',
+            ['role' => json_encode('ROLE_ADMIN', JSON_THROW_ON_ERROR)]
+        );
     }
 
     public function save(User $user): void

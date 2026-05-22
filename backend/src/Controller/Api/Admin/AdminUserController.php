@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Controller\Api\Admin;
 
 use App\Application\Admin\ListAdminUsersUseCase;
+use App\Application\Admin\DemoteAdminUserUseCase;
+use App\Application\Admin\PromoteUserToAdminUseCase;
 use App\Application\Admin\SuspendUserUseCase;
 use App\Application\Admin\UnsuspendUserUseCase;
 use App\Domain\Entity\User;
@@ -73,6 +75,30 @@ final class AdminUserController
 
         try {
             return ApiResponse::success(['user' => $useCase->execute($id, $this->currentUser(), $dto)], 'User unsuspended successfully.');
+        } catch (ResourceNotFoundException) {
+            return ApiResponse::error('User not found.', [], 404);
+        } catch (AdminUserActionException $exception) {
+            return ApiResponse::error($exception->getMessage(), [], 403);
+        }
+    }
+
+    #[Route('/{id}/promote-admin', name: 'api_admin_users_promote_admin', methods: ['PATCH'], requirements: ['id' => '\d+'])]
+    public function promoteAdmin(int $id, PromoteUserToAdminUseCase $useCase): JsonResponse
+    {
+        try {
+            return ApiResponse::success(['user' => $useCase->execute($id, $this->currentUser())], 'Admin role granted successfully.');
+        } catch (ResourceNotFoundException) {
+            return ApiResponse::error('User not found.', [], 404);
+        } catch (AdminUserActionException $exception) {
+            return ApiResponse::error($exception->getMessage(), [], 403);
+        }
+    }
+
+    #[Route('/{id}/demote-admin', name: 'api_admin_users_demote_admin', methods: ['PATCH'], requirements: ['id' => '\d+'])]
+    public function demoteAdmin(int $id, DemoteAdminUserUseCase $useCase): JsonResponse
+    {
+        try {
+            return ApiResponse::success(['user' => $useCase->execute($id, $this->currentUser())], 'Admin role removed successfully.');
         } catch (ResourceNotFoundException) {
             return ApiResponse::error('User not found.', [], 404);
         } catch (AdminUserActionException $exception) {

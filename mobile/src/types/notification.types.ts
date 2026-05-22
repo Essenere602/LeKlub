@@ -6,7 +6,9 @@ export type SystemNotificationType =
   | 'warning'
   | 'suspension'
   | 'user_suspended'
-  | 'user_unsuspended';
+  | 'user_unsuspended'
+  | 'admin_role_granted'
+  | 'admin_role_removed';
 
 export type SystemNotification = {
   id: number;
