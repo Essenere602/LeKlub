@@ -10,4 +10,6 @@ enum SystemNotificationType: string
     case ReportAccepted = 'report_accepted';
     case Warning = 'warning';
     case Suspension = 'suspension';
+    case UserSuspended = 'user_suspended';
+    case UserUnsuspended = 'user_unsuspended';
 }

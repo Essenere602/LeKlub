@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useState } from 'react';
-import { FlatList, RefreshControl, StyleSheet, View } from 'react-native';
+import { Alert, FlatList, RefreshControl, StyleSheet, View } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 
+import { AdminSuspendUserModal } from '../../components/admin/AdminSuspendUserModal';
 import { AdminUserCard } from '../../components/admin/AdminUserCard';
 import { AppButton } from '../../components/ui/AppButton';
 import { AppHeader } from '../../components/ui/AppHeader';
@@ -29,6 +30,8 @@ export function AdminUsersScreen({ navigation }: AdminUsersScreenProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<AdminUser | null>(null);
+  const [actionUserId, setActionUserId] = useState<number | null>(null);
 
   const loadUsers = useCallback(async (page = 1, append = false) => {
     const result = await adminService.listUsers(page, LIMIT, query.trim());
@@ -87,6 +90,51 @@ export function AdminUsersScreen({ navigation }: AdminUsersScreenProps) {
     }
   }
 
+  async function suspendSelectedUser(payload: { durationDays: 1 | 7 | 30; reason: string }) {
+    if (!selectedUser) {
+      return;
+    }
+
+    setActionUserId(selectedUser.id);
+    setError(null);
+
+    try {
+      await adminService.suspendUser(selectedUser.id, payload);
+      setSelectedUser(null);
+      await loadUsers();
+    } catch (caughtError) {
+      setError(toApiError(caughtError).message);
+      throw caughtError;
+    } finally {
+      setActionUserId(null);
+    }
+  }
+
+  function confirmUnsuspend(user: AdminUser) {
+    Alert.alert(
+      'Lever la suspension',
+      `Le compte @${user.username} pourra de nouveau effectuer des actions d'écriture.`,
+      [
+        { text: 'Annuler', style: 'cancel' },
+        { text: 'Confirmer', onPress: () => { void unsuspendUser(user); } },
+      ],
+    );
+  }
+
+  async function unsuspendUser(user: AdminUser) {
+    setActionUserId(user.id);
+    setError(null);
+
+    try {
+      await adminService.unsuspendUser(user.id, { reason: 'Suspension levée par la modération.' });
+      await loadUsers();
+    } catch (caughtError) {
+      setError(toApiError(caughtError).message);
+    } finally {
+      setActionUserId(null);
+    }
+  }
+
   return (
     <Screen style={styles.screen}>
       <FlatList
@@ -115,7 +163,22 @@ export function AdminUsersScreen({ navigation }: AdminUsersScreenProps) {
         refreshControl={
           <RefreshControl refreshing={isRefreshing} tintColor={theme.colors.accent} onRefresh={refreshUsers} />
         }
-        renderItem={({ item }) => <AdminUserCard user={item} />}
+        renderItem={({ item }) => (
+          <AdminUserCard
+            loading={actionUserId === item.id}
+            user={item}
+            onSuspend={() => setSelectedUser(item)}
+            onUnsuspend={() => confirmUnsuspend(item)}
+          />
+        )}
+      />
+      <AdminSuspendUserModal
+        error={error}
+        loading={selectedUser !== null && actionUserId === selectedUser.id}
+        user={selectedUser}
+        visible={selectedUser !== null}
+        onClose={() => setSelectedUser(null)}
+        onSubmit={suspendSelectedUser}
       />
     </Screen>
   );

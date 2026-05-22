@@ -615,13 +615,56 @@ Champs retournés uniquement :
   "displayName": "Samuel",
   "avatarUrl": null,
   "roles": ["ROLE_USER"],
-  "createdAt": "2026-05-16T12:00:00+00:00"
+  "createdAt": "2026-05-16T12:00:00+00:00",
+  "isSuspended": false,
+  "suspendedUntil": null
 }
 ```
 
 La réponse ne retourne pas `email`, `password`, token JWT ou donnée sensible.
 
 Codes possibles : `200`, `401`, `403`.
+
+### PATCH /api/admin/users/{id}/suspend
+
+Suspend temporairement un utilisateur.
+
+Payload :
+
+```json
+{
+  "durationDays": 7,
+  "reason": "Comportement contraire aux règles de la communauté."
+}
+```
+
+Règles :
+
+- `durationDays` doit valoir `1`, `7` ou `30`
+- `reason` est obligatoire, en texte brut, limité à 500 caractères
+- un admin ne peut pas se suspendre lui-même
+- la suspension manuelle d'un utilisateur `ROLE_ADMIN` est refusée dans cette version
+- la lecture de l'application reste autorisée
+- les JWT existants restent valides, mais les actions d'écriture restent bloquées par `SuspensionGuard`
+- une notification système `user_suspended` est créée
+
+Codes possibles : `200`, `401`, `403`, `404`, `422`.
+
+### PATCH /api/admin/users/{id}/unsuspend
+
+Lève une suspension temporaire utilisateur.
+
+Payload optionnel :
+
+```json
+{
+  "reason": "Suspension levée après vérification."
+}
+```
+
+L'action est idempotente : lever une suspension inexistante retourne un succès propre. Une notification système `user_unsuspended` est créée.
+
+Codes possibles : `200`, `401`, `403`, `404`, `422`.
 
 ### GET /api/admin/posts?page=1&limit=10&status=active&query=texte
 

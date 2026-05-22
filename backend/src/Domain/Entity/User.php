@@ -145,6 +145,16 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         $this->touch();
     }
 
+    public function unsuspend(): void
+    {
+        if ($this->suspendedUntil === null) {
+            return;
+        }
+
+        $this->suspendedUntil = null;
+        $this->touch();
+    }
+
     public function eraseCredentials(): void
     {
     }

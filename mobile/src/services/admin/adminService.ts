@@ -3,12 +3,15 @@ import {
   AdminOverview,
   AdminContentStatus,
   AdminReportStatus,
+  AdminUser,
   PaginatedAdminComments,
   PaginatedAdminPosts,
   PaginatedAdminReports,
   PaginatedAdminUsers,
   PaginatedAdminWarnings,
   ResolveReportPayload,
+  SuspendUserPayload,
+  UnsuspendUserPayload,
 } from '../../types/admin.types';
 import { apiClient } from '../api/apiClient';
 
@@ -33,6 +36,14 @@ export const adminService = {
     }
 
     return response.data.data;
+  },
+
+  async suspendUser(userId: number, payload: SuspendUserPayload): Promise<void> {
+    await apiClient.patch<ApiResponse<{ user: AdminUser }>>(`/admin/users/${userId}/suspend`, payload);
+  },
+
+  async unsuspendUser(userId: number, payload: UnsuspendUserPayload = {}): Promise<void> {
+    await apiClient.patch<ApiResponse<{ user: AdminUser }>>(`/admin/users/${userId}/unsuspend`, payload);
   },
 
   async listPosts(page = 1, limit = 10, status: AdminContentStatus = 'active', query = ''): Promise<PaginatedAdminPosts> {

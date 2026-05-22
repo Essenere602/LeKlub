@@ -332,6 +332,8 @@ Le Back Office Admin mobile MVP utilise :
 
 - `GET /api/admin/overview` pour la synthèse enrichie
 - `GET /api/admin/users?page=&limit=&query=` pour consulter les utilisateurs
+- `PATCH /api/admin/users/{id}/suspend` pour suspendre temporairement un utilisateur
+- `PATCH /api/admin/users/{id}/unsuspend` pour lever une suspension temporaire
 - `GET /api/admin/posts?page=&limit=&status=&query=` pour lister les Posts actifs ou supprimés à superviser
 - `DELETE /api/admin/posts/{id}` pour supprimer logiquement un Post
 - `GET /api/admin/comments?page=&limit=&status=&query=` pour lister les Commentaires actifs ou supprimés à superviser
@@ -345,10 +347,13 @@ Contraintes MVP :
 - pas de suppression physique utilisateur
 - pas de bannissement
 - pas de gestion des rôles
+- pas de suspension manuelle d'un `ROLE_ADMIN`
 - pas de lecture des Messages privés
 - les signalements et la modération restent deux actions séparées
 - supprimer depuis un signalement crée un avertissement pour l'auteur
 - après 3 avertissements, l'auteur est suspendu temporairement des actions d'écriture
+- l'admin peut suspendre manuellement un utilisateur pour `1`, `7` ou `30` jours avec une raison obligatoire
+- l'admin peut lever une suspension de façon idempotente
 - les notifications système restent séparées de la messagerie privée
 - les avertissements admin sont consultables mais non modifiables
 - les contenus supprimés sont visibles côté admin uniquement avec `deletedAt` et `deletedBy`
@@ -363,6 +368,12 @@ Contraintes MVP :
 - ouvrir la synthèse admin
 - ouvrir la liste utilisateurs et vérifier qu'aucun email n'est affiché
 - rechercher un utilisateur
+- vérifier les badges `Actif` / `Suspendu`
+- suspendre un utilisateur `ROLE_USER` avec une raison
+- vérifier que la date de fin de suspension apparaît
+- vérifier que l'utilisateur reçoit une notification système
+- lever la suspension et vérifier le retour à `Actif`
+- vérifier qu'un utilisateur `ROLE_ADMIN` ne propose pas d'action de suspension manuelle
 - ouvrir la modération Feed
 - basculer entre Posts et Commentaires
 - basculer entre `Actifs` et `Supprimés`
