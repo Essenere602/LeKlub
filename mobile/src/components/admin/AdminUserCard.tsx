@@ -10,13 +10,25 @@ import { StatusBadge } from '../ui/StatusBadge';
 type AdminUserCardProps = {
   user: AdminUser;
   loading?: boolean;
+  currentUserId?: number;
+  onDemoteAdmin: () => void;
+  onPromoteAdmin: () => void;
   onSuspend: () => void;
   onUnsuspend: () => void;
 };
 
-export function AdminUserCard({ loading = false, onSuspend, onUnsuspend, user }: AdminUserCardProps) {
+export function AdminUserCard({
+  currentUserId,
+  loading = false,
+  onDemoteAdmin,
+  onPromoteAdmin,
+  onSuspend,
+  onUnsuspend,
+  user,
+}: AdminUserCardProps) {
   const displayName = user.displayName ?? user.username;
   const isAdmin = user.roles.includes('ROLE_ADMIN');
+  const isCurrentUser = currentUserId === user.id;
 
   return (
     <AppCard style={styles.card}>
@@ -37,9 +49,38 @@ export function AdminUserCard({ loading = false, onSuspend, onUnsuspend, user }:
         {user.isSuspended && user.suspendedUntil ? (
           <AppText variant="muted">Suspendu jusqu'au {formatDate(user.suspendedUntil)}</AppText>
         ) : null}
-        {!isAdmin ? (
+        {isCurrentUser ? (
+          <AppText variant="muted">Vos propres rôles ne sont pas modifiables.</AppText>
+        ) : (
           <View style={styles.actions}>
-            {user.isSuspended ? (
+            {isAdmin ? (
+              <ActionButton
+                disabled={loading}
+                icon="shield-outline"
+                label="Retirer admin"
+                onPress={onDemoteAdmin}
+                variant="warning"
+              />
+            ) : null}
+            {!isAdmin && !user.isSuspended ? (
+              <>
+                <ActionButton
+                  disabled={loading}
+                  icon="shield-checkmark-outline"
+                  label="Promouvoir admin"
+                  onPress={onPromoteAdmin}
+                  variant="accent"
+                />
+                <ActionButton
+                  disabled={loading}
+                  icon="pause-circle-outline"
+                  label="Suspendre"
+                  onPress={onSuspend}
+                  variant="danger"
+                />
+              </>
+            ) : null}
+            {!isAdmin && user.isSuspended ? (
               <ActionButton
                 disabled={loading}
                 icon="play-circle-outline"
@@ -47,18 +88,8 @@ export function AdminUserCard({ loading = false, onSuspend, onUnsuspend, user }:
                 onPress={onUnsuspend}
                 variant="success"
               />
-            ) : (
-              <ActionButton
-                disabled={loading}
-                icon="pause-circle-outline"
-                label="Suspendre"
-                onPress={onSuspend}
-                variant="danger"
-              />
-            )}
+            ) : null}
           </View>
-        ) : (
-          <AppText variant="muted">Suspension manuelle admin désactivée dans ce MVP.</AppText>
         )}
       </View>
     </AppCard>
@@ -70,10 +101,17 @@ type ActionButtonProps = {
   icon: keyof typeof Ionicons.glyphMap;
   label: string;
   onPress: () => void;
-  variant: 'danger' | 'success';
+  variant: 'accent' | 'danger' | 'success' | 'warning';
 };
 
 function ActionButton({ disabled, icon, label, onPress, variant }: ActionButtonProps) {
+  const iconColor = {
+    accent: theme.colors.accent,
+    danger: theme.colors.danger,
+    success: theme.colors.success,
+    warning: theme.colors.warning,
+  }[variant];
+
   return (
     <Pressable
       accessibilityRole="button"
@@ -81,12 +119,15 @@ function ActionButton({ disabled, icon, label, onPress, variant }: ActionButtonP
       onPress={onPress}
       style={({ pressed }) => [
         styles.actionButton,
-        variant === 'danger' ? styles.dangerButton : styles.successButton,
+        variant === 'accent' && styles.accentButton,
+        variant === 'danger' && styles.dangerButton,
+        variant === 'success' && styles.successButton,
+        variant === 'warning' && styles.warningButton,
         pressed && styles.pressed,
         disabled && styles.disabled,
       ]}
     >
-      <Ionicons color={variant === 'danger' ? theme.colors.danger : theme.colors.success} name={icon} size={17} />
+      <Ionicons color={iconColor} name={icon} size={17} />
       <AppText style={styles.actionLabel}>{label}</AppText>
     </Pressable>
   );
@@ -134,6 +175,9 @@ const styles = StyleSheet.create({
   },
   actions: {
     alignItems: 'flex-start',
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: theme.spacing.sm,
     marginTop: theme.spacing.sm,
   },
   actionButton: {
@@ -149,9 +193,17 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255, 59, 92, 0.1)',
     borderColor: theme.colors.danger,
   },
+  accentButton: {
+    backgroundColor: theme.colors.accentSoft,
+    borderColor: theme.colors.accent,
+  },
   successButton: {
     backgroundColor: 'rgba(57, 255, 20, 0.1)',
     borderColor: theme.colors.success,
+  },
+  warningButton: {
+    backgroundColor: 'rgba(255, 184, 77, 0.12)',
+    borderColor: theme.colors.warning,
   },
   actionLabel: {
     fontSize: theme.typography.sizes.sm,

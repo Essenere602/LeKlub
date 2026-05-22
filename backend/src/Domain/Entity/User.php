@@ -85,8 +85,42 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     public function setRoles(array $roles): void
     {
-        $this->roles = array_values(array_unique($roles));
+        $this->roles = array_values(array_unique(array_filter(
+            $roles,
+            static fn (string $role): bool => in_array($role, ['ROLE_USER', 'ROLE_ADMIN'], true)
+        )));
         $this->touch();
+    }
+
+    public function hasRole(string $role): bool
+    {
+        return in_array($role, $this->getRoles(), true);
+    }
+
+    public function isAdmin(): bool
+    {
+        return $this->hasRole('ROLE_ADMIN');
+    }
+
+    public function promoteToAdmin(): void
+    {
+        if ($this->isAdmin()) {
+            return;
+        }
+
+        $this->setRoles([...$this->roles, 'ROLE_ADMIN']);
+    }
+
+    public function demoteFromAdmin(): void
+    {
+        if (!$this->isAdmin()) {
+            return;
+        }
+
+        $this->setRoles(array_values(array_filter(
+            $this->roles,
+            static fn (string $role): bool => $role !== 'ROLE_ADMIN'
+        )));
     }
 
     public function getPassword(): string

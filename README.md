@@ -39,7 +39,7 @@ Le backend Symfony est opérationnel pour les fonctionnalités suivantes :
 - suppression de Messages privés pour soi uniquement
 - notification WebSocket simple lors d'un nouveau Message privé
 - données football en lecture seule : résultats, matchs à venir, classement et buteurs
-- Back Office Admin MVP : synthèse enrichie, liste utilisateurs sécurisée, suspension temporaire manuelle, signalements, avertissements, suspensions automatiques, supervision des contenus actifs/supprimés et modération des Posts et Commentaires
+- Back Office Admin MVP : synthèse enrichie, liste utilisateurs sécurisée, gestion contrôlée du rôle admin, suspension temporaire manuelle, signalements, avertissements, suspensions automatiques, supervision des contenus actifs/supprimés et modération des Posts et Commentaires
 
 Vérifications actuelles :
 
@@ -70,7 +70,7 @@ Choix assumés :
 - pas de suppression de Message privé pour tout le monde
 - pas de microservice, Redis, Mercure ou architecture distribuée pour le temps réel
 - pas de persistance des données football tant que le besoin n'est pas démontré
-- pas de suppression physique utilisateur, bannissement ou gestion avancée des rôles dans l'admin MVP
+- pas de suppression physique utilisateur, bannissement ou gestion avancée des permissions dans l'admin MVP
 - pas de lecture des Messages privés dans l'admin
 
 Ces choix réduisent la complexité et permettent de démontrer clairement l'architecture, la sécurité, Docker, les tests, l'API REST et le temps réel.
@@ -253,6 +253,8 @@ GET    /api/football/competitions/{code}/standings
 GET    /api/football/competitions/{code}/scorers
 GET    /api/admin/overview
 GET    /api/admin/users
+PATCH  /api/admin/users/{id}/promote-admin
+PATCH  /api/admin/users/{id}/demote-admin
 GET    /api/admin/posts
 DELETE /api/admin/posts/{id}
 GET    /api/admin/comments
@@ -267,7 +269,7 @@ Les données football sont lues depuis football-data.org avec une normalisation 
 
 Les résultats et matchs à venir peuvent être filtrés par journée avec le paramètre optionnel `matchday`.
 
-Le Back Office Admin MVP est protégé par `ROLE_ADMIN`. Il ne retourne pas l'email dans la liste utilisateurs, permet de consulter/résoudre les signalements publics et utilise uniquement la suppression logique pour la modération du Feed.
+Le Back Office Admin MVP est protégé par `ROLE_ADMIN`. Il ne retourne pas l'email dans la liste utilisateurs, permet de gérer prudemment le rôle admin, de consulter/résoudre les signalements publics et utilise uniquement la suppression logique pour la modération du Feed.
 
 ## CORS Et Expo Go
 

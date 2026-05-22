@@ -13,6 +13,7 @@ import { LoadingState } from '../../components/ui/LoadingState';
 import { Screen } from '../../components/ui/Screen';
 import { theme } from '../../config/theme';
 import { AdminStackParamList } from '../../navigation/navigation.types';
+import { useAuth } from '../../hooks/useAuth';
 import { toApiError } from '../../services/api/apiError';
 import { adminService } from '../../services/admin/adminService';
 import { AdminUser } from '../../types/admin.types';
@@ -23,6 +24,7 @@ type AdminUsersScreenProps = NativeStackScreenProps<AdminStackParamList, 'AdminU
 const LIMIT = 10;
 
 export function AdminUsersScreen({ navigation }: AdminUsersScreenProps) {
+  const { user: currentUser } = useAuth();
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [pagination, setPagination] = useState<Pagination | null>(null);
   const [query, setQuery] = useState('');
@@ -135,6 +137,56 @@ export function AdminUsersScreen({ navigation }: AdminUsersScreenProps) {
     }
   }
 
+  function confirmPromoteAdmin(user: AdminUser) {
+    Alert.alert(
+      'Promouvoir administrateur',
+      `Donner le rôle administrateur à @${user.username} ? Ce compte aura accès aux fonctions d'administration.`,
+      [
+        { text: 'Annuler', style: 'cancel' },
+        { text: 'Confirmer', onPress: () => { void promoteUserToAdmin(user); } },
+      ],
+    );
+  }
+
+  async function promoteUserToAdmin(user: AdminUser) {
+    setActionUserId(user.id);
+    setError(null);
+
+    try {
+      await adminService.promoteUserToAdmin(user.id);
+      await loadUsers();
+    } catch (caughtError) {
+      setError(toApiError(caughtError).message);
+    } finally {
+      setActionUserId(null);
+    }
+  }
+
+  function confirmDemoteAdmin(user: AdminUser) {
+    Alert.alert(
+      'Retirer le rôle admin',
+      `Retirer les accès administrateur de @${user.username} ?`,
+      [
+        { text: 'Annuler', style: 'cancel' },
+        { text: 'Confirmer', style: 'destructive', onPress: () => { void demoteAdminUser(user); } },
+      ],
+    );
+  }
+
+  async function demoteAdminUser(user: AdminUser) {
+    setActionUserId(user.id);
+    setError(null);
+
+    try {
+      await adminService.demoteAdminUser(user.id);
+      await loadUsers();
+    } catch (caughtError) {
+      setError(toApiError(caughtError).message);
+    } finally {
+      setActionUserId(null);
+    }
+  }
+
   return (
     <Screen style={styles.screen}>
       <FlatList
@@ -165,8 +217,11 @@ export function AdminUsersScreen({ navigation }: AdminUsersScreenProps) {
         }
         renderItem={({ item }) => (
           <AdminUserCard
+            currentUserId={currentUser?.id}
             loading={actionUserId === item.id}
             user={item}
+            onDemoteAdmin={() => confirmDemoteAdmin(item)}
+            onPromoteAdmin={() => confirmPromoteAdmin(item)}
             onSuspend={() => setSelectedUser(item)}
             onUnsuspend={() => confirmUnsuspend(item)}
           />
