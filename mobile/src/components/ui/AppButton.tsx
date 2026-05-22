@@ -27,6 +27,7 @@ export function AppButton({
     <Pressable
       accessibilityRole="button"
       disabled={isDisabled}
+      hitSlop={4}
       onPress={onPress}
       style={({ pressed }) => [
         styles.base,
@@ -39,7 +40,7 @@ export function AppButton({
       {loading ? (
         <ActivityIndicator color={variant === 'primary' ? theme.colors.text.inverse : theme.colors.accent} />
       ) : (
-        <Text style={[styles.label, variant !== 'primary' && styles.secondaryLabel]}>{label}</Text>
+        <Text numberOfLines={2} style={[styles.label, variant !== 'primary' && styles.secondaryLabel]}>{label}</Text>
       )}
     </Pressable>
   );
@@ -52,6 +53,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     minHeight: 48,
     paddingHorizontal: theme.spacing.lg,
+    paddingVertical: theme.spacing.sm,
   },
   primary: {
     backgroundColor: theme.colors.accent,
@@ -72,8 +74,10 @@ const styles = StyleSheet.create({
   },
   label: {
     color: theme.colors.text.inverse,
+    flexShrink: 1,
     fontSize: theme.typography.sizes.md,
     fontWeight: theme.typography.weights.bold,
+    textAlign: 'center',
   },
   secondaryLabel: {
     color: theme.colors.text.primary,

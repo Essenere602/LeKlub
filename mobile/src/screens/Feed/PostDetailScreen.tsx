@@ -1,14 +1,18 @@
 import { useCallback, useEffect, useState } from 'react';
-import { ActivityIndicator, Alert, ScrollView, StyleSheet, View } from 'react-native';
+import { Alert, ScrollView, StyleSheet, View } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 
 import { CommentCard } from '../../components/feed/CommentCard';
 import { PostCard } from '../../components/feed/PostCard';
 import { ReportContentModal } from '../../components/feed/ReportContentModal';
 import { AppButton } from '../../components/ui/AppButton';
+import { AppCard } from '../../components/ui/AppCard';
+import { AppHeader } from '../../components/ui/AppHeader';
 import { AppInput } from '../../components/ui/AppInput';
 import { AppText } from '../../components/ui/AppText';
-import { ErrorMessage } from '../../components/ui/ErrorMessage';
+import { EmptyState } from '../../components/ui/EmptyState';
+import { ErrorState } from '../../components/ui/ErrorState';
+import { LoadingState } from '../../components/ui/LoadingState';
 import { Screen } from '../../components/ui/Screen';
 import { theme } from '../../config/theme';
 import { useAuth } from '../../hooks/useAuth';
@@ -223,14 +227,13 @@ export function PostDetailScreen({ navigation, route }: PostDetailScreenProps) {
       />
       <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
         <View style={styles.header}>
-          <AppText style={styles.kicker}>Discussion</AppText>
-          <AppText variant="title">Post</AppText>
+          <AppHeader kicker="Discussion" subtitle="Réactions et commentaires du Klub." title="Post" />
           <AppButton label="Retour au feed" onPress={() => navigation.goBack()} variant="secondary" />
         </View>
 
-        <ErrorMessage message={error} />
+        {error ? <ErrorState message={error} onRetry={loadPostDetail} /> : null}
 
-        {isLoading ? <ActivityIndicator color={theme.colors.accent} /> : null}
+        {isLoading ? <LoadingState message="Chargement du Post..." /> : null}
 
         {post ? (
           <PostCard
@@ -245,7 +248,7 @@ export function PostDetailScreen({ navigation, route }: PostDetailScreenProps) {
           />
         ) : null}
 
-        <View style={styles.commentForm}>
+        <AppCard style={styles.commentForm}>
           <AppInput
             autoCapitalize="sentences"
             label="Ajouter un commentaire"
@@ -258,12 +261,16 @@ export function PostDetailScreen({ navigation, route }: PostDetailScreenProps) {
             value={commentContent}
           />
           <AppButton label="Commenter" loading={isCreatingComment} onPress={createComment} />
-        </View>
+        </AppCard>
 
         <View style={styles.commentsSection}>
           <AppText variant="label">Commentaires</AppText>
           {comments.length === 0 && !isLoading ? (
-            <AppText variant="muted">Aucun commentaire pour le moment.</AppText>
+            <EmptyState
+              icon="chatbubble-outline"
+              message="Sois le premier à répondre à ce Post."
+              title="Aucun commentaire"
+            />
           ) : null}
           {comments.map((comment) => (
             <CommentCard
@@ -300,19 +307,8 @@ const styles = StyleSheet.create({
   header: {
     gap: theme.spacing.md,
   },
-  kicker: {
-    color: theme.colors.accent,
-    fontSize: theme.typography.sizes.sm,
-    fontWeight: theme.typography.weights.bold,
-    textTransform: 'uppercase',
-  },
   commentForm: {
-    backgroundColor: theme.colors.surface,
-    borderColor: theme.colors.border,
-    borderRadius: theme.radius.md,
-    borderWidth: 1,
     gap: theme.spacing.md,
-    padding: theme.spacing.lg,
   },
   textArea: {
     minHeight: 88,

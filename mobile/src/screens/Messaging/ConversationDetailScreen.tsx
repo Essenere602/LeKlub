@@ -1,12 +1,14 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, FlatList, KeyboardAvoidingView, Platform, StyleSheet, View } from 'react-native';
+import { FlatList, KeyboardAvoidingView, Platform, StyleSheet, View } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 
 import { MessageBubble } from '../../components/messaging/MessageBubble';
 import { AppButton } from '../../components/ui/AppButton';
+import { AppHeader } from '../../components/ui/AppHeader';
 import { AppInput } from '../../components/ui/AppInput';
-import { AppText } from '../../components/ui/AppText';
-import { ErrorMessage } from '../../components/ui/ErrorMessage';
+import { EmptyState } from '../../components/ui/EmptyState';
+import { ErrorState } from '../../components/ui/ErrorState';
+import { LoadingState } from '../../components/ui/LoadingState';
 import { Screen } from '../../components/ui/Screen';
 import { StatusBadge } from '../../components/ui/StatusBadge';
 import { theme } from '../../config/theme';
@@ -105,27 +107,34 @@ export function ConversationDetailScreen({ navigation, route }: ConversationDeta
     <Screen style={styles.screen}>
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 12 : 0}
         style={styles.container}
       >
         <View style={styles.header}>
           <AppButton label="Retour messages" onPress={() => navigation.goBack()} variant="secondary" />
           <View style={styles.titleBlock}>
-            <AppText style={styles.kicker}>Conversation privée</AppText>
-            <AppText variant="title">{participantUsername}</AppText>
+            <AppHeader kicker="Conversation privée" title={participantUsername} />
             <StatusBadge {...badgeForSocketStatus(socketStatus)} />
           </View>
-          <ErrorMessage message={error} />
+          {error ? <ErrorState message={error} onRetry={loadInitialMessages} /> : null}
         </View>
 
         {isLoading ? (
-          <ActivityIndicator color={theme.colors.accent} />
+          <LoadingState message="Chargement des messages..." />
         ) : (
           <FlatList
             ref={listRef}
             contentContainerStyle={styles.messages}
             data={messages}
             keyExtractor={(message) => String(message.id)}
-            ListEmptyComponent={<EmptyMessages />}
+            keyboardShouldPersistTaps="handled"
+            ListEmptyComponent={
+              <EmptyState
+                icon="chatbubble-outline"
+                message="Envoie le premier Message privé de cette conversation."
+                title="Aucun message"
+              />
+            }
             renderItem={({ item }) => (
               <MessageBubble
                 message={item}
@@ -149,15 +158,6 @@ export function ConversationDetailScreen({ navigation, route }: ConversationDeta
         </View>
       </KeyboardAvoidingView>
     </Screen>
-  );
-}
-
-function EmptyMessages() {
-  return (
-    <View style={styles.empty}>
-      <AppText style={styles.emptyTitle}>Aucun message</AppText>
-      <AppText variant="muted">Envoie le premier Message privé de cette conversation.</AppText>
-    </View>
   );
 }
 
@@ -197,12 +197,6 @@ const styles = StyleSheet.create({
   titleBlock: {
     gap: theme.spacing.xs,
   },
-  kicker: {
-    color: theme.colors.accent,
-    fontSize: theme.typography.sizes.sm,
-    fontWeight: theme.typography.weights.bold,
-    textTransform: 'uppercase',
-  },
   messages: {
     flexGrow: 1,
     gap: theme.spacing.md,
@@ -211,24 +205,14 @@ const styles = StyleSheet.create({
   },
   composer: {
     backgroundColor: theme.colors.background,
+    borderTopColor: theme.colors.border,
+    borderTopWidth: 1,
     gap: theme.spacing.md,
+    paddingTop: theme.spacing.md,
   },
   input: {
     minHeight: 74,
     paddingVertical: theme.spacing.md,
     textAlignVertical: 'top',
-  },
-  empty: {
-    alignItems: 'center',
-    backgroundColor: theme.colors.surface,
-    borderColor: theme.colors.border,
-    borderRadius: theme.radius.lg,
-    borderWidth: 1,
-    gap: theme.spacing.sm,
-    padding: theme.spacing.xl,
-  },
-  emptyTitle: {
-    fontSize: theme.typography.sizes.lg,
-    fontWeight: theme.typography.weights.bold,
   },
 });

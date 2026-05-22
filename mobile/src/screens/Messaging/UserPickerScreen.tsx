@@ -1,12 +1,14 @@
 import { useCallback, useEffect, useState } from 'react';
-import { ActivityIndicator, FlatList, StyleSheet, View } from 'react-native';
+import { FlatList, StyleSheet, View } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 
 import { UserListItem } from '../../components/messaging/UserListItem';
 import { AppButton } from '../../components/ui/AppButton';
+import { AppHeader } from '../../components/ui/AppHeader';
 import { AppInput } from '../../components/ui/AppInput';
-import { AppText } from '../../components/ui/AppText';
-import { ErrorMessage } from '../../components/ui/ErrorMessage';
+import { EmptyState } from '../../components/ui/EmptyState';
+import { ErrorState } from '../../components/ui/ErrorState';
+import { LoadingState } from '../../components/ui/LoadingState';
 import { Screen } from '../../components/ui/Screen';
 import { theme } from '../../config/theme';
 import { MessagingStackParamList } from '../../navigation/navigation.types';
@@ -69,14 +71,20 @@ export function UserPickerScreen({ navigation }: UserPickerScreenProps) {
         data={users}
         keyExtractor={(user) => String(user.id)}
         keyboardShouldPersistTaps="handled"
-        ListEmptyComponent={!isLoading ? <EmptyUsers /> : null}
+        ListEmptyComponent={!isLoading && !error ? (
+          <EmptyState
+            icon="person-add-outline"
+            message="Essaie avec un autre nom utilisateur."
+            title="Aucun utilisateur trouvé"
+          />
+        ) : null}
         ListHeaderComponent={
           <View style={styles.header}>
-            <View style={styles.titleBlock}>
-              <AppText style={styles.kicker}>Nouvelle conversation</AppText>
-              <AppText variant="title">Choisir un utilisateur</AppText>
-              <AppText variant="subtitle">L'annuaire expose uniquement les champs publics nécessaires.</AppText>
-            </View>
+            <AppHeader
+              kicker="Nouvelle conversation"
+              subtitle="L'annuaire expose uniquement les champs publics nécessaires."
+              title="Choisir un utilisateur"
+            />
 
             <AppButton label="Retour messages" onPress={() => navigation.goBack()} variant="secondary" />
 
@@ -87,8 +95,8 @@ export function UserPickerScreen({ navigation }: UserPickerScreenProps) {
               value={query}
             />
 
-            <ErrorMessage message={error} />
-            {isLoading ? <ActivityIndicator color={theme.colors.accent} /> : null}
+            {error ? <ErrorState message={error} onRetry={loadUsers} /> : null}
+            {isLoading ? <LoadingState message="Recherche des utilisateurs..." /> : null}
           </View>
         }
         renderItem={({ item }) => (
@@ -106,15 +114,6 @@ export function UserPickerScreen({ navigation }: UserPickerScreenProps) {
   );
 }
 
-function EmptyUsers() {
-  return (
-    <View style={styles.empty}>
-      <AppText style={styles.emptyTitle}>Aucun utilisateur trouvé</AppText>
-      <AppText variant="muted">Essaie avec un autre nom utilisateur.</AppText>
-    </View>
-  );
-}
-
 const styles = StyleSheet.create({
   screen: {
     padding: 0,
@@ -125,27 +124,5 @@ const styles = StyleSheet.create({
   },
   header: {
     gap: theme.spacing.lg,
-  },
-  titleBlock: {
-    gap: theme.spacing.sm,
-  },
-  kicker: {
-    color: theme.colors.accent,
-    fontSize: theme.typography.sizes.sm,
-    fontWeight: theme.typography.weights.bold,
-    textTransform: 'uppercase',
-  },
-  empty: {
-    alignItems: 'center',
-    backgroundColor: theme.colors.surface,
-    borderColor: theme.colors.border,
-    borderRadius: theme.radius.lg,
-    borderWidth: 1,
-    gap: theme.spacing.sm,
-    padding: theme.spacing.xl,
-  },
-  emptyTitle: {
-    fontSize: theme.typography.sizes.lg,
-    fontWeight: theme.typography.weights.bold,
   },
 });

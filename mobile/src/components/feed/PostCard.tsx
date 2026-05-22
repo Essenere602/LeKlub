@@ -6,6 +6,7 @@ import { AppInput } from '../ui/AppInput';
 import { theme } from '../../config/theme';
 import { Post, ReactionType } from '../../types/feed.types';
 import { AppText } from '../ui/AppText';
+import { StatusBadge } from '../ui/StatusBadge';
 import { ReactionButtons } from './ReactionButtons';
 
 type PostCardProps = {
@@ -100,6 +101,7 @@ export function PostCard({
           <AppText variant="label">@{post.author.username}</AppText>
           <AppText variant="muted">{formatDate(post.createdAt)}</AppText>
         </View>
+        {canManage ? <StatusBadge label="Mon post" variant="accent" /> : null}
       </View>
 
       {isEditing ? (
@@ -222,6 +224,7 @@ const styles = StyleSheet.create({
   },
   actions: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
     gap: theme.spacing.md,
   },
   reportAction: {

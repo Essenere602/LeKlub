@@ -1,13 +1,16 @@
 import { useCallback, useEffect, useState } from 'react';
-import { ActivityIndicator, Alert, FlatList, RefreshControl, StyleSheet, View } from 'react-native';
+import { Alert, FlatList, RefreshControl, StyleSheet, View } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 
 import { PostCard } from '../../components/feed/PostCard';
 import { ReportContentModal } from '../../components/feed/ReportContentModal';
 import { AppButton } from '../../components/ui/AppButton';
+import { AppCard } from '../../components/ui/AppCard';
+import { AppHeader } from '../../components/ui/AppHeader';
 import { AppInput } from '../../components/ui/AppInput';
-import { AppText } from '../../components/ui/AppText';
-import { ErrorMessage } from '../../components/ui/ErrorMessage';
+import { EmptyState } from '../../components/ui/EmptyState';
+import { ErrorState } from '../../components/ui/ErrorState';
+import { LoadingState } from '../../components/ui/LoadingState';
 import { Screen } from '../../components/ui/Screen';
 import { theme } from '../../config/theme';
 import { useAuth } from '../../hooks/useAuth';
@@ -194,7 +197,15 @@ export function FeedScreen({ navigation }: FeedScreenProps) {
         contentContainerStyle={styles.content}
         data={posts}
         keyExtractor={(post) => String(post.id)}
-        ListEmptyComponent={!isLoading ? <EmptyFeed /> : null}
+        ListEmptyComponent={!isLoading && !error ? (
+          <EmptyState
+            actionLabel="Rafraîchir"
+            icon="chatbubble-ellipses-outline"
+            message="Publie le premier message du Klub."
+            title="Aucun post pour le moment"
+            onAction={refreshPosts}
+          />
+        ) : null}
         ListFooterComponent={
           pagination && pagination.page < pagination.pages ? (
             <AppButton
@@ -207,13 +218,13 @@ export function FeedScreen({ navigation }: FeedScreenProps) {
         }
         ListHeaderComponent={
           <View style={styles.header}>
-            <View style={styles.titleBlock}>
-              <AppText style={styles.kicker}>LeKlub Feed</AppText>
-              <AppText variant="title">Feed</AppText>
-              <AppText variant="subtitle">Partage un message court avec les autres membres.</AppText>
-            </View>
+            <AppHeader
+              kicker="LeKlub Feed"
+              subtitle="Partage un message court avec les autres membres."
+              title="Feed"
+            />
 
-            <View style={styles.createPanel}>
+            <AppCard style={styles.createPanel}>
               <AppInput
                 autoCapitalize="sentences"
                 label="Nouveau post"
@@ -226,10 +237,10 @@ export function FeedScreen({ navigation }: FeedScreenProps) {
                 value={content}
               />
               <AppButton label="Publier" loading={isCreating} onPress={createPost} />
-            </View>
+            </AppCard>
 
-            <ErrorMessage message={error} />
-            {isLoading ? <ActivityIndicator color={theme.colors.accent} /> : null}
+            {error ? <ErrorState message={error} onRetry={loadInitialPosts} /> : null}
+            {isLoading ? <LoadingState message="Chargement du Feed..." /> : null}
           </View>
         }
         refreshControl={
@@ -257,15 +268,6 @@ export function FeedScreen({ navigation }: FeedScreenProps) {
   );
 }
 
-function EmptyFeed() {
-  return (
-    <View style={styles.empty}>
-      <AppText variant="label">Aucun post pour le moment.</AppText>
-      <AppText variant="muted">Publie le premier message du Klub.</AppText>
-    </View>
-  );
-}
-
 const styles = StyleSheet.create({
   screen: {
     padding: 0,
@@ -277,34 +279,11 @@ const styles = StyleSheet.create({
   header: {
     gap: theme.spacing.lg,
   },
-  titleBlock: {
-    gap: theme.spacing.sm,
-  },
-  kicker: {
-    color: theme.colors.accent,
-    fontSize: theme.typography.sizes.sm,
-    fontWeight: theme.typography.weights.bold,
-    textTransform: 'uppercase',
-  },
   createPanel: {
-    backgroundColor: theme.colors.surface,
-    borderColor: theme.colors.border,
-    borderRadius: theme.radius.md,
-    borderWidth: 1,
     gap: theme.spacing.md,
-    padding: theme.spacing.lg,
   },
   textArea: {
     minHeight: 96,
     paddingTop: theme.spacing.md,
-  },
-  empty: {
-    alignItems: 'center',
-    backgroundColor: theme.colors.surface,
-    borderColor: theme.colors.border,
-    borderRadius: theme.radius.md,
-    borderWidth: 1,
-    gap: theme.spacing.sm,
-    padding: theme.spacing.xl,
   },
 });

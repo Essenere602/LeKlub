@@ -32,6 +32,7 @@ export function MessageBubble({ message, mine, onHideForMe }: MessageBubbleProps
     <View style={[styles.row, mine ? styles.mineRow : styles.otherRow]}>
       <Pressable
         accessibilityRole="button"
+        delayLongPress={260}
         onLongPress={confirmHideForMe}
         style={[styles.bubble, mine ? styles.mineBubble : styles.otherBubble]}
       >
@@ -80,6 +81,7 @@ const styles = StyleSheet.create({
     borderRadius: theme.radius.lg,
     gap: theme.spacing.xs,
     maxWidth: '82%',
+    minWidth: 72,
     padding: theme.spacing.md,
   },
   mineBubble: {
