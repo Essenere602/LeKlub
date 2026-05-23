@@ -3,6 +3,7 @@ import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, View } from 're
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 
 import { AppButton } from '../../components/ui/AppButton';
+import { AppCard } from '../../components/ui/AppCard';
 import { AppInput } from '../../components/ui/AppInput';
 import { AppText } from '../../components/ui/AppText';
 import { ErrorMessage } from '../../components/ui/ErrorMessage';
@@ -77,7 +78,7 @@ export function ChangePasswordScreen({ navigation }: ChangePasswordScreenProps) 
             </AppText>
           </View>
 
-          <View style={styles.form}>
+          <AppCard style={styles.form}>
             <AppInput
               label="Ancien mot de passe"
               onChangeText={(value) => updateField('currentPassword', value)}
@@ -101,7 +102,7 @@ export function ChangePasswordScreen({ navigation }: ChangePasswordScreenProps) 
               textContentType="newPassword"
               value={form.newPasswordConfirmation}
             />
-          </View>
+          </AppCard>
 
           <ErrorMessage message={error} />
           {successMessage ? <AppText style={styles.success}>{successMessage}</AppText> : null}

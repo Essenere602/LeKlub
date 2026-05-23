@@ -1,5 +1,10 @@
 import { MainTabsNavigator } from './MainTabsNavigator';
+import { MessagingUnreadProvider } from '../contexts/MessagingUnreadContext';
 
 export function MainNavigator() {
-  return <MainTabsNavigator />;
+  return (
+    <MessagingUnreadProvider>
+      <MainTabsNavigator />
+    </MessagingUnreadProvider>
+  );
 }

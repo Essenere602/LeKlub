@@ -1,19 +1,22 @@
 export const theme = {
   colors: {
-    background: '#080B0A',
-    surface: '#121712',
-    surfaceElevated: '#1A211A',
-    border: '#263126',
+    background: '#080A08',
+    surface: '#151A15',
+    surfaceElevated: '#202620',
+    surfaceStrong: '#252C25',
+    border: '#2D382D',
+    borderSoft: 'rgba(255, 255, 255, 0.06)',
     accent: '#C8FF00',
-    accentSoft: 'rgba(200, 255, 0, 0.14)',
-    success: '#39FF14',
+    accentSoft: 'rgba(200, 255, 0, 0.12)',
+    accentGlow: 'rgba(200, 255, 0, 0.28)',
+    success: '#00FF88',
     danger: '#FF3B5C',
     warning: '#FFCC00',
     text: {
-      primary: '#F4F7F1',
-      secondary: '#B7C0B2',
-      muted: '#7C8877',
-      inverse: '#080B0A',
+      primary: '#F3F6EF',
+      secondary: '#AEB8AA',
+      muted: '#717B6D',
+      inverse: '#080A08',
     },
     football: {
       blackPure: '#000000',
@@ -37,9 +40,11 @@ export const theme = {
     '2xl': 32,
   },
   radius: {
-    sm: 6,
-    md: 8,
-    lg: 12,
+    sm: 8,
+    md: 12,
+    lg: 16,
+    xl: 22,
+    full: 999,
   },
   typography: {
     sizes: {

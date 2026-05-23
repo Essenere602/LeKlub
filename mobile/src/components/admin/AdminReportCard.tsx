@@ -40,38 +40,33 @@ export function AdminReportCard({ onReject, onRemoveContent, report, resolving =
   return (
     <AppCard style={styles.card}>
       <View style={styles.header}>
+        <View style={styles.queue}>
+          <View style={styles.queueIcon}>
+            <Ionicons
+              color={report.status === 'open' ? theme.colors.danger : theme.colors.success}
+              name={report.status === 'open' ? 'radio-button-on-outline' : 'checkmark-circle-outline'}
+              size={20}
+            />
+          </View>
+          <View style={styles.queueCopy}>
+            <AppText style={styles.queueTitle}>
+              {report.status === 'open' ? 'À traiter' : 'Signalement traité'}
+            </AppText>
+            <AppText variant="muted">#{report.id} · {formatDate(report.createdAt)}</AppText>
+          </View>
+        </View>
         <View style={styles.badges}>
-          <StatusBadge label={report.type === 'post' ? 'Post' : 'Commentaire'} variant="warning" />
           <StatusBadge
             label={report.status === 'open' ? 'Ouvert' : 'Résolu'}
             variant={report.status === 'open' ? 'danger' : 'success'}
           />
+          <StatusBadge label={report.type === 'post' ? 'Post' : 'Commentaire'} variant="warning" />
         </View>
-        {report.status === 'open' ? (
-          <View style={styles.headerActions}>
-            <Pressable
-              accessibilityRole="button"
-              disabled={resolving}
-              onPress={confirmReject}
-              style={({ pressed }) => [styles.resolveButton, pressed && styles.pressed, resolving && styles.disabled]}
-            >
-              <Ionicons color={theme.colors.accent} name="close-circle-outline" size={18} />
-            </Pressable>
-            <Pressable
-              accessibilityRole="button"
-              disabled={resolving}
-              onPress={confirmRemoveContent}
-              style={({ pressed }) => [styles.deleteButton, pressed && styles.pressed, resolving && styles.disabled]}
-            >
-              <Ionicons color={theme.colors.danger} name="trash-outline" size={18} />
-            </Pressable>
-          </View>
-        ) : null}
       </View>
 
       <View style={styles.copy}>
-        <AppText variant="label">{labelForReason(report.reason)}</AppText>
-        <AppText variant="muted">Signalé par @{report.reporter.username} · {formatDate(report.createdAt)}</AppText>
+        <AppText style={styles.reason}>{labelForReason(report.reason)}</AppText>
+        <AppText variant="muted">Signalé par @{report.reporter.username}</AppText>
       </View>
 
       {report.details ? <AppText style={styles.details}>{report.details}</AppText> : null}
@@ -85,7 +80,7 @@ export function AdminReportCard({ onReject, onRemoveContent, report, resolving =
 
       {report.resolvedAt ? (
         <View style={styles.resolution}>
-          <AppText variant="muted">
+          <AppText style={styles.resolutionTitle}>
             Décision : {labelForDecision(report.decision)}
           </AppText>
           {report.adminNote ? <AppText variant="muted">Note : {report.adminNote}</AppText> : null}
@@ -93,6 +88,29 @@ export function AdminReportCard({ onReject, onRemoveContent, report, resolving =
             Résolu le {formatDate(report.resolvedAt)}
             {report.resolvedBy ? ` par @${report.resolvedBy.username}` : ''}
           </AppText>
+        </View>
+      ) : null}
+
+      {report.status === 'open' ? (
+        <View style={styles.actionsPanel}>
+          <Pressable
+            accessibilityRole="button"
+            disabled={resolving}
+            onPress={confirmReject}
+            style={({ pressed }) => [styles.resolveAction, pressed && styles.pressed, resolving && styles.disabled]}
+          >
+            <Ionicons color={theme.colors.accent} name="close-circle-outline" size={18} />
+            <AppText style={styles.actionLabel}>Rejeter</AppText>
+          </Pressable>
+          <Pressable
+            accessibilityRole="button"
+            disabled={resolving}
+            onPress={confirmRemoveContent}
+            style={({ pressed }) => [styles.deleteAction, pressed && styles.pressed, resolving && styles.disabled]}
+          >
+            <Ionicons color={theme.colors.danger} name="trash-outline" size={18} />
+            <AppText style={styles.actionLabel}>Supprimer et avertir</AppText>
+          </Pressable>
         </View>
       ) : null}
     </AppCard>
@@ -145,39 +163,36 @@ const styles = StyleSheet.create({
   },
   header: {
     alignItems: 'flex-start',
+    gap: theme.spacing.md,
+  },
+  queue: {
+    alignItems: 'center',
     flexDirection: 'row',
     gap: theme.spacing.md,
-    justifyContent: 'space-between',
+    width: '100%',
+  },
+  queueIcon: {
+    alignItems: 'center',
+    backgroundColor: theme.colors.surfaceElevated,
+    borderColor: theme.colors.borderSoft,
+    borderRadius: theme.radius.full,
+    borderWidth: 1,
+    height: 38,
+    justifyContent: 'center',
+    width: 38,
+  },
+  queueCopy: {
+    flex: 1,
+    gap: theme.spacing.xs,
+  },
+  queueTitle: {
+    fontSize: theme.typography.sizes.lg,
+    fontWeight: theme.typography.weights.bold,
   },
   badges: {
-    flex: 1,
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: theme.spacing.sm,
-  },
-  headerActions: {
-    flexDirection: 'row',
-    gap: theme.spacing.sm,
-  },
-  resolveButton: {
-    alignItems: 'center',
-    backgroundColor: theme.colors.accentSoft,
-    borderColor: theme.colors.accent,
-    borderRadius: theme.radius.md,
-    borderWidth: 1,
-    height: 40,
-    justifyContent: 'center',
-    width: 40,
-  },
-  deleteButton: {
-    alignItems: 'center',
-    backgroundColor: 'rgba(255, 59, 92, 0.1)',
-    borderColor: theme.colors.danger,
-    borderRadius: theme.radius.md,
-    borderWidth: 1,
-    height: 40,
-    justifyContent: 'center',
-    width: 40,
   },
   pressed: {
     opacity: 0.76,
@@ -187,6 +202,10 @@ const styles = StyleSheet.create({
   },
   copy: {
     gap: theme.spacing.xs,
+  },
+  reason: {
+    fontSize: theme.typography.sizes.md,
+    fontWeight: theme.typography.weights.bold,
   },
   details: {
     fontSize: theme.typography.sizes.md,
@@ -205,9 +224,51 @@ const styles = StyleSheet.create({
     lineHeight: 20,
   },
   resolution: {
-    borderTopColor: theme.colors.border,
-    borderTopWidth: 1,
+    backgroundColor: theme.colors.surfaceElevated,
+    borderColor: theme.colors.borderSoft,
+    borderRadius: theme.radius.md,
+    borderWidth: 1,
     gap: theme.spacing.xs,
-    paddingTop: theme.spacing.md,
+    padding: theme.spacing.md,
+  },
+  resolutionTitle: {
+    fontSize: theme.typography.sizes.sm,
+    fontWeight: theme.typography.weights.bold,
+  },
+  actionsPanel: {
+    flexDirection: 'row',
+    gap: theme.spacing.md,
+  },
+  resolveAction: {
+    alignItems: 'center',
+    backgroundColor: theme.colors.accentSoft,
+    borderColor: theme.colors.accent,
+    borderRadius: theme.radius.md,
+    borderWidth: 1,
+    flex: 1,
+    flexDirection: 'row',
+    gap: theme.spacing.sm,
+    justifyContent: 'center',
+    minHeight: 46,
+    paddingHorizontal: theme.spacing.sm,
+  },
+  deleteAction: {
+    alignItems: 'center',
+    backgroundColor: 'rgba(255, 59, 92, 0.1)',
+    borderColor: theme.colors.danger,
+    borderRadius: theme.radius.md,
+    borderWidth: 1,
+    flex: 1,
+    flexDirection: 'row',
+    gap: theme.spacing.sm,
+    justifyContent: 'center',
+    minHeight: 46,
+    paddingHorizontal: theme.spacing.sm,
+  },
+  actionLabel: {
+    flexShrink: 1,
+    fontSize: theme.typography.sizes.sm,
+    fontWeight: theme.typography.weights.bold,
+    textAlign: 'center',
   },
 });

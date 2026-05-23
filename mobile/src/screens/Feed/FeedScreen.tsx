@@ -1,13 +1,18 @@
 import { useCallback, useEffect, useState } from 'react';
-import { ActivityIndicator, Alert, FlatList, RefreshControl, StyleSheet, View } from 'react-native';
+import { Alert, FlatList, RefreshControl, StyleSheet, View } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 
 import { PostCard } from '../../components/feed/PostCard';
 import { ReportContentModal } from '../../components/feed/ReportContentModal';
 import { AppButton } from '../../components/ui/AppButton';
+import { AppCard } from '../../components/ui/AppCard';
 import { AppInput } from '../../components/ui/AppInput';
 import { AppText } from '../../components/ui/AppText';
+import { EmptyState } from '../../components/ui/EmptyState';
 import { ErrorMessage } from '../../components/ui/ErrorMessage';
+import { LoadingState } from '../../components/ui/LoadingState';
 import { Screen } from '../../components/ui/Screen';
 import { theme } from '../../config/theme';
 import { useAuth } from '../../hooks/useAuth';
@@ -21,6 +26,7 @@ type FeedScreenProps = NativeStackScreenProps<FeedStackParamList, 'Feed'>;
 const FEED_LIMIT = 10;
 
 export function FeedScreen({ navigation }: FeedScreenProps) {
+  const tabBarHeight = useBottomTabBarHeight();
   const { user } = useAuth();
   const [posts, setPosts] = useState<Post[]>([]);
   const [pagination, setPagination] = useState<Pagination | null>(null);
@@ -191,7 +197,7 @@ export function FeedScreen({ navigation }: FeedScreenProps) {
         onSubmit={submitReport}
       />
       <FlatList
-        contentContainerStyle={styles.content}
+        contentContainerStyle={[styles.content, { paddingBottom: tabBarHeight + theme.spacing['2xl'] }]}
         data={posts}
         keyExtractor={(post) => String(post.id)}
         ListEmptyComponent={!isLoading ? <EmptyFeed /> : null}
@@ -209,14 +215,25 @@ export function FeedScreen({ navigation }: FeedScreenProps) {
           <View style={styles.header}>
             <View style={styles.titleBlock}>
               <AppText style={styles.kicker}>LeKlub Feed</AppText>
-              <AppText variant="title">Feed</AppText>
-              <AppText variant="subtitle">Partage un message court avec les autres membres.</AppText>
+              <AppText variant="title">Le terrain des supporters</AppText>
+              <AppText variant="subtitle">Réactions, débats et humeurs de match entre membres du Klub.</AppText>
             </View>
 
-            <View style={styles.createPanel}>
+            <AppCard variant="accent" style={styles.createPanel}>
+              <View style={styles.composerHeader}>
+                <View style={styles.composerAvatar}>
+                  <AppText style={styles.composerAvatarText}>
+                    {(user?.profile.displayName ?? user?.username ?? 'K').slice(0, 1).toUpperCase()}
+                  </AppText>
+                </View>
+                <View style={styles.composerTitle}>
+                  <AppText style={styles.composerLabel}>Créer un Post</AppText>
+                  <AppText variant="muted">Partage une réaction football avec le Klub.</AppText>
+                </View>
+              </View>
               <AppInput
                 autoCapitalize="sentences"
-                label="Nouveau post"
+                label="Message"
                 maxLength={1000}
                 multiline
                 onChangeText={setContent}
@@ -225,11 +242,17 @@ export function FeedScreen({ navigation }: FeedScreenProps) {
                 textAlignVertical="top"
                 value={content}
               />
-              <AppButton label="Publier" loading={isCreating} onPress={createPost} />
-            </View>
+              <View style={styles.composerFooter}>
+                <View style={styles.composerHint}>
+                  <Ionicons color={theme.colors.text.muted} name="football-outline" size={16} />
+                  <AppText variant="muted">{content.trim().length}/1000</AppText>
+                </View>
+                <AppButton label="Publier" loading={isCreating} onPress={createPost} style={styles.publishButton} />
+              </View>
+            </AppCard>
 
             <ErrorMessage message={error} />
-            {isLoading ? <ActivityIndicator color={theme.colors.accent} /> : null}
+            {isLoading ? <LoadingState message="Chargement du Feed..." /> : null}
           </View>
         }
         refreshControl={
@@ -259,10 +282,11 @@ export function FeedScreen({ navigation }: FeedScreenProps) {
 
 function EmptyFeed() {
   return (
-    <View style={styles.empty}>
-      <AppText variant="label">Aucun post pour le moment.</AppText>
-      <AppText variant="muted">Publie le premier message du Klub.</AppText>
-    </View>
+    <EmptyState
+      icon="chatbubbles-outline"
+      message="Publie le premier message du Klub et lance la discussion."
+      title="Aucun Post pour le moment"
+    />
   );
 }
 
@@ -287,24 +311,52 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
   },
   createPanel: {
-    backgroundColor: theme.colors.surface,
-    borderColor: theme.colors.border,
-    borderRadius: theme.radius.md,
-    borderWidth: 1,
     gap: theme.spacing.md,
-    padding: theme.spacing.lg,
+  },
+  composerHeader: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: theme.spacing.md,
+  },
+  composerAvatar: {
+    alignItems: 'center',
+    backgroundColor: theme.colors.accent,
+    borderRadius: 22,
+    height: 44,
+    justifyContent: 'center',
+    width: 44,
+  },
+  composerAvatarText: {
+    color: theme.colors.text.inverse,
+    fontSize: theme.typography.sizes.lg,
+    fontWeight: theme.typography.weights.bold,
+    includeFontPadding: false,
+    lineHeight: 20,
+  },
+  composerTitle: {
+    flex: 1,
+    gap: theme.spacing.xs,
+  },
+  composerLabel: {
+    fontSize: theme.typography.sizes.md,
+    fontWeight: theme.typography.weights.bold,
   },
   textArea: {
     minHeight: 96,
     paddingTop: theme.spacing.md,
   },
-  empty: {
+  composerFooter: {
     alignItems: 'center',
-    backgroundColor: theme.colors.surface,
-    borderColor: theme.colors.border,
-    borderRadius: theme.radius.md,
-    borderWidth: 1,
-    gap: theme.spacing.sm,
-    padding: theme.spacing.xl,
+    flexDirection: 'row',
+    gap: theme.spacing.md,
+    justifyContent: 'space-between',
+  },
+  composerHint: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: theme.spacing.xs,
+  },
+  publishButton: {
+    minWidth: 116,
   },
 });

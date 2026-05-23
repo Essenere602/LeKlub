@@ -9,12 +9,14 @@ import { MessagingStackNavigator } from './MessagingStackNavigator';
 import { ProfileStackNavigator } from './ProfileStackNavigator';
 import { theme } from '../config/theme';
 import { useAuth } from '../hooks/useAuth';
+import { useMessagingUnread } from '../hooks/useMessagingUnread';
 import { HomeScreen } from '../screens/Home/HomeScreen';
 
 const Tab = createBottomTabNavigator<MainTabParamList>();
 
 export function MainTabsNavigator() {
   const { user } = useAuth();
+  const { unreadCount } = useMessagingUnread();
   const isAdmin = user?.roles.includes('ROLE_ADMIN') ?? false;
 
   return (
@@ -43,11 +45,23 @@ export function MainTabsNavigator() {
       <Tab.Screen component={HomeScreen} name="Home" options={{ title: 'Accueil' }} />
       <Tab.Screen component={FeedStackNavigator} name="FeedTab" options={{ title: 'Feed' }} />
       <Tab.Screen component={FootballStackNavigator} name="FootballTab" options={{ title: 'Football' }} />
-      <Tab.Screen component={MessagingStackNavigator} name="MessagingTab" options={{ title: 'Messages' }} />
+      <Tab.Screen
+        component={MessagingStackNavigator}
+        name="MessagingTab"
+        options={{
+          tabBarBadge: unreadCount > 0 ? formatUnreadBadge(unreadCount) : undefined,
+          tabBarBadgeStyle: styles.unreadBadge,
+          title: 'Messages',
+        }}
+      />
       <Tab.Screen component={ProfileStackNavigator} name="ProfileTab" options={{ title: 'Profil' }} />
       {isAdmin ? <Tab.Screen component={AdminStackNavigator} name="AdminTab" options={{ title: 'Admin' }} /> : null}
     </Tab.Navigator>
   );
+}
+
+function formatUnreadBadge(unreadCount: number): string | number {
+  return unreadCount > 9 ? '9+' : unreadCount;
 }
 
 function iconForRoute(routeName: keyof MainTabParamList): keyof typeof Ionicons.glyphMap {
@@ -62,3 +76,12 @@ function iconForRoute(routeName: keyof MainTabParamList): keyof typeof Ionicons.
 
   return icons[routeName];
 }
+
+const styles = {
+  unreadBadge: {
+    backgroundColor: theme.colors.accent,
+    color: theme.colors.text.inverse,
+    fontSize: 11,
+    fontWeight: theme.typography.weights.bold,
+  },
+};

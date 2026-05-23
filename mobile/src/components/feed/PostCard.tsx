@@ -1,8 +1,10 @@
 import { Alert, Pressable, StyleSheet, View } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
 
 import { AppButton } from '../ui/AppButton';
 import { AppInput } from '../ui/AppInput';
+import { ActionMenu, ActionMenuItem } from '../ui/ActionMenu';
 import { theme } from '../../config/theme';
 import { Post, ReactionType } from '../../types/feed.types';
 import { AppText } from '../ui/AppText';
@@ -85,6 +87,43 @@ export function PostCard({
     );
   }
 
+  const menuItems: ActionMenuItem[] = [];
+
+  if (!isEditing && canManage && onUpdate) {
+    menuItems.push({
+      icon: 'create-outline',
+      label: 'Modifier',
+      onPress: () => setIsEditing(true),
+    });
+  }
+
+  if (!isEditing && onRemoveReaction) {
+    menuItems.push({
+      disabled,
+      icon: 'close-circle-outline',
+      label: 'Retirer ma réaction',
+      onPress: onRemoveReaction,
+    });
+  }
+
+  if (!isEditing && canManage && onDelete) {
+    menuItems.push({
+      destructive: true,
+      disabled: isDeleting,
+      icon: 'trash-outline',
+      label: 'Supprimer',
+      onPress: confirmDelete,
+    });
+  }
+
+  if (!isEditing && !canManage && onReport) {
+    menuItems.push({
+      icon: 'flag-outline',
+      label: 'Signaler',
+      onPress: onReport,
+    });
+  }
+
   return (
     <Pressable
       accessibilityRole={onOpen ? 'button' : undefined}
@@ -93,13 +132,16 @@ export function PostCard({
       style={({ pressed }) => [styles.card, pressed && onOpen && styles.pressed]}
     >
       <View style={styles.header}>
-        <View style={styles.avatar}>
-          <AppText style={styles.avatarText}>{post.author.username.slice(0, 1).toUpperCase()}</AppText>
+        <View style={styles.authorBlock}>
+          <View style={styles.avatar}>
+            <AppText style={styles.avatarText}>{post.author.username.slice(0, 1).toUpperCase()}</AppText>
+          </View>
+          <View style={styles.author}>
+            <AppText style={styles.username}>@{post.author.username}</AppText>
+            <AppText style={styles.date}>{formatDate(post.createdAt)}</AppText>
+          </View>
         </View>
-        <View style={styles.author}>
-          <AppText variant="label">@{post.author.username}</AppText>
-          <AppText variant="muted">{formatDate(post.createdAt)}</AppText>
-        </View>
+        <ActionMenu items={menuItems} accessibilityLabel="Actions du Post" />
       </View>
 
       {isEditing ? (
@@ -126,30 +168,31 @@ export function PostCard({
         <AppText style={styles.content}>{post.content}</AppText>
       )}
 
-      <View style={styles.meta}>
-        <AppText variant="muted">{post.commentsCount} commentaire{post.commentsCount > 1 ? 's' : ''}</AppText>
-      </View>
-
-      {canManage && !isEditing ? (
-        <View style={styles.actions}>
-          <AppButton label="Modifier" onPress={() => setIsEditing(true)} variant="secondary" />
-          <AppButton label="Supprimer" loading={isDeleting} onPress={confirmDelete} variant="ghost" />
+      {!isEditing ? (
+        <View style={styles.socialBar}>
+          <ReactionButtons
+            disabled={disabled}
+            dislikesCount={post.dislikesCount}
+            likesCount={post.likesCount}
+            onReact={onReact}
+          />
+          {onOpen ? (
+            <Pressable
+              accessibilityRole="button"
+              onPress={onOpen}
+              style={({ pressed }) => [styles.commentAction, pressed && styles.pressed]}
+            >
+              <Ionicons color={theme.colors.text.secondary} name="chatbubble-outline" size={17} />
+              <AppText style={styles.commentText}>{post.commentsCount}</AppText>
+            </Pressable>
+          ) : (
+            <View style={styles.commentAction}>
+              <Ionicons color={theme.colors.text.secondary} name="chatbubble-outline" size={17} />
+              <AppText style={styles.commentText}>{post.commentsCount}</AppText>
+            </View>
+          )}
         </View>
       ) : null}
-
-      {!canManage && !isEditing && onReport ? (
-        <View style={styles.reportAction}>
-          <AppButton label="Signaler" onPress={onReport} variant="ghost" />
-        </View>
-      ) : null}
-
-      <ReactionButtons
-        disabled={disabled}
-        dislikesCount={post.dislikesCount}
-        likesCount={post.likesCount}
-        onReact={onReact}
-        onRemove={onRemoveReaction}
-      />
     </Pressable>
   );
 }
@@ -172,17 +215,24 @@ function formatDate(value: string): string {
 const styles = StyleSheet.create({
   card: {
     backgroundColor: theme.colors.surface,
-    borderColor: theme.colors.border,
-    borderRadius: theme.radius.md,
+    borderColor: theme.colors.borderSoft,
+    borderRadius: theme.radius.lg,
     borderWidth: 1,
-    gap: theme.spacing.md,
-    padding: theme.spacing.lg,
+    gap: theme.spacing.lg,
+    padding: theme.spacing.xl,
   },
   pressed: {
     opacity: 0.84,
   },
   header: {
     alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: theme.spacing.md,
+  },
+  authorBlock: {
+    alignItems: 'center',
+    flex: 1,
     flexDirection: 'row',
     gap: theme.spacing.md,
   },
@@ -198,20 +248,26 @@ const styles = StyleSheet.create({
   },
   avatarText: {
     color: theme.colors.accent,
+    fontSize: theme.typography.sizes.md,
     fontWeight: theme.typography.weights.bold,
+    includeFontPadding: false,
+    lineHeight: 18,
   },
   author: {
     flex: 1,
     gap: theme.spacing.xs,
   },
+  username: {
+    fontSize: theme.typography.sizes.md,
+    fontWeight: theme.typography.weights.bold,
+  },
+  date: {
+    color: theme.colors.text.muted,
+    fontSize: theme.typography.sizes.xs,
+  },
   content: {
     fontSize: theme.typography.sizes.md,
-    lineHeight: 23,
-  },
-  meta: {
-    borderTopColor: theme.colors.border,
-    borderTopWidth: 1,
-    paddingTop: theme.spacing.md,
+    lineHeight: 24,
   },
   editForm: {
     gap: theme.spacing.md,
@@ -224,7 +280,28 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: theme.spacing.md,
   },
-  reportAction: {
-    alignItems: 'flex-start',
+  socialBar: {
+    alignItems: 'center',
+    borderTopColor: theme.colors.borderSoft,
+    borderTopWidth: 1,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingTop: theme.spacing.md,
+  },
+  commentAction: {
+    alignItems: 'center',
+    backgroundColor: theme.colors.surfaceElevated,
+    borderColor: theme.colors.borderSoft,
+    borderRadius: theme.radius.full,
+    borderWidth: 1,
+    flexDirection: 'row',
+    gap: theme.spacing.xs,
+    minHeight: 36,
+    paddingHorizontal: theme.spacing.md,
+  },
+  commentText: {
+    color: theme.colors.text.secondary,
+    fontSize: theme.typography.sizes.sm,
+    fontWeight: theme.typography.weights.bold,
   },
 });

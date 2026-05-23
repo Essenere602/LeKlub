@@ -1,12 +1,12 @@
 import { PropsWithChildren } from 'react';
-import { StyleSheet, View, ViewStyle } from 'react-native';
+import { StyleProp, StyleSheet, View, ViewStyle } from 'react-native';
 
 import { theme } from '../../config/theme';
 
 type AppCardVariant = 'default' | 'elevated' | 'accent';
 
 type AppCardProps = PropsWithChildren<{
-  style?: ViewStyle;
+  style?: StyleProp<ViewStyle>;
   variant?: AppCardVariant;
 }>;
 
@@ -17,17 +17,18 @@ export function AppCard({ children, style, variant = 'default' }: AppCardProps) 
 const styles = StyleSheet.create({
   base: {
     backgroundColor: theme.colors.surface,
-    borderColor: theme.colors.border,
+    borderColor: theme.colors.borderSoft,
     borderRadius: theme.radius.lg,
     borderWidth: 1,
     padding: theme.spacing.lg,
   },
   default: {},
   elevated: {
-    backgroundColor: theme.colors.surfaceElevated,
+    backgroundColor: theme.colors.surfaceStrong,
+    borderColor: theme.colors.border,
   },
   accent: {
     backgroundColor: theme.colors.surfaceElevated,
-    borderColor: theme.colors.accent,
+    borderColor: theme.colors.accentGlow,
   },
 });

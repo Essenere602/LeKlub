@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { FlatList, RefreshControl, StyleSheet, View } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 
 import { AppButton } from '../../components/ui/AppButton';
@@ -147,12 +148,21 @@ type NotificationCardProps = {
 
 function NotificationCard({ marking, notification, onMarkAsRead }: NotificationCardProps) {
   const isUnread = notification.readAt === null;
+  const notificationMeta = metaForNotificationType(notification.type);
 
   return (
     <AppCard style={styles.card} variant={isUnread ? 'accent' : 'default'}>
       <View style={styles.cardHeader}>
+        <View style={styles.notificationIdentity}>
+          <View style={[styles.notificationIcon, isUnread && styles.notificationIconUnread]}>
+            <Ionicons color={isUnread ? theme.colors.text.inverse : theme.colors.accent} name={notificationMeta.icon} size={18} />
+          </View>
+          <View style={styles.notificationHeaderCopy}>
+            <AppText style={styles.typeLabel}>{notificationMeta.label}</AppText>
+            <AppText variant="muted">{formatDate(notification.createdAt)}</AppText>
+          </View>
+        </View>
         <StatusBadge label={isUnread ? 'Non lu' : 'Lu'} variant={isUnread ? 'accent' : 'neutral'} />
-        <AppText variant="muted">{formatDate(notification.createdAt)}</AppText>
       </View>
       <AppText style={styles.title}>{notification.title}</AppText>
       <AppText style={styles.message}>{notification.message}</AppText>
@@ -161,6 +171,24 @@ function NotificationCard({ marking, notification, onMarkAsRead }: NotificationC
       ) : null}
     </AppCard>
   );
+}
+
+function metaForNotificationType(type: SystemNotification['type']): {
+  label: string;
+  icon: keyof typeof Ionicons.glyphMap;
+} {
+  const meta: Record<SystemNotification['type'], { label: string; icon: keyof typeof Ionicons.glyphMap }> = {
+    admin_role_granted: { label: 'Rôle admin', icon: 'shield-checkmark-outline' },
+    admin_role_removed: { label: 'Rôle admin', icon: 'shield-outline' },
+    report_accepted: { label: 'Signalement accepté', icon: 'checkmark-circle-outline' },
+    report_rejected: { label: 'Signalement rejeté', icon: 'close-circle-outline' },
+    suspension: { label: 'Suspension', icon: 'pause-circle-outline' },
+    user_suspended: { label: 'Compte suspendu', icon: 'pause-circle-outline' },
+    user_unsuspended: { label: 'Compte réactivé', icon: 'play-circle-outline' },
+    warning: { label: 'Avertissement', icon: 'warning-outline' },
+  };
+
+  return meta[type];
 }
 
 function formatDate(value: string): string {
@@ -193,9 +221,38 @@ const styles = StyleSheet.create({
     gap: theme.spacing.md,
   },
   cardHeader: {
-    alignItems: 'center',
+    alignItems: 'flex-start',
     flexDirection: 'row',
+    gap: theme.spacing.md,
     justifyContent: 'space-between',
+  },
+  notificationIdentity: {
+    alignItems: 'center',
+    flex: 1,
+    flexDirection: 'row',
+    gap: theme.spacing.md,
+  },
+  notificationIcon: {
+    alignItems: 'center',
+    backgroundColor: theme.colors.accentSoft,
+    borderColor: theme.colors.borderSoft,
+    borderRadius: theme.radius.full,
+    borderWidth: 1,
+    height: 38,
+    justifyContent: 'center',
+    width: 38,
+  },
+  notificationIconUnread: {
+    backgroundColor: theme.colors.accent,
+    borderColor: theme.colors.accent,
+  },
+  notificationHeaderCopy: {
+    flex: 1,
+    gap: theme.spacing.xs,
+  },
+  typeLabel: {
+    fontSize: theme.typography.sizes.sm,
+    fontWeight: theme.typography.weights.bold,
   },
   title: {
     fontSize: theme.typography.sizes.lg,
