@@ -15,6 +15,23 @@ Le modele est volontairement simple, normalise raisonnablement et adapte au MVP 
 - masquage d'un Message prive pour soi uniquement ;
 - moderation par suppression logique des contenus publics.
 
+## Donnees De Demonstration
+
+Le projet contient des fixtures Doctrine pour l'environnement de developpement.
+
+Elles creent un jeu coherent de donnees :
+
+- comptes utilisateurs `ROLE_USER` et `ROLE_ADMIN` ;
+- profils complets ;
+- Posts, Commentaires et Reactions ;
+- Conversations privees et Messages lus/non lus ;
+- Messages masques pour soi via `message_hidden_for_user` ;
+- signalements ouverts, rejetes et justifies ;
+- avertissements et suspension temporaire ;
+- notifications systeme lues et non lues.
+
+La commande `doctrine:fixtures:load --env=dev` purge la base de developpement avant de charger ce jeu de donnees. Elle ne doit pas etre utilisee en production.
+
 ## Entites Principales
 
 | Entite | Table | Role |

@@ -62,7 +62,6 @@ Choix assumés :
 - pas de refresh token dans cette première version
 - pas de vérification d'email
 - pas de reset password
-- pas de système de signalements utilisateurs
 - pas d'images dans les Posts
 - pas de Réactions sur les Commentaires
 - pas de groupes de conversation
@@ -147,6 +146,32 @@ WebSocket local :
 ```text
 ws://localhost:8081
 ```
+
+## Données De Démonstration
+
+Le backend fournit des fixtures de développement pour rendre l'application vivante pendant une démonstration iPhone ou jury CDA.
+
+Elles créent des utilisateurs, profils, Posts, Commentaires, Réactions, Conversations privées, Messages lus/non lus, Messages masqués pour soi, signalements, avertissements, suspensions temporaires et notifications système.
+
+Commande :
+
+```bash
+docker compose --env-file .env.example run --rm php php bin/console doctrine:fixtures:load --env=dev
+```
+
+Attention : `doctrine:fixtures:load` purge la base de développement avant de charger les données.
+
+Comptes de démonstration :
+
+| Rôle | Email | Username | Mot de passe |
+| --- | --- | --- | --- |
+| Admin | `admin@leklub.test` | `admin_leklub` | `DemoPassword123` |
+| Admin | `moderateur@leklub.test` | `moderateur_klub` | `DemoPassword123` |
+| Utilisateur | `samuel.demo@leklub.test` | `samuel_demo` | `DemoPassword123` |
+| Utilisateur | `marie.foot@leklub.test` | `marie_foot` | `DemoPassword123` |
+| Utilisateur suspendu | `nina.suspendue@leklub.test` | `nina_suspendue` | `DemoPassword123` |
+
+Ces identifiants sont destinés uniquement au développement local et aux tests. Ils ne doivent jamais être utilisés en production.
 
 ## Variables D'environnement
 
