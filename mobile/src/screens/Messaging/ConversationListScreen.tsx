@@ -10,6 +10,7 @@ import { Screen } from '../../components/ui/Screen';
 import { StatusBadge } from '../../components/ui/StatusBadge';
 import { theme } from '../../config/theme';
 import { useAuth } from '../../hooks/useAuth';
+import { useMessagingUnread } from '../../hooks/useMessagingUnread';
 import { useMessagingSocket } from '../../hooks/useMessagingSocket';
 import { MessagingStackParamList } from '../../navigation/navigation.types';
 import { toApiError } from '../../services/api/apiError';
@@ -20,6 +21,7 @@ type ConversationListScreenProps = NativeStackScreenProps<MessagingStackParamLis
 
 export function ConversationListScreen({ navigation }: ConversationListScreenProps) {
   const { isAuthenticated } = useAuth();
+  const { setUnreadCountFromConversations } = useMessagingUnread();
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -28,7 +30,8 @@ export function ConversationListScreen({ navigation }: ConversationListScreenPro
   const loadConversations = useCallback(async () => {
     const result = await messagingService.listConversations();
     setConversations(result);
-  }, []);
+    setUnreadCountFromConversations(result);
+  }, [setUnreadCountFromConversations]);
 
   const loadInitialConversations = useCallback(async () => {
     setError(null);

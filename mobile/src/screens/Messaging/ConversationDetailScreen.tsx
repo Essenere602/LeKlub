@@ -11,6 +11,7 @@ import { Screen } from '../../components/ui/Screen';
 import { StatusBadge } from '../../components/ui/StatusBadge';
 import { theme } from '../../config/theme';
 import { useAuth } from '../../hooks/useAuth';
+import { useMessagingUnread } from '../../hooks/useMessagingUnread';
 import { useMessagingSocket } from '../../hooks/useMessagingSocket';
 import { MessagingStackParamList } from '../../navigation/navigation.types';
 import { toApiError } from '../../services/api/apiError';
@@ -22,6 +23,7 @@ type ConversationDetailScreenProps = NativeStackScreenProps<MessagingStackParamL
 export function ConversationDetailScreen({ navigation, route }: ConversationDetailScreenProps) {
   const { conversationId, participantUsername } = route.params;
   const { isAuthenticated, user } = useAuth();
+  const { refreshUnreadCount } = useMessagingUnread();
   const listRef = useRef<FlatList<PrivateMessage>>(null);
   const [messages, setMessages] = useState<PrivateMessage[]>([]);
   const [content, setContent] = useState('');
@@ -33,7 +35,8 @@ export function ConversationDetailScreen({ navigation, route }: ConversationDeta
     const result = await messagingService.listMessages(conversationId);
     setMessages(result);
     await messagingService.markAsRead(conversationId);
-  }, [conversationId]);
+    await refreshUnreadCount();
+  }, [conversationId, refreshUnreadCount]);
 
   const loadInitialMessages = useCallback(async () => {
     setError(null);
