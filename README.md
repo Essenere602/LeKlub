@@ -253,6 +253,8 @@ POST   /api/auth/register
 POST   /api/auth/login
 GET    /api/me
 PATCH  /api/me/profile
+PATCH  /api/me/account
+PATCH  /api/me/password
 GET    /api/users
 GET    /api/feed
 POST   /api/feed

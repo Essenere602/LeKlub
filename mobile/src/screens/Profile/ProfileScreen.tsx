@@ -77,6 +77,12 @@ export function ProfileScreen({ navigation }: ProfileScreenProps) {
 
         <AppSection title="Sécurité">
           <SettingsRow
+            icon="at-outline"
+            onPress={() => navigation.navigate('EditAccount')}
+            subtitle="Email de connexion et nom utilisateur public."
+            title="Modifier mon compte"
+          />
+          <SettingsRow
             icon="notifications-outline"
             onPress={() => navigation.navigate('Notifications')}
             subtitle="Suivi des décisions de modération et messages système."
@@ -102,7 +108,7 @@ export function ProfileScreen({ navigation }: ProfileScreenProps) {
           <SettingsRow icon="calendar-outline" meta={formatDate(user?.createdAt)} title="Créé le" />
           <SettingsRow
             icon="information-circle-outline"
-            subtitle="Cette version privilégie un compte simple et sécurisé. Le changement d'email et la suppression de compte viendront dans une étape dédiée si nécessaire."
+            subtitle="Le changement d'email peut demander une reconnexion, car les tokens JWT utilisent l'email comme identifiant."
             title="Version actuelle"
           />
         </AppSection>

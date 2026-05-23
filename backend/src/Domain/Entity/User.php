@@ -70,6 +70,18 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this->username;
     }
 
+    public function changeEmail(string $email): void
+    {
+        $this->email = mb_strtolower($email);
+        $this->touch();
+    }
+
+    public function changeUsername(string $username): void
+    {
+        $this->username = $username;
+        $this->touch();
+    }
+
     public function getUserIdentifier(): string
     {
         return $this->email;
