@@ -1,3 +1,4 @@
+import { Ionicons } from '@expo/vector-icons';
 import { Pressable, StyleSheet, View } from 'react-native';
 
 import { theme } from '../../config/theme';
@@ -9,7 +10,6 @@ type ReactionButtonsProps = {
   dislikesCount: number;
   disabled?: boolean;
   onReact: (type: ReactionType) => void;
-  onRemove: () => void;
 };
 
 export function ReactionButtons({
@@ -17,46 +17,53 @@ export function ReactionButtons({
   dislikesCount,
   likesCount,
   onReact,
-  onRemove,
 }: ReactionButtonsProps) {
   return (
     <View style={styles.container}>
       <ReactionButton
+        icon="thumbs-up-outline"
         disabled={disabled}
-        label={`Like ${likesCount}`}
+        label="Like"
+        value={likesCount}
         onPress={() => onReact('like')}
       />
       <ReactionButton
+        icon="thumbs-down-outline"
         disabled={disabled}
-        label={`Dislike ${dislikesCount}`}
+        label="Dislike"
+        value={dislikesCount}
         onPress={() => onReact('dislike')}
       />
-      <ReactionButton disabled={disabled} label="Retirer" onPress={onRemove} subdued />
     </View>
   );
 }
 
 type ReactionButtonProps = {
   disabled: boolean;
+  icon: keyof typeof Ionicons.glyphMap;
   label: string;
   onPress: () => void;
-  subdued?: boolean;
+  value: number;
 };
 
-function ReactionButton({ disabled, label, onPress, subdued = false }: ReactionButtonProps) {
+function ReactionButton({ disabled, icon, label, onPress, value }: ReactionButtonProps) {
   return (
     <Pressable
       accessibilityRole="button"
+      accessibilityLabel={`${label} ${value}`}
       disabled={disabled}
-      onPress={onPress}
+      onPress={(event) => {
+        event.stopPropagation();
+        onPress();
+      }}
       style={({ pressed }) => [
         styles.button,
-        subdued && styles.subdued,
         disabled && styles.disabled,
         pressed && !disabled && styles.pressed,
       ]}
     >
-      <AppText style={[styles.label, subdued && styles.subduedLabel]}>{label}</AppText>
+      <Ionicons color={theme.colors.accent} name={icon} size={17} />
+      <AppText style={styles.value}>{value}</AppText>
     </Pressable>
   );
 }
@@ -64,20 +71,18 @@ function ReactionButton({ disabled, label, onPress, subdued = false }: ReactionB
 const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
     gap: theme.spacing.sm,
   },
   button: {
+    alignItems: 'center',
     backgroundColor: theme.colors.accentSoft,
     borderColor: theme.colors.accent,
-    borderRadius: theme.radius.sm,
+    borderRadius: theme.radius.full,
     borderWidth: 1,
+    flexDirection: 'row',
+    gap: theme.spacing.xs,
+    minHeight: 36,
     paddingHorizontal: theme.spacing.md,
-    paddingVertical: theme.spacing.sm,
-  },
-  subdued: {
-    backgroundColor: theme.colors.surfaceElevated,
-    borderColor: theme.colors.border,
   },
   disabled: {
     opacity: 0.55,
@@ -85,12 +90,9 @@ const styles = StyleSheet.create({
   pressed: {
     opacity: 0.78,
   },
-  label: {
+  value: {
     color: theme.colors.accent,
     fontSize: theme.typography.sizes.sm,
-    fontWeight: theme.typography.weights.semibold,
-  },
-  subduedLabel: {
-    color: theme.colors.text.secondary,
+    fontWeight: theme.typography.weights.bold,
   },
 });

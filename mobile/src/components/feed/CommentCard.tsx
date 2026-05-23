@@ -5,6 +5,7 @@ import { theme } from '../../config/theme';
 import { Commentaire } from '../../types/feed.types';
 import { AppButton } from '../ui/AppButton';
 import { AppInput } from '../ui/AppInput';
+import { ActionMenu, ActionMenuItem } from '../ui/ActionMenu';
 import { AppText } from '../ui/AppText';
 
 type CommentCardProps = {
@@ -70,11 +71,47 @@ export function CommentCard({ canManage = false, comment, onDelete, onReport, on
     );
   }
 
+  const menuItems: ActionMenuItem[] = [];
+
+  if (!isEditing && canManage && onUpdate) {
+    menuItems.push({
+      icon: 'create-outline',
+      label: 'Modifier',
+      onPress: () => setIsEditing(true),
+    });
+  }
+
+  if (!isEditing && canManage && onDelete) {
+    menuItems.push({
+      destructive: true,
+      disabled: isDeleting,
+      icon: 'trash-outline',
+      label: 'Supprimer',
+      onPress: confirmDelete,
+    });
+  }
+
+  if (!isEditing && !canManage && onReport) {
+    menuItems.push({
+      icon: 'flag-outline',
+      label: 'Signaler',
+      onPress: onReport,
+    });
+  }
+
   return (
     <View style={styles.card}>
       <View style={styles.header}>
-        <AppText variant="label">@{comment.author.username}</AppText>
-        <AppText variant="muted">{formatDate(comment.createdAt)}</AppText>
+        <View style={styles.identity}>
+          <View style={styles.avatar}>
+            <AppText style={styles.avatarText}>{comment.author.username.slice(0, 1).toUpperCase()}</AppText>
+          </View>
+          <View style={styles.author}>
+            <AppText style={styles.username}>@{comment.author.username}</AppText>
+            <AppText style={styles.date}>{formatDate(comment.createdAt)}</AppText>
+          </View>
+        </View>
+        <ActionMenu items={menuItems} accessibilityLabel="Actions du Commentaire" />
       </View>
       {isEditing ? (
         <View style={styles.editForm}>
@@ -97,19 +134,8 @@ export function CommentCard({ canManage = false, comment, onDelete, onReport, on
           </View>
         </View>
       ) : (
-        <AppText>{comment.content}</AppText>
+        <AppText style={styles.content}>{comment.content}</AppText>
       )}
-      {canManage && !isEditing ? (
-        <View style={styles.actions}>
-          <AppButton label="Modifier" onPress={() => setIsEditing(true)} variant="secondary" />
-          <AppButton label="Supprimer" loading={isDeleting} onPress={confirmDelete} variant="ghost" />
-        </View>
-      ) : null}
-      {!canManage && !isEditing && onReport ? (
-        <View style={styles.reportAction}>
-          <AppButton label="Signaler" onPress={onReport} variant="ghost" />
-        </View>
-      ) : null}
     </View>
   );
 }
@@ -132,16 +158,55 @@ function formatDate(value: string): string {
 const styles = StyleSheet.create({
   card: {
     backgroundColor: theme.colors.surfaceElevated,
-    borderColor: theme.colors.border,
-    borderRadius: theme.radius.md,
+    borderColor: theme.colors.borderSoft,
+    borderRadius: theme.radius.lg,
     borderWidth: 1,
-    gap: theme.spacing.sm,
-    padding: theme.spacing.md,
+    gap: theme.spacing.md,
+    padding: theme.spacing.lg,
   },
   header: {
+    alignItems: 'center',
     flexDirection: 'row',
-    gap: theme.spacing.sm,
     justifyContent: 'space-between',
+  },
+  identity: {
+    alignItems: 'center',
+    flex: 1,
+    flexDirection: 'row',
+    gap: theme.spacing.md,
+  },
+  avatar: {
+    alignItems: 'center',
+    backgroundColor: theme.colors.accentSoft,
+    borderColor: theme.colors.borderSoft,
+    borderRadius: 17,
+    borderWidth: 1,
+    height: 34,
+    justifyContent: 'center',
+    width: 34,
+  },
+  avatarText: {
+    color: theme.colors.accent,
+    fontSize: theme.typography.sizes.sm,
+    fontWeight: theme.typography.weights.bold,
+    includeFontPadding: false,
+    lineHeight: 16,
+  },
+  author: {
+    flex: 1,
+    gap: theme.spacing.xs,
+  },
+  username: {
+    fontSize: theme.typography.sizes.sm,
+    fontWeight: theme.typography.weights.bold,
+  },
+  date: {
+    color: theme.colors.text.muted,
+    fontSize: theme.typography.sizes.xs,
+  },
+  content: {
+    color: theme.colors.text.secondary,
+    lineHeight: 22,
   },
   editForm: {
     gap: theme.spacing.md,
@@ -153,8 +218,5 @@ const styles = StyleSheet.create({
   actions: {
     flexDirection: 'row',
     gap: theme.spacing.md,
-  },
-  reportAction: {
-    alignItems: 'flex-start',
   },
 });

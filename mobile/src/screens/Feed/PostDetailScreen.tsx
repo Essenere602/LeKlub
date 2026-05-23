@@ -1,14 +1,18 @@
 import { useCallback, useEffect, useState } from 'react';
-import { ActivityIndicator, Alert, ScrollView, StyleSheet, View } from 'react-native';
+import { Alert, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, View } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 
 import { CommentCard } from '../../components/feed/CommentCard';
 import { PostCard } from '../../components/feed/PostCard';
 import { ReportContentModal } from '../../components/feed/ReportContentModal';
 import { AppButton } from '../../components/ui/AppButton';
+import { AppCard } from '../../components/ui/AppCard';
 import { AppInput } from '../../components/ui/AppInput';
 import { AppText } from '../../components/ui/AppText';
+import { EmptyState } from '../../components/ui/EmptyState';
 import { ErrorMessage } from '../../components/ui/ErrorMessage';
+import { LoadingState } from '../../components/ui/LoadingState';
 import { Screen } from '../../components/ui/Screen';
 import { theme } from '../../config/theme';
 import { useAuth } from '../../hooks/useAuth';
@@ -21,6 +25,7 @@ type PostDetailScreenProps = NativeStackScreenProps<FeedStackParamList, 'PostDet
 
 export function PostDetailScreen({ navigation, route }: PostDetailScreenProps) {
   const { postId } = route.params;
+  const tabBarHeight = useBottomTabBarHeight();
   const { user } = useAuth();
   const [post, setPost] = useState<Post | null>(null);
   const [comments, setComments] = useState<Commentaire[]>([]);
@@ -221,70 +226,90 @@ export function PostDetailScreen({ navigation, route }: PostDetailScreenProps) {
         }}
         onSubmit={submitReport}
       />
-      <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
-        <View style={styles.header}>
-          <AppText style={styles.kicker}>Discussion</AppText>
-          <AppText variant="title">Post</AppText>
-          <AppButton label="Retour au feed" onPress={() => navigation.goBack()} variant="secondary" />
-        </View>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        style={styles.keyboard}
+      >
+        <ScrollView
+          contentContainerStyle={[styles.content, { paddingBottom: tabBarHeight + theme.spacing['2xl'] }]}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
+          <View style={styles.header}>
+            <View style={styles.titleBlock}>
+              <AppText style={styles.kicker}>Discussion</AppText>
+              <AppText variant="title">Conversation du Klub</AppText>
+              <AppText variant="subtitle">Lis le Post, réagis, puis rejoins le fil de commentaires.</AppText>
+            </View>
+            <AppButton label="Retour" onPress={() => navigation.goBack()} variant="secondary" />
+          </View>
 
-        <ErrorMessage message={error} />
+          <ErrorMessage message={error} />
 
-        {isLoading ? <ActivityIndicator color={theme.colors.accent} /> : null}
+          {isLoading ? <LoadingState message="Chargement de la discussion..." /> : null}
 
-        {post ? (
-          <PostCard
-            canManage={post.author.id === user?.id}
-            disabled={isReacting}
-            onDelete={deletePost}
-            onReact={reactToPost}
-            onReport={() => setReportTarget({ type: 'Post', id: post.id })}
-            onRemoveReaction={removeReaction}
-            onUpdate={updatePost}
-            post={post}
-          />
-        ) : null}
-
-        <View style={styles.commentForm}>
-          <AppInput
-            autoCapitalize="sentences"
-            label="Ajouter un commentaire"
-            maxLength={500}
-            multiline
-            onChangeText={setCommentContent}
-            placeholder="Ta réponse..."
-            style={styles.textArea}
-            textAlignVertical="top"
-            value={commentContent}
-          />
-          <AppButton label="Commenter" loading={isCreatingComment} onPress={createComment} />
-        </View>
-
-        <View style={styles.commentsSection}>
-          <AppText variant="label">Commentaires</AppText>
-          {comments.length === 0 && !isLoading ? (
-            <AppText variant="muted">Aucun commentaire pour le moment.</AppText>
-          ) : null}
-          {comments.map((comment) => (
-            <CommentCard
-              canManage={comment.author.id === user?.id}
-              comment={comment}
-              key={comment.id}
-              onDelete={() => deleteComment(comment.id)}
-              onReport={() => setReportTarget({ type: 'Commentaire', id: comment.id })}
-              onUpdate={(updatedContent) => updateComment(comment.id, updatedContent)}
-            />
-          ))}
-          {commentsPagination && commentsPagination.page < commentsPagination.pages ? (
-            <AppButton
-              label="Charger plus de commentaires"
-              loading={isLoadingMoreComments}
-              onPress={loadMoreComments}
-              variant="secondary"
+          {post ? (
+            <PostCard
+              canManage={post.author.id === user?.id}
+              disabled={isReacting}
+              onDelete={deletePost}
+              onReact={reactToPost}
+              onReport={() => setReportTarget({ type: 'Post', id: post.id })}
+              onRemoveReaction={removeReaction}
+              onUpdate={updatePost}
+              post={post}
             />
           ) : null}
-        </View>
-      </ScrollView>
+
+          <AppCard style={styles.commentForm}>
+            <View style={styles.commentFormHeader}>
+              <AppText style={styles.commentFormTitle}>Répondre au Post</AppText>
+              <AppText variant="muted">{commentContent.trim().length}/500</AppText>
+            </View>
+            <AppInput
+              autoCapitalize="sentences"
+              label="Commentaire"
+              maxLength={500}
+              multiline
+              onChangeText={setCommentContent}
+              placeholder="Ta réponse..."
+              style={styles.textArea}
+              textAlignVertical="top"
+              value={commentContent}
+            />
+            <AppButton label="Commenter" loading={isCreatingComment} onPress={createComment} />
+          </AppCard>
+
+          <View style={styles.commentsSection}>
+            <AppText style={styles.sectionTitle}>Commentaires</AppText>
+            {comments.length === 0 && !isLoading ? (
+              <EmptyState
+                icon="chatbubble-ellipses-outline"
+                message="Sois le premier à répondre à ce Post."
+                title="Aucun commentaire"
+              />
+            ) : null}
+            {comments.map((comment) => (
+              <CommentCard
+                canManage={comment.author.id === user?.id}
+                comment={comment}
+                key={comment.id}
+                onDelete={() => deleteComment(comment.id)}
+                onReport={() => setReportTarget({ type: 'Commentaire', id: comment.id })}
+                onUpdate={(updatedContent) => updateComment(comment.id, updatedContent)}
+              />
+            ))}
+            {commentsPagination && commentsPagination.page < commentsPagination.pages ? (
+              <AppButton
+                label="Charger plus de commentaires"
+                loading={isLoadingMoreComments}
+                onPress={loadMoreComments}
+                variant="secondary"
+              />
+            ) : null}
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
     </Screen>
   );
 }
@@ -293,12 +318,19 @@ const styles = StyleSheet.create({
   screen: {
     padding: 0,
   },
+  keyboard: {
+    flex: 1,
+  },
   content: {
     gap: theme.spacing.lg,
     padding: theme.spacing.xl,
   },
   header: {
+    alignItems: 'flex-start',
     gap: theme.spacing.md,
+  },
+  titleBlock: {
+    gap: theme.spacing.sm,
   },
   kicker: {
     color: theme.colors.accent,
@@ -307,12 +339,16 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
   },
   commentForm: {
-    backgroundColor: theme.colors.surface,
-    borderColor: theme.colors.border,
-    borderRadius: theme.radius.md,
-    borderWidth: 1,
     gap: theme.spacing.md,
-    padding: theme.spacing.lg,
+  },
+  commentFormHeader: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  commentFormTitle: {
+    fontSize: theme.typography.sizes.md,
+    fontWeight: theme.typography.weights.bold,
   },
   textArea: {
     minHeight: 88,
@@ -320,5 +356,9 @@ const styles = StyleSheet.create({
   },
   commentsSection: {
     gap: theme.spacing.md,
+  },
+  sectionTitle: {
+    fontSize: theme.typography.sizes.lg,
+    fontWeight: theme.typography.weights.bold,
   },
 });
