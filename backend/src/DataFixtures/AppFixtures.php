@@ -258,27 +258,39 @@ final class AppFixtures extends Fixture
             ['samuel', 'Tu as vu le match de Lyon hier ? Les jeunes ont vraiment changé le rythme.', true],
             ['marie', 'Oui, et le public a suivi direct. Ça peut devenir un vrai levier pour la fin de saison.', true],
             ['samuel', 'Je vais relancer le sujet dans le Feed après le prochain match.', false],
+            ['marie', 'Bonne idée, je répondrai avec deux noms à suivre côté formation.', false],
+            ['samuel', 'Parfait, ça donnera un débat plus concret que juste parler du score.', false],
         ]);
 
         $this->createConversation($manager, 'samuel_clara', 'samuel', 'clara', [
             ['clara', 'J’ai revu la séquence sur le pressing, c’est encore plus net au ralenti.', true],
             ['samuel', 'Tu peux me l’envoyer ? Je veux comprendre le déclencheur exact.', true],
             ['clara', 'Je te prépare un résumé simple ce soir.', false],
+            ['samuel', 'Merci, je veux surtout voir le rôle du milieu côté ballon.', true],
+            ['clara', 'C’est justement lui qui ferme la passe intérieure avant la récupération.', false],
         ]);
 
         $this->createConversation($manager, 'samuel_leo', 'samuel', 'leo', [
             ['leo', 'Arsenal joue dimanche, je sens encore un match piège.', true],
             ['samuel', 'Le banc peut faire la différence cette fois.', false],
+            ['leo', 'Oui, surtout si le match reste bloqué après l’heure de jeu.', false],
+            ['samuel', 'Je surveillerai les changements, ça raconte souvent le niveau de confiance du coach.', false],
+            ['leo', 'On en reparle après le match, je sens que le coaching sera décisif.', false],
         ]);
 
         $this->createConversation($manager, 'yanis_marie', 'yanis', 'marie', [
             ['yanis', 'Même toi tu dois reconnaître que l’ambiance à Marseille était folle.', true],
             ['marie', 'Je reconnais, mais je garde Lyon devant pour la formation.', true],
+            ['yanis', 'Formation oui, mais sur un match couperet je prends le Vélodrome.', true],
+            ['marie', 'On va dire que chaque club garde son argument préféré.', true],
         ]);
 
         $this->createConversation($manager, 'admin_nina', 'admin', 'nina', [
             ['admin', 'Votre compte est temporairement limité suite à plusieurs avertissements de modération.', true],
             ['nina', 'Compris, je vais relire les règles avant de republier.', true],
+            ['admin', 'La lecture reste disponible. Les actions d’écriture reprendront après la suspension.', true],
+            ['nina', 'Merci pour la précision, je ferai attention au ton de mes prochains messages.', true],
+            ['admin', 'L’objectif est de garder les échanges football intéressants pour tout le monde.', true],
         ]);
 
         $manager->persist(new MessageHiddenForUser(
