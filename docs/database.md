@@ -502,6 +502,20 @@ Les Messages prives ne sont pas supprimes physiquement pour l'autre participant.
 
 ## Limites Connues Du Modele
 
+### PasswordResetToken
+
+La table `password_reset_token` stocke les demandes de réinitialisation de mot de passe.
+
+Champs principaux :
+
+- `user_id` : utilisateur concerné ;
+- `token_hash` : hash SHA-256 du token brut ;
+- `expires_at` : expiration après 30 minutes ;
+- `used_at` : usage unique ;
+- `created_at` : date de création.
+
+Le token brut n'est jamais persisté. Les anciens tokens actifs d'un utilisateur sont invalidés lors d'une nouvelle demande.
+
 - Les Conversations ne portent pas encore de contrainte unique entre deux participants.
 - Les roles sont stockes en JSON dans `user.roles`, ce qui est simple mais limite pour une gestion avancee des permissions.
 - Les signalements restent simples : pas d'escalade complexe et pas de workflow multi-etapes.
@@ -523,6 +537,7 @@ Ces limites sont acceptees pour le MVP actuel et pourront etre traitees dans les
 | `Version20260521110000` | Creation `feed_report` |
 | `Version20260521123000` | Decision de signalement, avertissements et suspension temporaire |
 | `Version20260521124500` | Creation `system_notification` |
+| `Version20260523171000` | Creation `password_reset_token` |
 
 ## Comment L'Expliquer Au Jury CDA
 

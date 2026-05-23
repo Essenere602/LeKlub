@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { KeyboardAvoidingView, Platform, StyleSheet, View } from 'react-native';
 
 import { AppButton } from '../../components/ui/AppButton';
+import { AppCard } from '../../components/ui/AppCard';
 import { AppInput } from '../../components/ui/AppInput';
 import { AppText } from '../../components/ui/AppText';
 import { ErrorMessage } from '../../components/ui/ErrorMessage';
@@ -10,30 +11,31 @@ import { Screen } from '../../components/ui/Screen';
 import { theme } from '../../config/theme';
 import { AuthStackParamList } from '../../navigation/navigation.types';
 import { toApiError } from '../../services/api/apiError';
-import { useAuth } from '../../hooks/useAuth';
+import { authService } from '../../services/auth/authService';
 
-type LoginScreenProps = NativeStackScreenProps<AuthStackParamList, 'Login'>;
+type ForgotPasswordScreenProps = NativeStackScreenProps<AuthStackParamList, 'ForgotPassword'>;
 
-export function LoginScreen({ navigation }: LoginScreenProps) {
-  const { login } = useAuth();
+export function ForgotPasswordScreen({ navigation }: ForgotPasswordScreenProps) {
   const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  async function handleLogin() {
+  async function submitRequest() {
     setError(null);
+    setSuccessMessage(null);
 
-    if (!email.trim() || !password) {
-      setError('Email et mot de passe sont requis.');
+    if (!email.trim()) {
+      setError("L'email est requis.");
       return;
     }
 
     try {
       setIsSubmitting(true);
-      await login({ email: email.trim(), password });
-    } catch (loginError) {
-      setError(toApiError(loginError).message);
+      await authService.forgotPassword({ email: email.trim() });
+      setSuccessMessage('Si cet email existe, les instructions de réinitialisation ont été envoyées.');
+    } catch (caughtError) {
+      setError(toApiError(caughtError).message);
     } finally {
       setIsSubmitting(false);
     }
@@ -43,36 +45,35 @@ export function LoginScreen({ navigation }: LoginScreenProps) {
     <Screen>
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={styles.container}>
         <View style={styles.header}>
-          <AppText style={styles.kicker}>LeKlub</AppText>
-          <AppText variant="title">Connexion</AppText>
-          <AppText variant="subtitle">Retrouvez votre feed, vos conversations et les données football.</AppText>
+          <AppText style={styles.kicker}>Sécurité</AppText>
+          <AppText variant="title">Mot de passe oublié</AppText>
+          <AppText variant="subtitle">
+            Saisis ton email. En développement, le token est disponible dans les logs backend.
+          </AppText>
         </View>
 
-        <View style={styles.form}>
+        <AppCard style={styles.form}>
           <ErrorMessage message={error} />
+          {successMessage ? <AppText style={styles.success}>{successMessage}</AppText> : null}
+
           <AppInput
             autoComplete="email"
+            autoCapitalize="none"
             keyboardType="email-address"
             label="Email"
             onChangeText={setEmail}
-            placeholder="user@example.com"
+            placeholder="user@example.test"
             value={email}
           />
-          <AppInput
-            label="Mot de passe"
-            onChangeText={setPassword}
-            placeholder="Password123!"
-            secureTextEntry
-            value={password}
-          />
-          <AppButton label="Se connecter" loading={isSubmitting} onPress={handleLogin} />
+
+          <AppButton label="Demander un reset" loading={isSubmitting} onPress={submitRequest} />
           <AppButton
-            label="Mot de passe oublié ?"
-            onPress={() => navigation.navigate('ForgotPassword')}
-            variant="ghost"
+            label="J'ai un token"
+            onPress={() => navigation.navigate('ResetPassword', { email: email.trim() || undefined })}
+            variant="secondary"
           />
-          <AppButton label="Créer un compte" onPress={() => navigation.navigate('Register')} variant="ghost" />
-        </View>
+          <AppButton label="Retour connexion" onPress={() => navigation.navigate('Login')} variant="ghost" />
+        </AppCard>
       </KeyboardAvoidingView>
     </Screen>
   );
@@ -95,5 +96,11 @@ const styles = StyleSheet.create({
   },
   form: {
     gap: theme.spacing.lg,
+  },
+  success: {
+    color: theme.colors.success,
+    fontSize: theme.typography.sizes.sm,
+    fontWeight: theme.typography.weights.semibold,
+    lineHeight: 20,
   },
 });

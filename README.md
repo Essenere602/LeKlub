@@ -25,6 +25,7 @@ Le backend Symfony est opérationnel pour les fonctionnalités suivantes :
 - inscription et connexion JWT
 - consultation et modification du profil utilisateur
 - modification sécurisée du mot de passe utilisateur connecté
+- reset password sécurisé avec token hashé, expiration et usage unique
 - création, affichage et suppression logique de Posts
 - modification et suppression logique de ses propres Posts côté utilisateur
 - ajout, modification et suppression logique de ses propres Commentaires
@@ -61,7 +62,7 @@ Choix assumés :
 
 - pas de refresh token dans cette première version
 - pas de vérification d'email
-- pas de reset password
+- pas de SMTP de production ni deep link automatique pour le reset password dans cette version locale
 - pas d'images dans les Posts
 - pas de Réactions sur les Commentaires
 - pas de groupes de conversation
@@ -145,6 +146,12 @@ WebSocket local :
 
 ```text
 ws://localhost:8081
+```
+
+Mailpit local pour tester les emails de reset password :
+
+```text
+http://localhost:8025
 ```
 
 ## Données De Démonstration
@@ -251,6 +258,8 @@ Endpoints disponibles :
 GET    /api/health
 POST   /api/auth/register
 POST   /api/auth/login
+POST   /api/auth/forgot-password
+POST   /api/auth/reset-password
 GET    /api/me
 PATCH  /api/me/profile
 PATCH  /api/me/account

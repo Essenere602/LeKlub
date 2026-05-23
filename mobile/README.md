@@ -107,12 +107,40 @@ L'authentification mobile utilise :
 
 - `POST /api/auth/register` pour créer un compte
 - `POST /api/auth/login` pour récupérer le JWT
+- `POST /api/auth/forgot-password` pour demander un reset password
+- `POST /api/auth/reset-password` pour définir un nouveau mot de passe avec token
 - `GET /api/me` pour charger l'utilisateur connecté
 - Expo Secure Store pour stocker le JWT
 
 Au démarrage, si un token existe, l'application appelle `/api/me`.
 
 Si `/api/me` retourne `401`, le token est supprimé et l'utilisateur revient sur l'écran de connexion.
+
+## Reset Password Mobile
+
+Depuis l'écran Login, le lien `Mot de passe oublié ?` ouvre une demande de reset par email.
+
+Comportement MVP :
+
+- l'utilisateur saisit son email ;
+- le message de succès reste générique pour éviter l'énumération email ;
+- en développement local, l'email de reset est visible dans Mailpit sur `http://localhost:8025` ;
+- l'utilisateur copie le token reçu dans l'email Mailpit ;
+- l'utilisateur ouvre `J'ai un token` et saisit le token manuellement ;
+- le nouveau mot de passe doit respecter les règles backend ;
+- après succès, l'utilisateur revient à la connexion ;
+- aucun login automatique n'est effectué après reset.
+
+Cette version utilise Mailpit en local, sans vrai secret SMTP, afin de rester simple et démontrable avec Expo Go.
+
+Procédure locale :
+
+1. Lancer Docker avec `docker compose --env-file .env up -d`.
+2. Ouvrir `http://localhost:8025` sur le Mac.
+3. Depuis l'iPhone, demander un reset password.
+4. Lire l'email reçu dans Mailpit.
+5. Copier le token dans l'écran `J'ai un token`.
+6. Définir le nouveau mot de passe.
 
 ## Tests Manuels Auth
 

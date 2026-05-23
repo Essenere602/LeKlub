@@ -13,8 +13,12 @@ services:
       FOOTBALL_DATA_API_BASE_URL: ${FOOTBALL_DATA_API_BASE_URL:-https://api.football-data.org}
       FOOTBALL_DATA_API_TOKEN: ${FOOTBALL_DATA_API_TOKEN:-change_me}
       FOOTBALL_DATA_API_TIMEOUT: ${FOOTBALL_DATA_API_TIMEOUT:-3.0}
+      MAILER_DSN: ${MAILER_DSN:-smtp://mailpit:1025}
+      MAIL_FROM_ADDRESS: ${MAIL_FROM_ADDRESS:-no-reply@leklub.test}
+      MAIL_FROM_NAME: ${MAIL_FROM_NAME:-LeKlub}
     depends_on:
       - mysql
+      - mailpit
 
   nginx:
     image: nginx:1.27-alpine
@@ -44,8 +48,17 @@ services:
       FOOTBALL_DATA_API_BASE_URL: ${FOOTBALL_DATA_API_BASE_URL:-https://api.football-data.org}
       FOOTBALL_DATA_API_TOKEN: ${FOOTBALL_DATA_API_TOKEN:-change_me}
       FOOTBALL_DATA_API_TIMEOUT: ${FOOTBALL_DATA_API_TIMEOUT:-3.0}
+      MAILER_DSN: ${MAILER_DSN:-smtp://mailpit:1025}
+      MAIL_FROM_ADDRESS: ${MAIL_FROM_ADDRESS:-no-reply@leklub.test}
+      MAIL_FROM_NAME: ${MAIL_FROM_NAME:-LeKlub}
     depends_on:
       - mysql
+
+  mailpit:
+    image: axllent/mailpit:latest
+    container_name: leklub_mailpit
+    ports:
+      - "${MAILPIT_PORT:-8025}:8025"
 
   mysql:
     image: mysql:8.0

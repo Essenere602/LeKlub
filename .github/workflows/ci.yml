@@ -21,6 +21,9 @@ jobs:
       FOOTBALL_DATA_API_BASE_URL: https://api.football-data.org/v4
       FOOTBALL_DATA_API_TOKEN: ci_change_me
       FOOTBALL_DATA_API_TIMEOUT: '3.0'
+      MAILER_DSN: 'null://null'
+      MAIL_FROM_ADDRESS: no-reply@leklub.test
+      MAIL_FROM_NAME: LeKlub
 
     services:
       mysql:
@@ -68,6 +71,9 @@ jobs:
           FOOTBALL_DATA_API_TOKEN=ci_change_me
           FOOTBALL_DATA_API_BASE_URL=https://api.football-data.org/v4
           FOOTBALL_DATA_API_TIMEOUT=3.0
+          MAILER_DSN=null://null
+          MAIL_FROM_ADDRESS=no-reply@leklub.test
+          MAIL_FROM_NAME=LeKlub
           EOF
 
       - name: Generate temporary JWT keys

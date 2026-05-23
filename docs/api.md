@@ -7,6 +7,8 @@ Base actuelle :
 ```text
 /api/auth/register
 /api/auth/login
+/api/auth/forgot-password
+/api/auth/reset-password
 /api/me
 /api/feed
 /api/conversations
@@ -96,6 +98,53 @@ Réponse :
 ```
 
 Codes possibles : `200`, `401`.
+
+### POST /api/auth/forgot-password
+
+Demande une réinitialisation de mot de passe.
+
+```json
+{
+  "email": "user@example.test"
+}
+```
+
+La réponse est toujours générique, que l'email existe ou non :
+
+```json
+{
+  "success": true,
+  "data": [],
+  "message": "If this email exists, reset instructions have been sent.",
+  "errors": []
+}
+```
+
+En développement local, un email est envoyé vers Mailpit. Le token est présent dans l'email pour permettre la saisie manuelle côté Expo Go. Il n'est jamais retourné par l'API.
+
+Codes possibles : `200`, `400`, `422`.
+
+### POST /api/auth/reset-password
+
+Réinitialise le mot de passe avec un token valide.
+
+```json
+{
+  "token": "token-recu",
+  "newPassword": "NewPassword123",
+  "newPasswordConfirmation": "NewPassword123"
+}
+```
+
+Règles :
+
+- token hashé en base ;
+- token à usage unique ;
+- expiration après 30 minutes ;
+- nouveau mot de passe validé comme à l'inscription ;
+- pas de connexion automatique après succès.
+
+Codes possibles : `200`, `400`, `422`.
 
 ### GET /api/me
 
