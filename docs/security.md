@@ -45,6 +45,21 @@ Mesures appliquées :
 - aucun mot de passe clair ou hash retourné dans l'API
 - aucune modification de l'email, du username ou des rôles
 
+## Données De Démonstration
+
+Les fixtures de démonstration sont disponibles uniquement pour les environnements `dev` et `test`.
+
+Mesures appliquées :
+
+- les emails utilisent le domaine réservé `.test`
+- aucune donnée personnelle réelle n'est utilisée
+- aucun secret réel n'est stocké dans les fixtures
+- les mots de passe de démonstration sont hashés avec Symfony PasswordHasher
+- les identifiants de démonstration sont documentés comme des données locales dev/test uniquement
+- le chargement des fixtures purge la base de développement via `doctrine:fixtures:load`
+
+Les comptes de démonstration ne doivent jamais être utilisés en production.
+
 ## Tokens JWT
 
 Les clés JWT sont générées localement dans `backend/config/jwt/`.
