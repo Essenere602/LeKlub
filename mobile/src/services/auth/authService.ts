@@ -18,7 +18,7 @@ type RegisterResponseData = {
 export const authService = {
   async login(credentials: LoginCredentials): Promise<string> {
     const response = await apiClient.post<LoginResponse>('/auth/login', credentials);
-    await tokenStorage.setAccessToken(response.data.token);
+    await tokenStorage.setTokens(response.data.token, response.data.refreshToken);
 
     return response.data.token;
   },
@@ -42,7 +42,15 @@ export const authService = {
   },
 
   async logout(): Promise<void> {
-    await tokenStorage.clearAccessToken();
+    const refreshToken = await tokenStorage.getRefreshToken();
+
+    try {
+      if (refreshToken) {
+        await apiClient.post<ApiResponse<[]>>('/auth/logout', { refreshToken });
+      }
+    } finally {
+      await tokenStorage.clearTokens();
+    }
   },
 
   async getCurrentUser(): Promise<User> {

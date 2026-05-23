@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Application\Auth;
 
 use App\Domain\Repository\PasswordResetTokenRepositoryInterface;
+use App\Domain\Repository\RefreshTokenRepositoryInterface;
 use App\Domain\Repository\UserRepositoryInterface;
 use App\DTO\Auth\ResetPasswordRequest;
 use DomainException;
@@ -16,6 +17,7 @@ final class ResetPasswordUseCase
         private readonly PasswordResetTokenRepositoryInterface $tokens,
         private readonly UserRepositoryInterface $users,
         private readonly UserPasswordHasherInterface $passwordHasher,
+        private readonly RefreshTokenRepositoryInterface $refreshTokens,
     ) {
     }
 
@@ -30,6 +32,7 @@ final class ResetPasswordUseCase
         $user = $token->getUser();
         $user->setPassword($this->passwordHasher->hashPassword($user, $request->newPassword));
         $token->markAsUsed();
+        $this->refreshTokens->revokeAllForUser($user);
 
         $this->tokens->save($token);
         $this->users->save($user);

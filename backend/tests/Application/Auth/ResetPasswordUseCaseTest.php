@@ -7,8 +7,10 @@ namespace App\Tests\Application\Auth;
 use App\Application\Auth\RequestPasswordResetUseCase;
 use App\Application\Auth\ResetPasswordUseCase;
 use App\Domain\Entity\PasswordResetToken;
+use App\Domain\Entity\RefreshToken;
 use App\Domain\Entity\User;
 use App\Domain\Repository\PasswordResetTokenRepositoryInterface;
+use App\Domain\Repository\RefreshTokenRepositoryInterface;
 use App\Domain\Repository\UserRepositoryInterface;
 use App\DTO\Auth\ResetPasswordRequest;
 use DomainException;
@@ -29,7 +31,8 @@ final class ResetPasswordUseCaseTest extends TestCase
         );
         $tokens = new ResetTokenRepository($token);
         $users = new ResetUserRepository();
-        $useCase = new ResetPasswordUseCase($tokens, $users, new ResetPasswordHasher());
+        $refreshTokens = new ResetRefreshTokenRepository();
+        $useCase = new ResetPasswordUseCase($tokens, $users, new ResetPasswordHasher(), $refreshTokens);
 
         $useCase->execute(ResetPasswordRequest::fromArray([
             'token' => $plainToken,
@@ -41,11 +44,12 @@ final class ResetPasswordUseCaseTest extends TestCase
         self::assertNotNull($token->getUsedAt());
         self::assertSame($token, $tokens->savedToken);
         self::assertSame($user, $users->savedUser);
+        self::assertSame($user, $refreshTokens->revokedUser);
     }
 
     public function testItRejectsUnknownToken(): void
     {
-        $useCase = new ResetPasswordUseCase(new ResetTokenRepository(), new ResetUserRepository(), new ResetPasswordHasher());
+        $useCase = new ResetPasswordUseCase(new ResetTokenRepository(), new ResetUserRepository(), new ResetPasswordHasher(), new ResetRefreshTokenRepository());
 
         $this->expectException(DomainException::class);
         $this->expectExceptionMessage('PASSWORD_RESET_FAILED');
@@ -55,6 +59,25 @@ final class ResetPasswordUseCaseTest extends TestCase
             'newPassword' => 'NewPassword123',
             'newPasswordConfirmation' => 'NewPassword123',
         ]));
+    }
+}
+
+final class ResetRefreshTokenRepository implements RefreshTokenRepositoryInterface
+{
+    public ?User $revokedUser = null;
+
+    public function save(RefreshToken $refreshToken): void
+    {
+    }
+
+    public function findActiveByHash(string $tokenHash): ?RefreshToken
+    {
+        return null;
+    }
+
+    public function revokeAllForUser(User $user): void
+    {
+        $this->revokedUser = $user;
     }
 }
 

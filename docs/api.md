@@ -29,7 +29,7 @@ Les endpoints applicatifs utilisent une réponse JSON uniforme :
 }
 ```
 
-Exception : `/api/auth/login` est géré directement par Symfony Security et LexikJWTAuthenticationBundle. Il retourne le token JWT au format Lexik.
+Exception : `/api/auth/login` est géré directement par Symfony Security et LexikJWTAuthenticationBundle. Sa réponse est enrichie avec un refresh token pour le mobile.
 
 ## Principaux Codes HTTP
 
@@ -93,11 +93,55 @@ Réponse :
 
 ```json
 {
-  "token": "jwt..."
+  "token": "jwt...",
+  "refreshToken": "refresh-token..."
 }
 ```
 
 Codes possibles : `200`, `401`.
+
+### POST /api/auth/refresh
+
+Renouvelle la session mobile à partir du refresh token.
+
+```json
+{
+  "refreshToken": "refresh-token..."
+}
+```
+
+Réponse :
+
+```json
+{
+  "token": "new-jwt...",
+  "refreshToken": "new-refresh-token..."
+}
+```
+
+Règles :
+
+- le refresh token est envoyé dans le body JSON, jamais dans l'URL ;
+- le refresh token brut n'est jamais stocké en base ;
+- rotation à chaque refresh ;
+- l'ancien refresh token est révoqué ;
+- le nouveau refresh token expire après 30 jours.
+
+Codes possibles : `200`, `400`, `401`, `422`.
+
+### POST /api/auth/logout
+
+Révoque le refresh token courant.
+
+```json
+{
+  "refreshToken": "refresh-token..."
+}
+```
+
+La réponse ne retourne aucun token.
+
+Codes possibles : `200`, `400`, `422`.
 
 ### POST /api/auth/forgot-password
 
@@ -193,7 +237,7 @@ Règles :
 - l'email est normalisé en minuscules
 - le username accepte uniquement lettres, chiffres et underscore, comme à l'inscription
 - aucun rôle, mot de passe, hash ou token n'est modifié par ce endpoint
-- après changement email, une reconnexion peut être nécessaire car le JWT utilise l'email comme identifiant Symfony
+- après changement email, l'access token courant peut devenir inutilisable car il référence l'ancien email ; le mobile tente alors un refresh de session
 
 Codes possibles : `200`, `400`, `401`, `409`, `422`.
 

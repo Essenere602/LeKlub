@@ -7,6 +7,7 @@ Le projet est reconstruit proprement à partir d'un ancien projet utilisé uniqu
 ## Objectifs Du MVP
 
 - Authentification sécurisée avec JWT
+- Refresh token sécurisé avec rotation et révocation
 - Gestion des utilisateurs et profils
 - Feed utilisateur simple
 - Conversations privées et Messages privés
@@ -23,6 +24,7 @@ Le projet est reconstruit proprement à partir d'un ancien projet utilisé uniqu
 Le backend Symfony est opérationnel pour les fonctionnalités suivantes :
 
 - inscription et connexion JWT
+- refresh token mobile avec rotation et révocation au logout
 - consultation et modification du profil utilisateur
 - modification sécurisée du mot de passe utilisateur connecté
 - reset password sécurisé avec token hashé, expiration et usage unique
@@ -60,7 +62,6 @@ LeKlub privilégie une version plus petite mais stable, propre et défendable de
 
 Choix assumés :
 
-- pas de refresh token dans cette première version
 - pas de vérification d'email
 - pas de SMTP de production ni deep link automatique pour le reset password dans cette version locale
 - pas d'images dans les Posts
@@ -258,6 +259,8 @@ Endpoints disponibles :
 GET    /api/health
 POST   /api/auth/register
 POST   /api/auth/login
+POST   /api/auth/refresh
+POST   /api/auth/logout
 POST   /api/auth/forgot-password
 POST   /api/auth/reset-password
 GET    /api/me

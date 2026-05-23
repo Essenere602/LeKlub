@@ -23,7 +23,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
   const [isLoading, setIsLoading] = useState(true);
 
   const clearSession = useCallback(async () => {
-    await tokenStorage.clearAccessToken();
+    await tokenStorage.clearTokens();
     setUser(null);
   }, []);
 

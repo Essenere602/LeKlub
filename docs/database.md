@@ -516,6 +516,21 @@ Champs principaux :
 
 Le token brut n'est jamais persisté. Les anciens tokens actifs d'un utilisateur sont invalidés lors d'une nouvelle demande.
 
+### RefreshToken
+
+La table `refresh_token` stocke les sessions longues utilisées par le mobile.
+
+Champs principaux :
+
+- `user_id` : utilisateur concerné ;
+- `token_hash` : hash SHA-256 du refresh token brut ;
+- `expires_at` : expiration après 30 jours ;
+- `last_used_at` : dernière utilisation lors d'un refresh ;
+- `revoked_at` : révocation explicite ;
+- `created_at` : date de création.
+
+Le refresh token brut n'est jamais persisté. À chaque refresh, l'ancien token est révoqué et un nouveau token est créé.
+
 - Les Conversations ne portent pas encore de contrainte unique entre deux participants.
 - Les roles sont stockes en JSON dans `user.roles`, ce qui est simple mais limite pour une gestion avancee des permissions.
 - Les signalements restent simples : pas d'escalade complexe et pas de workflow multi-etapes.
@@ -538,6 +553,7 @@ Ces limites sont acceptees pour le MVP actuel et pourront etre traitees dans les
 | `Version20260521123000` | Decision de signalement, avertissements et suspension temporaire |
 | `Version20260521124500` | Creation `system_notification` |
 | `Version20260523171000` | Creation `password_reset_token` |
+| `Version20260523200000` | Creation `refresh_token` |
 
 ## Comment L'Expliquer Au Jury CDA
 
