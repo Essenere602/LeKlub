@@ -145,6 +145,7 @@ const styles = StyleSheet.create({
   content: {
     gap: theme.spacing.md,
     padding: theme.spacing.xl,
+    paddingBottom: 120,
   },
   header: {
     gap: theme.spacing.lg,

@@ -136,7 +136,7 @@ const styles = StyleSheet.create({
   content: {
     gap: theme.spacing.lg,
     padding: theme.spacing.xl,
-    paddingBottom: theme.spacing['2xl'],
+    paddingBottom: 120,
   },
   identityCard: {
     gap: theme.spacing.lg,
@@ -160,12 +160,17 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     height: 68,
     justifyContent: 'center',
+    overflow: 'hidden',
     width: 68,
   },
   avatarInitial: {
     color: theme.colors.accent,
-    fontSize: theme.typography.sizes['2xl'],
+    fontSize: 30,
     fontWeight: theme.typography.weights.bold,
+    includeFontPadding: false,
+    lineHeight: 34,
+    textAlign: 'center',
+    textAlignVertical: 'center',
   },
   identityText: {
     flex: 1,
