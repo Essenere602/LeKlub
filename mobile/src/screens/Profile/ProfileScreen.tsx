@@ -1,5 +1,6 @@
 import { Image, ScrollView, StyleSheet, View } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 
 import { AppBadge } from '../../components/ui/AppBadge';
 import { AppButton } from '../../components/ui/AppButton';
@@ -16,6 +17,7 @@ import { ProfileStackParamList } from '../../navigation/navigation.types';
 type ProfileScreenProps = NativeStackScreenProps<ProfileStackParamList, 'Profile'>;
 
 export function ProfileScreen({ navigation }: ProfileScreenProps) {
+  const tabBarHeight = useBottomTabBarHeight();
   const { logout, user } = useAuth();
   const profile = user?.profile;
   const displayName = profile?.displayName || user?.username || 'Membre LeKlub';
@@ -24,7 +26,10 @@ export function ProfileScreen({ navigation }: ProfileScreenProps) {
 
   return (
     <Screen style={styles.screen}>
-      <ScrollView contentContainerStyle={styles.content}>
+      <ScrollView
+        contentContainerStyle={[styles.content, { paddingBottom: tabBarHeight + theme.spacing['2xl'] }]}
+        showsVerticalScrollIndicator={false}
+      >
         <AppHeader
           kicker="Compte"
           subtitle="Gère ton identité, ta sécurité et ta session LeKlub."
@@ -41,10 +46,11 @@ export function ProfileScreen({ navigation }: ProfileScreenProps) {
               </View>
             )}
 
-            <View style={styles.identityText}>
-              <AppText style={styles.displayName}>{displayName}</AppText>
-              <AppText variant="muted">@{user?.username}</AppText>
-            </View>
+          <View style={styles.identityText}>
+            <AppText style={styles.displayName}>{displayName}</AppText>
+            <AppText variant="muted">@{user?.username}</AppText>
+            {profile?.bio ? <AppText style={styles.bio}>{profile.bio}</AppText> : null}
+          </View>
           </View>
 
           <View style={styles.badges}>
@@ -57,11 +63,13 @@ export function ProfileScreen({ navigation }: ProfileScreenProps) {
 
         <AppSection title="Profil">
           <SettingsRow
+            icon="person-outline"
             onPress={() => navigation.navigate('EditProfile')}
             subtitle={profile?.bio || 'Complète ton nom affiché, ta bio et ton équipe favorite.'}
             title="Modifier mon profil"
           />
           <SettingsRow
+            icon="star-outline"
             meta={profile?.favoriteTeamName || 'Non renseignée'}
             title="Équipe favorite"
           />
@@ -69,16 +77,19 @@ export function ProfileScreen({ navigation }: ProfileScreenProps) {
 
         <AppSection title="Sécurité">
           <SettingsRow
+            icon="notifications-outline"
             onPress={() => navigation.navigate('Notifications')}
             subtitle="Suivi des décisions de modération et messages système."
             title="Notifications"
           />
           <SettingsRow
+            icon="key-outline"
             onPress={() => navigation.navigate('ChangePassword')}
             subtitle="Ancien mot de passe, nouveau mot de passe et confirmation."
             title="Changer mon mot de passe"
           />
           <SettingsRow
+            icon="shield-checkmark-outline"
             meta="Secure Store"
             subtitle="Le token de connexion est conservé dans le stockage sécurisé du téléphone."
             title="Session mobile"
@@ -86,10 +97,11 @@ export function ProfileScreen({ navigation }: ProfileScreenProps) {
         </AppSection>
 
         <AppSection title="Informations compte">
-          <SettingsRow meta={user?.email ?? '-'} title="Email" />
-          <SettingsRow meta={formatRoles(user?.roles ?? [])} title="Rôle" />
-          <SettingsRow meta={formatDate(user?.createdAt)} title="Créé le" />
+          <SettingsRow icon="mail-outline" meta={user?.email ?? '-'} title="Email" />
+          <SettingsRow icon="ribbon-outline" meta={formatRoles(user?.roles ?? [])} title="Rôle" />
+          <SettingsRow icon="calendar-outline" meta={formatDate(user?.createdAt)} title="Créé le" />
           <SettingsRow
+            icon="information-circle-outline"
             subtitle="Cette version privilégie un compte simple et sécurisé. Le changement d'email et la suppression de compte viendront dans une étape dédiée si nécessaire."
             title="Version actuelle"
           />
@@ -136,7 +148,6 @@ const styles = StyleSheet.create({
   content: {
     gap: theme.spacing.lg,
     padding: theme.spacing.xl,
-    paddingBottom: 120,
   },
   identityCard: {
     gap: theme.spacing.lg,
@@ -179,6 +190,11 @@ const styles = StyleSheet.create({
   displayName: {
     fontSize: theme.typography.sizes.xl,
     fontWeight: theme.typography.weights.bold,
+  },
+  bio: {
+    color: theme.colors.text.secondary,
+    fontSize: theme.typography.sizes.sm,
+    lineHeight: 20,
   },
   badges: {
     flexDirection: 'row',

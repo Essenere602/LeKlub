@@ -3,6 +3,7 @@ import { Image, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, View } f
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 
 import { AppButton } from '../../components/ui/AppButton';
+import { AppCard } from '../../components/ui/AppCard';
 import { AppHeader } from '../../components/ui/AppHeader';
 import { AppInput } from '../../components/ui/AppInput';
 import { AppText } from '../../components/ui/AppText';
@@ -82,7 +83,7 @@ export function EditProfileScreen({ navigation }: EditProfileScreenProps) {
             title="Modifier mon profil"
           />
 
-          <View style={styles.identityPanel}>
+          <AppCard style={styles.identityPanel} variant="accent">
             {trimmedAvatarUrl ? (
               <Image source={{ uri: trimmedAvatarUrl }} style={styles.avatar} />
             ) : (
@@ -95,9 +96,9 @@ export function EditProfileScreen({ navigation }: EditProfileScreenProps) {
               <AppText variant="label">{user?.username}</AppText>
               <AppText variant="muted">Avatar par URL pour cette version mobile.</AppText>
             </View>
-          </View>
+          </AppCard>
 
-          <View style={styles.form}>
+          <AppCard style={styles.form}>
             <AppInput
               autoCapitalize="words"
               label="Nom affiché"
@@ -137,7 +138,7 @@ export function EditProfileScreen({ navigation }: EditProfileScreenProps) {
               placeholder="https://..."
               value={form.avatarUrl}
             />
-          </View>
+          </AppCard>
 
           <ErrorMessage message={error} />
           {successMessage ? <AppText style={styles.success}>{successMessage}</AppText> : null}
@@ -171,13 +172,8 @@ const styles = StyleSheet.create({
   },
   identityPanel: {
     alignItems: 'center',
-    backgroundColor: theme.colors.surface,
-    borderColor: theme.colors.border,
-    borderRadius: theme.radius.lg,
-    borderWidth: 1,
     flexDirection: 'row',
     gap: theme.spacing.md,
-    padding: theme.spacing.lg,
   },
   avatar: {
     backgroundColor: theme.colors.surfaceElevated,
@@ -199,6 +195,8 @@ const styles = StyleSheet.create({
     color: theme.colors.accent,
     fontSize: theme.typography.sizes.xl,
     fontWeight: theme.typography.weights.bold,
+    includeFontPadding: false,
+    lineHeight: 26,
   },
   identityText: {
     flex: 1,
