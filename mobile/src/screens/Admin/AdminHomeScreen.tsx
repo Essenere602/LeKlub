@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
-import { FlatList, StyleSheet, View } from 'react-native';
+import { ScrollView, StyleSheet, View } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 
 import { AdminModuleCard } from '../../components/admin/AdminModuleCard';
 import { AdminStatCard } from '../../components/admin/AdminStatCard';
@@ -59,6 +60,7 @@ const MODULES: AdminModule[] = [
 ];
 
 export function AdminHomeScreen({ navigation }: AdminHomeScreenProps) {
+  const tabBarHeight = useBottomTabBarHeight();
   const [overview, setOverview] = useState<AdminOverview | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -82,58 +84,58 @@ export function AdminHomeScreen({ navigation }: AdminHomeScreenProps) {
 
   return (
     <Screen style={styles.screen}>
-      <FlatList
-        contentContainerStyle={styles.content}
-        data={MODULES}
-        keyExtractor={(module) => module.id}
-        ListEmptyComponent={<EmptyState title="Aucun module admin" />}
-        ListHeaderComponent={
-          <View style={styles.header}>
-            <AppHeader
-              kicker="Back office"
-              subtitle="Supervision simple et modération du MVP LeKlub."
-              title="Administration"
-              right={<AppBadge label="Accès admin" tone="accent" />}
-            />
+      <ScrollView
+        contentContainerStyle={[styles.content, { paddingBottom: tabBarHeight + theme.spacing['2xl'] }]}
+        showsVerticalScrollIndicator={false}
+      >
+        <View style={styles.header}>
+          <AppHeader
+            kicker="Back office"
+            subtitle="Supervision simple et modération du MVP LeKlub."
+            title="Administration"
+            right={<AppBadge label="Accès admin" tone="accent" />}
+          />
 
-            {isLoading ? <LoadingState message="Chargement de la synthèse admin..." /> : null}
-            {error ? <ErrorState message={error} onRetry={loadOverview} title="Admin indisponible" /> : null}
+          {isLoading ? <LoadingState message="Chargement de la synthèse admin..." /> : null}
+          {error ? <ErrorState message={error} onRetry={loadOverview} title="Admin indisponible" /> : null}
 
-            {overview && !isLoading && !error ? (
-              <AppSection title="Synthèse">
-                <View style={styles.statsGrid}>
-                  <AdminStatCard icon="people-outline" label="Utilisateurs" value={overview.usersCount} />
-                  <AdminStatCard icon="pause-circle-outline" label="Suspendus" value={overview.suspendedUsersCount} />
-                </View>
-                <View style={styles.statsGrid}>
-                  <AdminStatCard icon="chatbubbles-outline" label="Posts actifs" value={overview.postsCount} />
-                  <AdminStatCard icon="archive-outline" label="Posts supprimés" value={overview.deletedPostsCount} />
-                </View>
-                <View style={styles.statsGrid}>
-                  <AdminStatCard icon="text-outline" label="Commentaires actifs" value={overview.commentsCount} />
-                  <AdminStatCard icon="file-tray-outline" label="Commentaires supprimés" value={overview.deletedCommentsCount} />
-                </View>
-                <View style={styles.statsGrid}>
-                  <AdminStatCard icon="flag-outline" label="Signalements ouverts" value={overview.openReportsCount} />
-                  <AdminStatCard icon="warning-outline" label="Avertissements" value={overview.warningsCount} />
-                </View>
-                <View style={styles.statsGrid}>
-                  <AdminStatCard icon="mail-outline" label="Conversations" value={overview.conversationsCount} />
-                  <AdminStatCard icon="send-outline" label="Messages privés" value={overview.messagesCount} />
-                </View>
-              </AppSection>
-            ) : null}
-          </View>
-        }
-        renderItem={({ item }) => (
+          {overview && !isLoading && !error ? (
+            <AppSection title="Synthèse">
+              <View style={styles.statsGrid}>
+                <AdminStatCard icon="people-outline" label="Utilisateurs" value={overview.usersCount} />
+                <AdminStatCard icon="pause-circle-outline" label="Suspendus" value={overview.suspendedUsersCount} />
+              </View>
+              <View style={styles.statsGrid}>
+                <AdminStatCard icon="chatbubbles-outline" label="Posts actifs" value={overview.postsCount} />
+                <AdminStatCard icon="archive-outline" label="Posts supprimés" value={overview.deletedPostsCount} />
+              </View>
+              <View style={styles.statsGrid}>
+                <AdminStatCard icon="text-outline" label="Commentaires actifs" value={overview.commentsCount} />
+                <AdminStatCard icon="file-tray-outline" label="Commentaires supprimés" value={overview.deletedCommentsCount} />
+              </View>
+              <View style={styles.statsGrid}>
+                <AdminStatCard icon="flag-outline" label="Signalements ouverts" value={overview.openReportsCount} />
+                <AdminStatCard icon="warning-outline" label="Avertissements" value={overview.warningsCount} />
+              </View>
+              <View style={styles.statsGrid}>
+                <AdminStatCard icon="mail-outline" label="Conversations" value={overview.conversationsCount} />
+                <AdminStatCard icon="send-outline" label="Messages privés" value={overview.messagesCount} />
+              </View>
+            </AppSection>
+          ) : null}
+        </View>
+
+        {MODULES.length === 0 ? <EmptyState title="Aucun module admin" /> : null}
+        {MODULES.map((item) => (
           <AdminModuleCard
+            key={item.id}
             description={item.description}
             icon={item.icon}
             title={item.title}
             onPress={() => navigation.navigate(item.screen)}
           />
-        )}
-      />
+        ))}
+      </ScrollView>
     </Screen>
   );
 }
@@ -144,8 +146,8 @@ const styles = StyleSheet.create({
   },
   content: {
     gap: theme.spacing.md,
+    flexGrow: 1,
     padding: theme.spacing.xl,
-    paddingBottom: 120,
   },
   header: {
     gap: theme.spacing.lg,

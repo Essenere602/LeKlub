@@ -1,6 +1,6 @@
-import { Pressable, StyleSheet, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
+import { BottomTabScreenProps, useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 
 import { AppCard } from '../../components/ui/AppCard';
 import { AppHeader } from '../../components/ui/AppHeader';
@@ -14,83 +14,89 @@ import { MainTabParamList } from '../../navigation/navigation.types';
 type HomeScreenProps = BottomTabScreenProps<MainTabParamList, 'Home'>;
 
 export function HomeScreen({ navigation }: HomeScreenProps) {
+  const tabBarHeight = useBottomTabBarHeight();
   const { logout, user } = useAuth();
   const displayName = user?.profile.displayName ?? user?.username ?? 'membre';
   const isAdmin = user?.roles.includes('ROLE_ADMIN') ?? false;
 
   return (
-    <Screen>
-      <AppHeader
-        kicker="LeKlub"
-        subtitle="Ton espace football social : feed, compétitions, messages privés et profil."
-        title={`Bienvenue ${displayName}`}
-      />
+    <Screen style={styles.screen}>
+      <ScrollView
+        contentContainerStyle={[styles.content, { paddingBottom: tabBarHeight + theme.spacing['2xl'] }]}
+        showsVerticalScrollIndicator={false}
+      >
+        <AppHeader
+          kicker="LeKlub"
+          subtitle="Ton espace football social : feed, compétitions, messages privés et profil."
+          title={`Bienvenue ${displayName}`}
+        />
 
-      <AppCard variant="accent" style={styles.identityCard}>
-        <View style={styles.avatar}>
-          <AppText style={styles.avatarText}>{displayName.slice(0, 1).toUpperCase()}</AppText>
-        </View>
-        <View style={styles.identityContent}>
-          <View style={styles.identityTitle}>
-            <AppText variant="label">@{user?.username}</AppText>
-            {isAdmin ? <StatusBadge label="Admin" variant="accent" /> : null}
+        <AppCard variant="accent" style={styles.identityCard}>
+          <View style={styles.avatar}>
+            <AppText style={styles.avatarText}>{displayName.slice(0, 1).toUpperCase()}</AppText>
           </View>
-          <AppText variant="muted">{user?.profile.bio ?? 'Membre du Klub'}</AppText>
-        </View>
-      </AppCard>
-
-      {user?.profile.favoriteTeamName ? (
-        <AppCard style={styles.favoriteCard}>
-          <Ionicons color={theme.colors.accent} name="star-outline" size={22} />
-          <View style={styles.favoriteContent}>
-            <AppText variant="label">Équipe favorite</AppText>
-            <AppText>{user.profile.favoriteTeamName}</AppText>
+          <View style={styles.identityContent}>
+            <View style={styles.identityTitle}>
+              <AppText variant="label">@{user?.username}</AppText>
+              {isAdmin ? <StatusBadge label="Admin" variant="accent" /> : null}
+            </View>
+            <AppText variant="muted">{user?.profile.bio ?? 'Membre du Klub'}</AppText>
           </View>
         </AppCard>
-      ) : null}
 
-      <View style={styles.quickLinks}>
-        <ShortcutCard
-          icon="chatbubbles-outline"
-          label="Feed"
-          onPress={() => navigation.navigate('FeedTab')}
-          text="Publier et commenter"
-        />
-        <ShortcutCard
-          icon="football-outline"
-          label="Football"
-          onPress={() => navigation.navigate('FootballTab')}
-          text="Résultats et classements"
-        />
-        <ShortcutCard
-          icon="mail-outline"
-          label="Messages"
-          onPress={() => navigation.navigate('MessagingTab')}
-          text="Conversations privées"
-        />
-        <ShortcutCard
-          icon="person-outline"
-          label="Profil"
-          onPress={() => navigation.navigate('ProfileTab')}
-          text="Informations publiques"
-        />
-      </View>
+        {user?.profile.favoriteTeamName ? (
+          <AppCard style={styles.favoriteCard}>
+            <Ionicons color={theme.colors.accent} name="star-outline" size={22} />
+            <View style={styles.favoriteContent}>
+              <AppText variant="label">Équipe favorite</AppText>
+              <AppText>{user.profile.favoriteTeamName}</AppText>
+            </View>
+          </AppCard>
+        ) : null}
 
-      {isAdmin ? (
-        <AppCard style={styles.adminNotice}>
-          <StatusBadge label="Admin actif" variant="warning" />
-          <AppText variant="muted">
-            L'onglet Admin est disponible pour superviser le MVP et modérer le Feed.
-          </AppText>
-        </AppCard>
-      ) : null}
+        <View style={styles.quickLinks}>
+          <ShortcutCard
+            icon="chatbubbles-outline"
+            label="Feed"
+            onPress={() => navigation.navigate('FeedTab')}
+            text="Publier et commenter"
+          />
+          <ShortcutCard
+            icon="football-outline"
+            label="Football"
+            onPress={() => navigation.navigate('FootballTab')}
+            text="Résultats et classements"
+          />
+          <ShortcutCard
+            icon="mail-outline"
+            label="Messages"
+            onPress={() => navigation.navigate('MessagingTab')}
+            text="Conversations privées"
+          />
+          <ShortcutCard
+            icon="person-outline"
+            label="Profil"
+            onPress={() => navigation.navigate('ProfileTab')}
+            text="Informations publiques"
+          />
+        </View>
 
-      <View style={styles.footer}>
-        <Pressable accessibilityRole="button" onPress={logout} style={styles.logoutButton}>
-          <Ionicons color={theme.colors.text.secondary} name="log-out-outline" size={18} />
-          <AppText style={styles.logoutText}>Se déconnecter</AppText>
-        </Pressable>
-      </View>
+        {isAdmin ? (
+          <AppCard style={styles.adminNotice}>
+            <StatusBadge label="Admin actif" variant="warning" />
+            <AppText variant="muted">
+              L'onglet Admin est disponible pour superviser le MVP et modérer le Feed.
+            </AppText>
+          </AppCard>
+        ) : null}
+
+        <View style={styles.footer}>
+          <Pressable accessibilityRole="button" onPress={logout} style={styles.logoutButton}>
+            <Ionicons color={theme.colors.text.secondary} name="log-out-outline" size={18} />
+            <AppText style={styles.logoutText}>Se déconnecter</AppText>
+          </Pressable>
+        </View>
+      </ScrollView>
     </Screen>
   );
 }
@@ -122,6 +128,14 @@ function ShortcutCard({ icon, label, onPress, text }: ShortcutCardProps) {
 }
 
 const styles = StyleSheet.create({
+  screen: {
+    padding: 0,
+  },
+  content: {
+    flexGrow: 1,
+    gap: theme.spacing.xl,
+    padding: theme.spacing.xl,
+  },
   identityCard: {
     alignItems: 'center',
     flexDirection: 'row',
