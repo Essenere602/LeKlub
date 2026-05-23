@@ -1,13 +1,14 @@
 import { Image, ScrollView, StyleSheet, View } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 
+import { AppBadge } from '../../components/ui/AppBadge';
 import { AppButton } from '../../components/ui/AppButton';
 import { AppCard } from '../../components/ui/AppCard';
 import { AppHeader } from '../../components/ui/AppHeader';
+import { AppSection } from '../../components/ui/AppSection';
 import { AppText } from '../../components/ui/AppText';
 import { Screen } from '../../components/ui/Screen';
 import { SettingsRow } from '../../components/ui/SettingsRow';
-import { StatusBadge } from '../../components/ui/StatusBadge';
 import { theme } from '../../config/theme';
 import { useAuth } from '../../hooks/useAuth';
 import { ProfileStackParamList } from '../../navigation/navigation.types';
@@ -47,15 +48,14 @@ export function ProfileScreen({ navigation }: ProfileScreenProps) {
           </View>
 
           <View style={styles.badges}>
-            <StatusBadge label={isAdmin ? 'Admin' : 'Membre'} variant={isAdmin ? 'accent' : 'neutral'} />
+            <AppBadge label={isAdmin ? 'Admin' : 'Membre'} tone={isAdmin ? 'accent' : 'neutral'} />
             {profile?.favoriteTeamName ? (
-              <StatusBadge label={profile.favoriteTeamName} variant="success" />
+              <AppBadge label={profile.favoriteTeamName} tone="success" />
             ) : null}
           </View>
         </AppCard>
 
-        <AppCard style={styles.section}>
-          <SectionTitle title="Profil" />
+        <AppSection title="Profil">
           <SettingsRow
             onPress={() => navigation.navigate('EditProfile')}
             subtitle={profile?.bio || 'Complète ton nom affiché, ta bio et ton équipe favorite.'}
@@ -65,10 +65,9 @@ export function ProfileScreen({ navigation }: ProfileScreenProps) {
             meta={profile?.favoriteTeamName || 'Non renseignée'}
             title="Équipe favorite"
           />
-        </AppCard>
+        </AppSection>
 
-        <AppCard style={styles.section}>
-          <SectionTitle title="Sécurité" />
+        <AppSection title="Sécurité">
           <SettingsRow
             onPress={() => navigation.navigate('Notifications')}
             subtitle="Suivi des décisions de modération et messages système."
@@ -84,10 +83,9 @@ export function ProfileScreen({ navigation }: ProfileScreenProps) {
             subtitle="Le token de connexion est conservé dans le stockage sécurisé du téléphone."
             title="Session mobile"
           />
-        </AppCard>
+        </AppSection>
 
-        <AppCard style={styles.section}>
-          <SectionTitle title="Informations compte" />
+        <AppSection title="Informations compte">
           <SettingsRow meta={user?.email ?? '-'} title="Email" />
           <SettingsRow meta={formatRoles(user?.roles ?? [])} title="Rôle" />
           <SettingsRow meta={formatDate(user?.createdAt)} title="Créé le" />
@@ -95,7 +93,7 @@ export function ProfileScreen({ navigation }: ProfileScreenProps) {
             subtitle="Cette version privilégie un compte simple et sécurisé. Le changement d'email et la suppression de compte viendront dans une étape dédiée si nécessaire."
             title="Version actuelle"
           />
-        </AppCard>
+        </AppSection>
 
         <View style={styles.actions}>
           <AppButton label="Se déconnecter" onPress={logout} variant="ghost" />
@@ -103,10 +101,6 @@ export function ProfileScreen({ navigation }: ProfileScreenProps) {
       </ScrollView>
     </Screen>
   );
-}
-
-function SectionTitle({ title }: { title: string }) {
-  return <AppText style={styles.sectionTitle}>{title}</AppText>;
 }
 
 function formatRoles(roles: string[]): string {
@@ -185,16 +179,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: theme.spacing.sm,
-  },
-  section: {
-    paddingBottom: 0,
-  },
-  sectionTitle: {
-    color: theme.colors.accent,
-    fontSize: theme.typography.sizes.sm,
-    fontWeight: theme.typography.weights.bold,
-    marginBottom: theme.spacing.sm,
-    textTransform: 'uppercase',
   },
   actions: {
     paddingTop: theme.spacing.sm,

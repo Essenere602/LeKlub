@@ -19,8 +19,8 @@ export function LoadingState({ message = 'Chargement...' }: LoadingStateProps) {
 const styles = StyleSheet.create({
   container: {
     alignItems: 'center',
-    backgroundColor: theme.colors.surface,
-    borderColor: theme.colors.border,
+    backgroundColor: theme.colors.surfaceElevated,
+    borderColor: theme.colors.borderSoft,
     borderRadius: theme.radius.lg,
     borderWidth: 1,
     gap: theme.spacing.md,

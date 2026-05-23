@@ -4,7 +4,9 @@ import { NativeStackScreenProps } from '@react-navigation/native-stack';
 
 import { AdminModuleCard } from '../../components/admin/AdminModuleCard';
 import { AdminStatCard } from '../../components/admin/AdminStatCard';
+import { AppBadge } from '../../components/ui/AppBadge';
 import { AppHeader } from '../../components/ui/AppHeader';
+import { AppSection } from '../../components/ui/AppSection';
 import { EmptyState } from '../../components/ui/EmptyState';
 import { ErrorState } from '../../components/ui/ErrorState';
 import { LoadingState } from '../../components/ui/LoadingState';
@@ -91,13 +93,14 @@ export function AdminHomeScreen({ navigation }: AdminHomeScreenProps) {
               kicker="Back office"
               subtitle="Supervision simple et modération du MVP LeKlub."
               title="Administration"
+              right={<AppBadge label="Accès admin" tone="accent" />}
             />
 
             {isLoading ? <LoadingState message="Chargement de la synthèse admin..." /> : null}
             {error ? <ErrorState message={error} onRetry={loadOverview} title="Admin indisponible" /> : null}
 
             {overview && !isLoading && !error ? (
-              <View style={styles.statsSections}>
+              <AppSection title="Synthèse">
                 <View style={styles.statsGrid}>
                   <AdminStatCard icon="people-outline" label="Utilisateurs" value={overview.usersCount} />
                   <AdminStatCard icon="pause-circle-outline" label="Suspendus" value={overview.suspendedUsersCount} />
@@ -118,7 +121,7 @@ export function AdminHomeScreen({ navigation }: AdminHomeScreenProps) {
                   <AdminStatCard icon="mail-outline" label="Conversations" value={overview.conversationsCount} />
                   <AdminStatCard icon="send-outline" label="Messages privés" value={overview.messagesCount} />
                 </View>
-              </View>
+              </AppSection>
             ) : null}
           </View>
         }
@@ -149,9 +152,6 @@ const styles = StyleSheet.create({
   statsGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: theme.spacing.md,
-  },
-  statsSections: {
     gap: theme.spacing.md,
   },
 });

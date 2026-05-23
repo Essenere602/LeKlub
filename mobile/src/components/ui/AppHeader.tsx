@@ -27,7 +27,10 @@ export function AppHeader({ kicker, right, style, subtitle, title }: AppHeaderPr
 
 const styles = StyleSheet.create({
   container: {
+    alignItems: 'flex-start',
+    flexDirection: 'row',
     gap: theme.spacing.md,
+    justifyContent: 'space-between',
   },
   copy: {
     flex: 1,
@@ -37,9 +40,9 @@ const styles = StyleSheet.create({
     color: theme.colors.accent,
     fontSize: theme.typography.sizes.sm,
     fontWeight: theme.typography.weights.bold,
-    textTransform: 'uppercase',
   },
   right: {
     alignItems: 'flex-start',
+    paddingTop: theme.spacing.xs,
   },
 });
