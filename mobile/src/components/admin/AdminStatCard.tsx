@@ -54,8 +54,11 @@ const styles = StyleSheet.create({
     color: theme.colors.accent,
     fontSize: theme.typography.sizes.xl,
     fontWeight: theme.typography.weights.bold,
+    includeFontPadding: false,
+    lineHeight: 28,
   },
   criticalValue: {
     fontSize: theme.typography.sizes['2xl'],
+    lineHeight: 34,
   },
 });
