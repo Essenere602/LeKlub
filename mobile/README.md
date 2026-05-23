@@ -124,13 +124,23 @@ Comportement MVP :
 
 - l'utilisateur saisit son email ;
 - le message de succès reste générique pour éviter l'énumération email ;
-- en développement local, le token est récupéré dans les logs backend ;
+- en développement local, l'email de reset est visible dans Mailpit sur `http://localhost:8025` ;
+- l'utilisateur copie le token reçu dans l'email Mailpit ;
 - l'utilisateur ouvre `J'ai un token` et saisit le token manuellement ;
 - le nouveau mot de passe doit respecter les règles backend ;
 - après succès, l'utilisateur revient à la connexion ;
 - aucun login automatique n'est effectué après reset.
 
-Cette version ne configure pas encore de SMTP réel ni de deep link obligatoire, afin de rester simple et démontrable avec Expo Go.
+Cette version utilise Mailpit en local, sans vrai secret SMTP, afin de rester simple et démontrable avec Expo Go.
+
+Procédure locale :
+
+1. Lancer Docker avec `docker compose --env-file .env up -d`.
+2. Ouvrir `http://localhost:8025` sur le Mac.
+3. Depuis l'iPhone, demander un reset password.
+4. Lire l'email reçu dans Mailpit.
+5. Copier le token dans l'écran `J'ai un token`.
+6. Définir le nouveau mot de passe.
 
 ## Tests Manuels Auth
 

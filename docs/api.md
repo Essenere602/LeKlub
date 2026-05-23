@@ -120,7 +120,7 @@ La réponse est toujours générique, que l'email existe ou non :
 }
 ```
 
-En environnement `dev`, le token brut est écrit dans les logs backend pour permettre un test mobile sans SMTP réel. Il n'est jamais retourné par l'API.
+En développement local, un email est envoyé vers Mailpit. Le token est présent dans l'email pour permettre la saisie manuelle côté Expo Go. Il n'est jamais retourné par l'API.
 
 Codes possibles : `200`, `400`, `422`.
 

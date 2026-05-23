@@ -45,11 +45,13 @@ services:
         alias: App\Infrastructure\Doctrine\Repository\PasswordResetTokenRepository
 
     App\Application\Auth\PasswordResetNotifierInterface:
-        alias: App\Infrastructure\Security\DevPasswordResetNotifier
+        alias: App\Infrastructure\Security\PasswordResetEmailNotifier
 
-    App\Infrastructure\Security\DevPasswordResetNotifier:
+    App\Infrastructure\Security\PasswordResetEmailNotifier:
         arguments:
             $environment: '%kernel.environment%'
+            $fromAddress: '%env(MAIL_FROM_ADDRESS)%'
+            $fromName: '%env(MAIL_FROM_NAME)%'
 
     App\Infrastructure\Football\FootballDataClientInterface:
         alias: App\Infrastructure\Football\ExternalFootballDataClient

@@ -90,7 +90,8 @@ Mesures appliquées :
 - token brut jamais stocké en base
 - token hashé en SHA-256 en base
 - token brut jamais retourné par l'API
-- token brut loggué uniquement en environnement `dev`
+- token envoyé par email local Mailpit en développement
+- token brut loggué uniquement en environnement `dev` comme fallback de diagnostic
 - expiration du token après 30 minutes
 - usage unique avec `usedAt`
 - invalidation des anciens tokens actifs d'un utilisateur à chaque nouvelle demande
@@ -99,7 +100,7 @@ Mesures appliquées :
 - pas de connexion automatique après reset
 - aucun mot de passe clair dans les logs
 
-Le MVP n'utilise pas encore de SMTP réel ni de deep link mobile obligatoire. Pour les tests iPhone en local, le token est récupéré dans les logs backend uniquement en `APP_ENV=dev`, puis saisi manuellement dans l'écran mobile de reset.
+Le MVP utilise Mailpit pour les tests locaux. Mailpit reçoit les emails sans utiliser de vrai secret SMTP. Pour les tests iPhone, le token est récupéré dans l'email Mailpit, puis saisi manuellement dans l'écran mobile de reset.
 
 ## Données De Démonstration
 
@@ -308,7 +309,7 @@ Conséquence MVP : les endpoints football restent simples et peu nombreux pour �
 - pas de refresh token
 - pas de révocation des JWT déjà émis après changement de mot de passe
 - pas de vérification d'email
-- pas de SMTP réel pour le reset password en local
+- pas de SMTP de production pour le reset password
 - pas de deep link automatique pour le reset password
 - pas de blocage de compte après plusieurs tentatives échouées
 - pas de rate limiting avancé par endpoint

@@ -62,7 +62,7 @@ Choix assumés :
 
 - pas de refresh token dans cette première version
 - pas de vérification d'email
-- pas de SMTP réel ni deep link automatique pour le reset password dans cette version locale
+- pas de SMTP de production ni deep link automatique pour le reset password dans cette version locale
 - pas d'images dans les Posts
 - pas de Réactions sur les Commentaires
 - pas de groupes de conversation
@@ -146,6 +146,12 @@ WebSocket local :
 
 ```text
 ws://localhost:8081
+```
+
+Mailpit local pour tester les emails de reset password :
+
+```text
+http://localhost:8025
 ```
 
 ## Données De Démonstration
