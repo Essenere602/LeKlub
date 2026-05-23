@@ -48,6 +48,10 @@ function translateMessage(message: string): string {
     'Password confirmation does not match.': 'la confirmation ne correspond pas au nouveau mot de passe.',
     'Unable to update password.': 'Impossible de mettre à jour le mot de passe.',
     'Unable to update account.': 'Impossible de mettre à jour le compte.',
+    'Unable to reset password.': 'Impossible de réinitialiser le mot de passe.',
+    'Password reset successfully.': 'Mot de passe réinitialisé.',
+    'If this email exists, reset instructions have been sent.':
+      'Si cet email existe, les instructions de réinitialisation ont été envoyées.',
     'Email already used.': 'Cet email est déjà utilisé.',
     'Username already used.': 'Ce nom utilisateur est déjà utilisé.',
     'Username can only contain letters, numbers and underscores.':

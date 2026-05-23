@@ -1,6 +1,12 @@
 import { apiClient } from '../api/apiClient';
 import { tokenStorage } from './tokenStorage';
-import { LoginCredentials, LoginResponse, RegisterPayload } from '../../types/auth.types';
+import {
+  ForgotPasswordPayload,
+  LoginCredentials,
+  LoginResponse,
+  RegisterPayload,
+  ResetPasswordPayload,
+} from '../../types/auth.types';
 import { ApiResponse } from '../../types/api.types';
 import { User } from '../../types/user.types';
 import { userService } from '../user/userService';
@@ -25,6 +31,14 @@ export const authService = {
     }
 
     return response.data.data.user;
+  },
+
+  async forgotPassword(payload: ForgotPasswordPayload): Promise<void> {
+    await apiClient.post<ApiResponse<[]>>('/auth/forgot-password', payload);
+  },
+
+  async resetPassword(payload: ResetPasswordPayload): Promise<void> {
+    await apiClient.post<ApiResponse<[]>>('/auth/reset-password', payload);
   },
 
   async logout(): Promise<void> {

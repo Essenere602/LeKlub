@@ -41,6 +41,16 @@ services:
     App\Domain\Repository\MessageRepositoryInterface:
         alias: App\Infrastructure\Doctrine\Repository\MessageRepository
 
+    App\Domain\Repository\PasswordResetTokenRepositoryInterface:
+        alias: App\Infrastructure\Doctrine\Repository\PasswordResetTokenRepository
+
+    App\Application\Auth\PasswordResetNotifierInterface:
+        alias: App\Infrastructure\Security\DevPasswordResetNotifier
+
+    App\Infrastructure\Security\DevPasswordResetNotifier:
+        arguments:
+            $environment: '%kernel.environment%'
+
     App\Infrastructure\Football\FootballDataClientInterface:
         alias: App\Infrastructure\Football\ExternalFootballDataClient
 

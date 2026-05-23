@@ -9,6 +9,16 @@ export type RegisterPayload = {
   password: string;
 };
 
+export type ForgotPasswordPayload = {
+  email: string;
+};
+
+export type ResetPasswordPayload = {
+  token: string;
+  newPassword: string;
+  newPasswordConfirmation: string;
+};
+
 export type LoginResponse = {
   token: string;
 };

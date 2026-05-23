@@ -76,6 +76,31 @@ Mesures appliquées :
 - aucun mot de passe clair ou hash retourné dans l'API
 - aucune modification de l'email, du username ou des rôles dans ce flux
 
+## Reset Password
+
+La réinitialisation de mot de passe est disponible pour un utilisateur non connecté via :
+
+- `POST /api/auth/forgot-password`
+- `POST /api/auth/reset-password`
+
+Mesures appliquées :
+
+- réponse toujours générique à la demande de reset pour éviter l'énumération email
+- token généré avec `random_bytes`
+- token brut jamais stocké en base
+- token hashé en SHA-256 en base
+- token brut jamais retourné par l'API
+- token brut loggué uniquement en environnement `dev`
+- expiration du token après 30 minutes
+- usage unique avec `usedAt`
+- invalidation des anciens tokens actifs d'un utilisateur à chaque nouvelle demande
+- nouveau mot de passe validé avec les mêmes règles qu'à l'inscription
+- hash du nouveau mot de passe via Symfony PasswordHasher
+- pas de connexion automatique après reset
+- aucun mot de passe clair dans les logs
+
+Le MVP n'utilise pas encore de SMTP réel ni de deep link mobile obligatoire. Pour les tests iPhone en local, le token est récupéré dans les logs backend uniquement en `APP_ENV=dev`, puis saisi manuellement dans l'écran mobile de reset.
+
 ## Données De Démonstration
 
 Les fixtures de démonstration sont disponibles uniquement pour les environnements `dev` et `test`.
@@ -283,7 +308,8 @@ Conséquence MVP : les endpoints football restent simples et peu nombreux pour �
 - pas de refresh token
 - pas de révocation des JWT déjà émis après changement de mot de passe
 - pas de vérification d'email
-- pas de reset password
+- pas de SMTP réel pour le reset password en local
+- pas de deep link automatique pour le reset password
 - pas de blocage de compte après plusieurs tentatives échouées
 - pas de rate limiting avancé par endpoint
 - pas de chiffrement applicatif du contenu des Messages privés
