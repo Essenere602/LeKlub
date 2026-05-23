@@ -124,6 +124,30 @@ Modifie uniquement le profil de l'utilisateur authentifié.
 
 Codes possibles : `200`, `400`, `401`, `422`.
 
+### PATCH /api/me/account
+
+Modifie les informations de compte de l'utilisateur authentifié.
+
+```json
+{
+  "email": "nouvel.email@example.test",
+  "username": "nouveau_username",
+  "currentPassword": "CurrentPassword123"
+}
+```
+
+Règles :
+
+- route protégée par JWT
+- `email` et `username` restent uniques
+- `currentPassword` est obligatoire uniquement si l'email change
+- l'email est normalisé en minuscules
+- le username accepte uniquement lettres, chiffres et underscore, comme à l'inscription
+- aucun rôle, mot de passe, hash ou token n'est modifié par ce endpoint
+- après changement email, une reconnexion peut être nécessaire car le JWT utilise l'email comme identifiant Symfony
+
+Codes possibles : `200`, `400`, `401`, `409`, `422`.
+
 ### PATCH /api/me/password
 
 Modifie le mot de passe de l'utilisateur authentifié.

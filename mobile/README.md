@@ -133,6 +133,7 @@ L'onglet Profil ouvre un espace `Compte` qui regroupe les informations utiles sa
 
 - identité utilisateur, avatar ou initiale, rôle et équipe favorite
 - accès à la modification du profil
+- accès à la modification du compte
 - accès au changement de mot de passe
 - accès aux notifications système
 - informations de sécurité de session
@@ -144,10 +145,18 @@ Le profil mobile utilise :
 - `GET /api/me/notifications?page=&limit=` pour afficher les notifications système
 - `PATCH /api/me/notifications/{id}/read` pour marquer une notification comme lue
 - `PATCH /api/me/profile` pour modifier `displayName`, `bio`, `favoriteTeamName` et `avatarUrl`
+- `PATCH /api/me/account` pour modifier l'email et le username
 - `PATCH /api/me/password` pour modifier le mot de passe de l'utilisateur connecté
 - `AuthContext.refreshCurrentUser()` après modification pour recharger les données depuis le backend
 
 L'avatar reste une URL texte dans cette version afin de garder un flux simple et maîtrisé côté mobile.
+
+La modification du compte distingue :
+
+- `username`, modifiable sans mot de passe car c'est une identité publique
+- `email`, modifiable avec le mot de passe actuel car c'est l'identifiant de connexion
+
+Après changement d'email, une reconnexion peut être nécessaire, car le JWT Symfony utilise l'ancien email comme identifiant jusqu'à expiration.
 
 Le changement de mot de passe demande :
 
@@ -164,6 +173,11 @@ La validation mobile reprend les règles backend : minimum 10 caractères, au mo
 - ouvrir l'onglet `Profil`
 - vérifier que l'écran `Compte` affiche l'identité, le rôle et l'équipe favorite si elle existe
 - ouvrir `Modifier mon profil`
+- ouvrir `Modifier mon compte`
+- modifier uniquement le username et vérifier que les données sont rafraîchies
+- tenter un email déjà utilisé et vérifier l'erreur propre
+- tenter de modifier l'email sans mot de passe et vérifier le blocage
+- modifier l'email avec le mot de passe actuel puis se reconnecter si l'application nettoie la session
 - ouvrir `Notifications`
 - marquer une notification comme lue si disponible
 - modifier le nom affiché, la bio et l'équipe favorite

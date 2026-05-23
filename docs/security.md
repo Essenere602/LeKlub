@@ -22,9 +22,40 @@ Le backend utilise Symfony Security avec LexikJWTAuthenticationBundle.
 - Les routes `/api/admin` demandent `ROLE_ADMIN`.
 - `ROLE_ADMIN` hérite de `ROLE_USER`.
 
-Le login utilise l'email comme identifiant. Le JWT contient donc l'email dans le claim configuré par `user_id_claim`.
+Le login utilise l'email comme identifiant. `User::getUserIdentifier()` retourne l'email et le provider Symfony recharge l'utilisateur par la propriété `email`.
 
 Le JWT contient aussi l'identifiant interne `id`, ajouté par un subscriber Lexik. Ce choix reste simple et permet au serveur WebSocket de rattacher une connexion au bon utilisateur sans exposer de mot de passe ni de donnée sensible.
+
+## Compte Utilisateur
+
+Le compte utilisateur regroupe l'identité de connexion et de sécurité :
+
+- email
+- username
+- mot de passe
+- rôles
+- suspension temporaire
+
+Le profil utilisateur regroupe l'identité sociale visible :
+
+- nom affiché
+- bio
+- équipe favorite
+- avatar URL
+
+Le endpoint `PATCH /api/me/account` permet de modifier l'email et le username de l'utilisateur connecté.
+
+Mesures appliquées :
+
+- route protégée par JWT
+- email et username uniques
+- mot de passe actuel obligatoire pour modifier l'email
+- erreur générique si le mot de passe actuel est incorrect
+- aucune modification de rôle ou de suspension
+- aucun hash, mot de passe ou token retourné
+- l'annuaire utilisateur et la liste admin ne retournent pas l'email
+
+Comme l'email est l'identifiant Symfony utilisé par le JWT, un changement d'email peut rendre le token courant inutilisable au prochain appel API. Dans cette version, l'application mobile déclenche un rafraîchissement utilisateur après modification ; si le backend refuse l'ancien token, la session est nettoyée et l'utilisateur se reconnecte. Une révocation ou rotation complète de session sera traitée avec la future étape refresh token.
 
 ## Mots De Passe
 
@@ -43,7 +74,7 @@ Mesures appliquées :
 - hash du nouveau mot de passe avec Symfony PasswordHasher
 - message générique si le changement est refusé
 - aucun mot de passe clair ou hash retourné dans l'API
-- aucune modification de l'email, du username ou des rôles
+- aucune modification de l'email, du username ou des rôles dans ce flux
 
 ## Données De Démonstration
 
@@ -75,6 +106,8 @@ docker compose --env-file .env.example run --rm php php bin/console lexik:jwt:ge
 Pas de refresh token dans le MVP initial. Ce choix réduit la complexité et reste défendable pour une première version stable.
 
 Après un changement de mot de passe, les JWT déjà émis restent valides jusqu'à leur expiration. Cette limite est documentée et acceptée dans le MVP, car l'application ne gère pas encore de révocation de tokens ni de sessions serveur.
+
+Après un changement d'email, les anciens JWT peuvent être refusés car ils référencent l'ancien email. Ce comportement est assumé dans le MVP et documenté côté mobile comme une reconnexion possible.
 
 ## Feed Et Modération
 

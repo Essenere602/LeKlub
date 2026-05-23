@@ -47,6 +47,9 @@ function translateMessage(message: string): string {
       'doit contenir au moins une minuscule, une majuscule et un chiffre.',
     'Password confirmation does not match.': 'la confirmation ne correspond pas au nouveau mot de passe.',
     'Unable to update password.': 'Impossible de mettre à jour le mot de passe.',
+    'Unable to update account.': 'Impossible de mettre à jour le compte.',
+    'Email already used.': 'Cet email est déjà utilisé.',
+    'Username already used.': 'Ce nom utilisateur est déjà utilisé.',
     'Username can only contain letters, numbers and underscores.':
       'lettres, chiffres et underscore uniquement.',
     'Football data is temporarily unavailable. Please try again later.':

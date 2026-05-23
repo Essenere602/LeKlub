@@ -16,6 +16,12 @@ export type UserProfile = {
 
 export type UpdateProfilePayload = Partial<UserProfile>;
 
+export type UpdateAccountPayload = {
+  email: string;
+  username: string;
+  currentPassword?: string;
+};
+
 export type ChangePasswordPayload = {
   currentPassword: string;
   newPassword: string;
