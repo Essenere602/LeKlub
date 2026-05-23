@@ -3,7 +3,6 @@ import { Ionicons } from '@expo/vector-icons';
 
 import { theme } from '../../config/theme';
 import { AppText } from '../ui/AppText';
-import { StatusBadge } from '../ui/StatusBadge';
 
 type AdminModuleCardProps = {
   icon: keyof typeof Ionicons.glyphMap;
@@ -24,9 +23,8 @@ export function AdminModuleCard({ description, icon, onPress, title }: AdminModu
       </View>
       <View style={styles.copy}>
         <AppText variant="label">{title}</AppText>
-        <AppText style={styles.description}>{description}</AppText>
+        <AppText variant="muted">{description}</AppText>
       </View>
-      <StatusBadge label="Ouvrir" variant="neutral" />
       <Ionicons color={theme.colors.accent} name="chevron-forward" size={20} />
     </Pressable>
   );
@@ -43,7 +41,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     flexDirection: 'row',
     gap: theme.spacing.md,
-    minHeight: 88,
     padding: theme.spacing.lg,
   },
   pressed: {
@@ -60,11 +57,5 @@ const styles = StyleSheet.create({
   copy: {
     flex: 1,
     gap: theme.spacing.xs,
-    minWidth: 0,
-  },
-  description: {
-    color: theme.colors.text.secondary,
-    fontSize: theme.typography.sizes.sm,
-    lineHeight: 20,
   },
 });

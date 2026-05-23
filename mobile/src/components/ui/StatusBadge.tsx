@@ -47,10 +47,8 @@ const styles = StyleSheet.create({
   },
   label: {
     color: theme.colors.text.primary,
-    flexShrink: 1,
     fontSize: theme.typography.sizes.xs,
     fontWeight: theme.typography.weights.bold,
-    textAlign: 'center',
     textTransform: 'uppercase',
   },
   inverseLabel: {

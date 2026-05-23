@@ -6,7 +6,6 @@ import { Commentaire } from '../../types/feed.types';
 import { AppButton } from '../ui/AppButton';
 import { AppInput } from '../ui/AppInput';
 import { AppText } from '../ui/AppText';
-import { StatusBadge } from '../ui/StatusBadge';
 
 type CommentCardProps = {
   comment: Commentaire;
@@ -74,11 +73,8 @@ export function CommentCard({ canManage = false, comment, onDelete, onReport, on
   return (
     <View style={styles.card}>
       <View style={styles.header}>
-        <View style={styles.authorBlock}>
-          <AppText variant="label">@{comment.author.username}</AppText>
-          <AppText variant="muted">{formatDate(comment.createdAt)}</AppText>
-        </View>
-        {canManage ? <StatusBadge label="Mon commentaire" variant="accent" /> : null}
+        <AppText variant="label">@{comment.author.username}</AppText>
+        <AppText variant="muted">{formatDate(comment.createdAt)}</AppText>
       </View>
       {isEditing ? (
         <View style={styles.editForm}>
@@ -143,14 +139,9 @@ const styles = StyleSheet.create({
     padding: theme.spacing.md,
   },
   header: {
-    alignItems: 'flex-start',
     flexDirection: 'row',
     gap: theme.spacing.sm,
     justifyContent: 'space-between',
-  },
-  authorBlock: {
-    flex: 1,
-    gap: theme.spacing.xs,
   },
   editForm: {
     gap: theme.spacing.md,
@@ -161,7 +152,6 @@ const styles = StyleSheet.create({
   },
   actions: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
     gap: theme.spacing.md,
   },
   reportAction: {

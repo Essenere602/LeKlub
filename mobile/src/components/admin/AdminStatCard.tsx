@@ -19,7 +19,7 @@ export function AdminStatCard({ icon, label, value }: AdminStatCardProps) {
       </View>
       <View style={styles.copy}>
         <AppText style={styles.value}>{value}</AppText>
-        <AppText numberOfLines={2} style={styles.label}>{label}</AppText>
+        <AppText variant="muted">{label}</AppText>
       </View>
     </AppCard>
   );
@@ -41,12 +41,6 @@ const styles = StyleSheet.create({
   },
   copy: {
     gap: theme.spacing.xs,
-    minWidth: 0,
-  },
-  label: {
-    color: theme.colors.text.secondary,
-    fontSize: theme.typography.sizes.sm,
-    lineHeight: 19,
   },
   value: {
     color: theme.colors.accent,

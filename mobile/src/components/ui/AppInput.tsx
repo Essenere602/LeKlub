@@ -15,7 +15,6 @@ export function AppInput({ label, style, ...props }: AppInputProps) {
         {...props}
         autoCapitalize={props.autoCapitalize ?? 'none'}
         placeholderTextColor={theme.colors.text.muted}
-        selectionColor={theme.colors.accent}
         style={[styles.input, style]}
       />
     </View>
@@ -33,9 +32,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     color: theme.colors.text.primary,
     fontSize: theme.typography.sizes.md,
-    lineHeight: 22,
     minHeight: 48,
     paddingHorizontal: theme.spacing.md,
-    paddingVertical: theme.spacing.sm,
   },
 });

@@ -17,7 +17,7 @@ export function SettingsRow({ meta, onPress, subtitle, title }: SettingsRowProps
         <AppText style={styles.title}>{title}</AppText>
         {subtitle ? <AppText variant="muted">{subtitle}</AppText> : null}
       </View>
-      {meta ? <AppText numberOfLines={2} style={styles.meta}>{meta}</AppText> : null}
+      {meta ? <AppText style={styles.meta}>{meta}</AppText> : null}
       {onPress ? <AppText style={styles.chevron}>›</AppText> : null}
     </>
   );
@@ -29,7 +29,6 @@ export function SettingsRow({ meta, onPress, subtitle, title }: SettingsRowProps
   return (
     <Pressable
       accessibilityRole="button"
-      hitSlop={4}
       onPress={onPress}
       style={({ pressed }) => [styles.row, pressed && styles.pressed]}
     >
@@ -51,7 +50,6 @@ const styles = StyleSheet.create({
   copy: {
     flex: 1,
     gap: theme.spacing.xs,
-    minWidth: 0,
   },
   title: {
     fontSize: theme.typography.sizes.md,
@@ -59,11 +57,8 @@ const styles = StyleSheet.create({
   },
   meta: {
     color: theme.colors.text.secondary,
-    flexShrink: 1,
     fontSize: theme.typography.sizes.sm,
     fontWeight: theme.typography.weights.semibold,
-    maxWidth: '45%',
-    textAlign: 'right',
   },
   chevron: {
     color: theme.colors.accent,

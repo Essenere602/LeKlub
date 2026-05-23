@@ -1,13 +1,11 @@
 import { useCallback, useEffect, useState } from 'react';
-import { FlatList, RefreshControl, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, FlatList, RefreshControl, StyleSheet, View } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 
 import { ConversationCard } from '../../components/messaging/ConversationCard';
 import { AppButton } from '../../components/ui/AppButton';
-import { AppHeader } from '../../components/ui/AppHeader';
-import { EmptyState } from '../../components/ui/EmptyState';
-import { ErrorState } from '../../components/ui/ErrorState';
-import { LoadingState } from '../../components/ui/LoadingState';
+import { AppText } from '../../components/ui/AppText';
+import { ErrorMessage } from '../../components/ui/ErrorMessage';
 import { Screen } from '../../components/ui/Screen';
 import { StatusBadge } from '../../components/ui/StatusBadge';
 import { theme } from '../../config/theme';
@@ -75,22 +73,14 @@ export function ConversationListScreen({ navigation }: ConversationListScreenPro
         contentContainerStyle={styles.content}
         data={conversations}
         keyExtractor={(conversation) => String(conversation.id)}
-        ListEmptyComponent={!isLoading && !error ? (
-          <EmptyState
-            actionLabel="Nouvelle conversation"
-            icon="chatbubbles-outline"
-            message="Choisis un utilisateur pour démarrer une Conversation privée."
-            title="Aucune conversation"
-            onAction={() => navigation.navigate('UserPicker')}
-          />
-        ) : null}
+        ListEmptyComponent={!isLoading ? <EmptyConversations /> : null}
         ListHeaderComponent={
           <View style={styles.header}>
-            <AppHeader
-              kicker="Messages"
-              subtitle="Le temps réel signale les nouveaux messages, puis l'app recharge via l'API."
-              title="Conversations privées"
-            />
+            <View style={styles.titleBlock}>
+              <AppText style={styles.kicker}>Messages</AppText>
+              <AppText variant="title">Conversations privées</AppText>
+              <AppText variant="subtitle">Le temps réel signale les nouveaux messages, puis l'app recharge via l'API.</AppText>
+            </View>
 
             <View style={styles.actions}>
               <AppButton label="Retour" onPress={() => navigation.goBack()} variant="secondary" />
@@ -98,8 +88,8 @@ export function ConversationListScreen({ navigation }: ConversationListScreenPro
             </View>
 
             <StatusBadge {...badgeForSocketStatus(socketStatus)} />
-            {error ? <ErrorState message={error} onRetry={loadInitialConversations} /> : null}
-            {isLoading ? <LoadingState message="Chargement des conversations..." /> : null}
+            <ErrorMessage message={error} />
+            {isLoading ? <ActivityIndicator color={theme.colors.accent} /> : null}
           </View>
         }
         refreshControl={
@@ -120,6 +110,15 @@ export function ConversationListScreen({ navigation }: ConversationListScreenPro
         )}
       />
     </Screen>
+  );
+}
+
+function EmptyConversations() {
+  return (
+    <View style={styles.empty}>
+      <AppText style={styles.emptyTitle}>Aucune conversation</AppText>
+      <AppText variant="muted">Choisis un utilisateur pour démarrer une Conversation privée.</AppText>
+    </View>
   );
 }
 
@@ -155,7 +154,29 @@ const styles = StyleSheet.create({
   header: {
     gap: theme.spacing.lg,
   },
+  titleBlock: {
+    gap: theme.spacing.sm,
+  },
+  kicker: {
+    color: theme.colors.accent,
+    fontSize: theme.typography.sizes.sm,
+    fontWeight: theme.typography.weights.bold,
+    textTransform: 'uppercase',
+  },
   actions: {
     gap: theme.spacing.md,
+  },
+  empty: {
+    alignItems: 'center',
+    backgroundColor: theme.colors.surface,
+    borderColor: theme.colors.border,
+    borderRadius: theme.radius.lg,
+    borderWidth: 1,
+    gap: theme.spacing.sm,
+    padding: theme.spacing.xl,
+  },
+  emptyTitle: {
+    fontSize: theme.typography.sizes.lg,
+    fontWeight: theme.typography.weights.bold,
   },
 });

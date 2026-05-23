@@ -1,5 +1,4 @@
 import { Pressable, StyleSheet, View } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
 
 import { theme } from '../../config/theme';
 import { ReactionType } from '../../types/feed.types';
@@ -24,30 +23,27 @@ export function ReactionButtons({
     <View style={styles.container}>
       <ReactionButton
         disabled={disabled}
-        icon="thumbs-up-outline"
         label={`Like ${likesCount}`}
         onPress={() => onReact('like')}
       />
       <ReactionButton
         disabled={disabled}
-        icon="thumbs-down-outline"
         label={`Dislike ${dislikesCount}`}
         onPress={() => onReact('dislike')}
       />
-      <ReactionButton disabled={disabled} icon="close-circle-outline" label="Retirer" onPress={onRemove} subdued />
+      <ReactionButton disabled={disabled} label="Retirer" onPress={onRemove} subdued />
     </View>
   );
 }
 
 type ReactionButtonProps = {
   disabled: boolean;
-  icon: keyof typeof Ionicons.glyphMap;
   label: string;
   onPress: () => void;
   subdued?: boolean;
 };
 
-function ReactionButton({ disabled, icon, label, onPress, subdued = false }: ReactionButtonProps) {
+function ReactionButton({ disabled, label, onPress, subdued = false }: ReactionButtonProps) {
   return (
     <Pressable
       accessibilityRole="button"
@@ -60,7 +56,6 @@ function ReactionButton({ disabled, icon, label, onPress, subdued = false }: Rea
         pressed && !disabled && styles.pressed,
       ]}
     >
-      <Ionicons color={subdued ? theme.colors.text.secondary : theme.colors.accent} name={icon} size={15} />
       <AppText style={[styles.label, subdued && styles.subduedLabel]}>{label}</AppText>
     </Pressable>
   );
@@ -77,9 +72,6 @@ const styles = StyleSheet.create({
     borderColor: theme.colors.accent,
     borderRadius: theme.radius.sm,
     borderWidth: 1,
-    flexDirection: 'row',
-    gap: theme.spacing.xs,
-    minHeight: 38,
     paddingHorizontal: theme.spacing.md,
     paddingVertical: theme.spacing.sm,
   },

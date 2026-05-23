@@ -13,25 +13,24 @@ type ConversationCardProps = {
 export function ConversationCard({ conversation, onPress }: ConversationCardProps) {
   const participantName = conversation.participant?.username ?? 'Utilisateur';
   const lastMessage = conversation.lastMessage?.content ?? 'Aucun message pour le moment';
-  const hasUnread = conversation.unreadCount > 0;
 
   return (
     <Pressable
       onPress={onPress}
-      style={({ pressed }) => [styles.card, hasUnread && styles.unreadCard, pressed && styles.pressed]}
+      style={({ pressed }) => [styles.card, pressed && styles.pressed]}
     >
       <UserAvatar label={participantName} />
 
       <View style={styles.body}>
         <View style={styles.header}>
           <AppText style={styles.name}>{participantName}</AppText>
-          {hasUnread ? (
+          {conversation.unreadCount > 0 ? (
             <View style={styles.badge}>
               <AppText style={styles.badgeText}>{conversation.unreadCount}</AppText>
             </View>
           ) : null}
         </View>
-        <AppText numberOfLines={2} style={[styles.preview, hasUnread && styles.unreadPreview]}>{lastMessage}</AppText>
+        <AppText numberOfLines={1} style={styles.preview}>{lastMessage}</AppText>
       </View>
     </Pressable>
   );
@@ -47,10 +46,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: theme.spacing.md,
     padding: theme.spacing.md,
-  },
-  unreadCard: {
-    borderColor: theme.colors.accent,
-    backgroundColor: theme.colors.surfaceElevated,
   },
   pressed: {
     opacity: 0.82,
@@ -73,10 +68,6 @@ const styles = StyleSheet.create({
   preview: {
     color: theme.colors.text.muted,
     fontSize: theme.typography.sizes.sm,
-    lineHeight: 19,
-  },
-  unreadPreview: {
-    color: theme.colors.text.secondary,
   },
   badge: {
     alignItems: 'center',
