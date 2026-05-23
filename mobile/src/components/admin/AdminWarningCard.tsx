@@ -15,12 +15,22 @@ export function AdminWarningCard({ warning }: AdminWarningCardProps) {
     <AppCard style={styles.card}>
       <View style={styles.header}>
         <View style={styles.titleGroup}>
-          <AppText variant="label">@{warning.user.username}</AppText>
+          <AppText style={styles.username}>@{warning.user.username}</AppText>
           <AppText variant="muted">
-            {warning.warningCount}/3 avertissements · {formatDate(warning.createdAt)}
+            Averti le {formatDate(warning.createdAt)}
           </AppText>
         </View>
         <StatusBadge label={statusLabel(warning)} variant={statusVariant(warning)} />
+      </View>
+
+      <View style={styles.threshold}>
+        <View style={styles.thresholdHeader}>
+          <AppText style={styles.thresholdTitle}>Seuil suspension</AppText>
+          <AppText style={styles.thresholdCount}>{Math.min(warning.warningCount, 3)}/3</AppText>
+        </View>
+        <View style={styles.progressTrack}>
+          <View style={[styles.progressFill, { width: `${Math.min(warning.warningCount, 3) / 3 * 100}%` }]} />
+        </View>
       </View>
 
       <View style={styles.warningBox}>
@@ -137,9 +147,47 @@ const styles = StyleSheet.create({
     flex: 1,
     gap: theme.spacing.xs,
   },
-  warningBox: {
+  username: {
+    fontSize: theme.typography.sizes.lg,
+    fontWeight: theme.typography.weights.bold,
+  },
+  threshold: {
     backgroundColor: theme.colors.surfaceElevated,
-    borderColor: theme.colors.border,
+    borderColor: theme.colors.borderSoft,
+    borderRadius: theme.radius.md,
+    borderWidth: 1,
+    gap: theme.spacing.sm,
+    padding: theme.spacing.md,
+  },
+  thresholdHeader: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  thresholdTitle: {
+    color: theme.colors.text.secondary,
+    fontSize: theme.typography.sizes.sm,
+    fontWeight: theme.typography.weights.semibold,
+  },
+  thresholdCount: {
+    color: theme.colors.accent,
+    fontSize: theme.typography.sizes.sm,
+    fontWeight: theme.typography.weights.bold,
+  },
+  progressTrack: {
+    backgroundColor: theme.colors.borderSoft,
+    borderRadius: theme.radius.full,
+    height: 8,
+    overflow: 'hidden',
+  },
+  progressFill: {
+    backgroundColor: theme.colors.accent,
+    borderRadius: theme.radius.full,
+    height: 8,
+  },
+  warningBox: {
+    backgroundColor: 'rgba(255, 204, 0, 0.08)',
+    borderColor: theme.colors.warning,
     borderRadius: theme.radius.md,
     borderWidth: 1,
     gap: theme.spacing.xs,

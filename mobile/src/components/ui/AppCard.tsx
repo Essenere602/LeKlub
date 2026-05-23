@@ -1,12 +1,12 @@
 import { PropsWithChildren } from 'react';
-import { StyleSheet, View, ViewStyle } from 'react-native';
+import { StyleProp, StyleSheet, View, ViewStyle } from 'react-native';
 
 import { theme } from '../../config/theme';
 
 type AppCardVariant = 'default' | 'elevated' | 'accent';
 
 type AppCardProps = PropsWithChildren<{
-  style?: ViewStyle;
+  style?: StyleProp<ViewStyle>;
   variant?: AppCardVariant;
 }>;
 

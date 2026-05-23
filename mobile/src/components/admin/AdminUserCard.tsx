@@ -32,25 +32,36 @@ export function AdminUserCard({
 
   return (
     <AppCard style={styles.card}>
-      <View style={styles.avatar}>
-        <AppText style={styles.avatarText}>{displayName.slice(0, 1).toUpperCase()}</AppText>
-      </View>
       <View style={styles.copy}>
-        <View style={styles.titleRow}>
-          <AppText variant="label">@{user.username}</AppText>
-          {isAdmin ? <StatusBadge label="Admin" variant="accent" /> : <StatusBadge label="User" variant="neutral" />}
+        <View style={styles.identityRow}>
+          <View style={styles.avatar}>
+            <AppText style={styles.avatarText}>{displayName.slice(0, 1).toUpperCase()}</AppText>
+          </View>
+          <View style={styles.identity}>
+            <AppText style={styles.displayName}>{displayName}</AppText>
+            <AppText variant="muted">@{user.username} · créé le {formatDate(user.createdAt)}</AppText>
+          </View>
+        </View>
+
+        <View style={styles.statusRow}>
+          {isAdmin ? <StatusBadge label="ADMIN" variant="accent" /> : <StatusBadge label="USER" variant="neutral" />}
           <StatusBadge
             label={user.isSuspended ? 'Suspendu' : 'Actif'}
             variant={user.isSuspended ? 'danger' : 'success'}
           />
         </View>
-        <AppText>{displayName}</AppText>
-        <AppText variant="muted">Créé le {formatDate(user.createdAt)}</AppText>
+
         {user.isSuspended && user.suspendedUntil ? (
-          <AppText variant="muted">Suspendu jusqu'au {formatDate(user.suspendedUntil)}</AppText>
+          <View style={styles.suspensionBox}>
+            <Ionicons color={theme.colors.danger} name="pause-circle-outline" size={18} />
+            <AppText style={styles.suspensionText}>Suspendu jusqu'au {formatDate(user.suspendedUntil)}</AppText>
+          </View>
         ) : null}
         {isCurrentUser ? (
-          <AppText variant="muted">Vos propres rôles ne sont pas modifiables.</AppText>
+          <View style={styles.infoBox}>
+            <Ionicons color={theme.colors.text.muted} name="lock-closed-outline" size={16} />
+            <AppText variant="muted">Vos propres rôles ne sont pas modifiables.</AppText>
+          </View>
         ) : (
           <View style={styles.actions}>
             {isAdmin ? (
@@ -145,8 +156,6 @@ function formatDate(value: string): string {
 
 const styles = StyleSheet.create({
   card: {
-    alignItems: 'center',
-    flexDirection: 'row',
     gap: theme.spacing.md,
   },
   avatar: {
@@ -161,17 +170,58 @@ const styles = StyleSheet.create({
   },
   avatarText: {
     color: theme.colors.accent,
+    fontSize: theme.typography.sizes.lg,
     fontWeight: theme.typography.weights.bold,
+    includeFontPadding: false,
+    lineHeight: 20,
   },
   copy: {
+    gap: theme.spacing.md,
+  },
+  identityRow: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: theme.spacing.md,
+  },
+  identity: {
     flex: 1,
     gap: theme.spacing.xs,
   },
-  titleRow: {
+  displayName: {
+    fontSize: theme.typography.sizes.lg,
+    fontWeight: theme.typography.weights.bold,
+  },
+  statusRow: {
     alignItems: 'center',
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: theme.spacing.sm,
+  },
+  suspensionBox: {
+    alignItems: 'center',
+    backgroundColor: 'rgba(255, 59, 92, 0.1)',
+    borderColor: theme.colors.danger,
+    borderRadius: theme.radius.md,
+    borderWidth: 1,
+    flexDirection: 'row',
+    gap: theme.spacing.sm,
+    padding: theme.spacing.md,
+  },
+  suspensionText: {
+    color: theme.colors.text.secondary,
+    flex: 1,
+    fontSize: theme.typography.sizes.sm,
+    lineHeight: 20,
+  },
+  infoBox: {
+    alignItems: 'center',
+    backgroundColor: theme.colors.surfaceElevated,
+    borderColor: theme.colors.borderSoft,
+    borderRadius: theme.radius.md,
+    borderWidth: 1,
+    flexDirection: 'row',
+    gap: theme.spacing.sm,
+    padding: theme.spacing.md,
   },
   actions: {
     alignItems: 'flex-start',

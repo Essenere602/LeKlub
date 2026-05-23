@@ -33,9 +33,12 @@ export function AdminModerationCard({ deleting = false, item, onDelete, type }: 
     <AppCard style={styles.card}>
       <View style={styles.header}>
         <View style={styles.author}>
-          <StatusBadge label={label} variant={type === 'post' ? 'accent' : 'warning'} />
-          <StatusBadge label={isDeleted ? 'Supprimé' : 'Actif'} variant={isDeleted ? 'danger' : 'success'} />
-          <AppText variant="muted">@{item.author.username} · {formatDate(item.createdAt)}</AppText>
+          <View style={styles.badges}>
+            <StatusBadge label={label} variant={type === 'post' ? 'accent' : 'warning'} />
+            <StatusBadge label={isDeleted ? 'Supprimé' : 'Actif'} variant={isDeleted ? 'danger' : 'success'} />
+          </View>
+          <AppText style={styles.authorName}>@{item.author.username}</AppText>
+          <AppText variant="muted">Publié le {formatDate(item.createdAt)}</AppText>
         </View>
         {!isDeleted ? (
           <Pressable
@@ -100,6 +103,15 @@ const styles = StyleSheet.create({
     flex: 1,
     gap: theme.spacing.sm,
   },
+  badges: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: theme.spacing.sm,
+  },
+  authorName: {
+    fontSize: theme.typography.sizes.md,
+    fontWeight: theme.typography.weights.bold,
+  },
   deleteButton: {
     alignItems: 'center',
     backgroundColor: 'rgba(255, 59, 92, 0.1)',
@@ -121,10 +133,12 @@ const styles = StyleSheet.create({
     lineHeight: 23,
   },
   context: {
-    borderTopColor: theme.colors.border,
-    borderTopWidth: 1,
+    backgroundColor: theme.colors.surfaceElevated,
+    borderColor: theme.colors.borderSoft,
+    borderRadius: theme.radius.md,
+    borderWidth: 1,
     gap: theme.spacing.xs,
-    paddingTop: theme.spacing.md,
+    padding: theme.spacing.md,
   },
   deletedContext: {
     backgroundColor: 'rgba(255, 59, 92, 0.1)',

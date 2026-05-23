@@ -22,7 +22,7 @@ export function AdminModuleCard({ description, icon, onPress, title }: AdminModu
         <Ionicons color={theme.colors.accent} name={icon} size={22} />
       </View>
       <View style={styles.copy}>
-        <AppText variant="label">{title}</AppText>
+        <AppText style={styles.title}>{title}</AppText>
         <AppText variant="muted">{description}</AppText>
       </View>
       <Ionicons color={theme.colors.accent} name="chevron-forward" size={20} />
@@ -33,10 +33,10 @@ export function AdminModuleCard({ description, icon, onPress, title }: AdminModu
 const styles = StyleSheet.create({
   card: {
     alignItems: 'center',
-    backgroundColor: theme.colors.surface,
-    borderColor: theme.colors.border,
+    backgroundColor: theme.colors.surfaceElevated,
+    borderColor: theme.colors.borderSoft,
     borderLeftColor: theme.colors.accent,
-    borderLeftWidth: 4,
+    borderLeftWidth: 5,
     borderRadius: theme.radius.lg,
     borderWidth: 1,
     flexDirection: 'row',
@@ -57,5 +57,9 @@ const styles = StyleSheet.create({
   copy: {
     flex: 1,
     gap: theme.spacing.xs,
+  },
+  title: {
+    fontSize: theme.typography.sizes.md,
+    fontWeight: theme.typography.weights.bold,
   },
 });

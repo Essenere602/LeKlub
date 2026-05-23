@@ -100,22 +100,42 @@ export function AdminHomeScreen({ navigation }: AdminHomeScreenProps) {
           {error ? <ErrorState message={error} onRetry={loadOverview} title="Admin indisponible" /> : null}
 
           {overview && !isLoading && !error ? (
-            <AppSection title="Synthèse">
+            <AppSection title="Priorités modération">
               <View style={styles.statsGrid}>
-                <AdminStatCard icon="people-outline" label="Utilisateurs" value={overview.usersCount} />
-                <AdminStatCard icon="pause-circle-outline" label="Suspendus" value={overview.suspendedUsersCount} />
+                <AdminStatCard
+                  icon="flag-outline"
+                  label="Signalements ouverts"
+                  priority="critical"
+                  value={overview.openReportsCount}
+                />
+                <AdminStatCard
+                  icon="pause-circle-outline"
+                  label="Comptes suspendus"
+                  priority="critical"
+                  value={overview.suspendedUsersCount}
+                />
               </View>
+              <View style={styles.statsGrid}>
+                <AdminStatCard
+                  icon="warning-outline"
+                  label="Avertissements"
+                  priority="critical"
+                  value={overview.warningsCount}
+                />
+                <AdminStatCard icon="people-outline" label="Utilisateurs" value={overview.usersCount} />
+              </View>
+            </AppSection>
+          ) : null}
+
+          {overview && !isLoading && !error ? (
+            <AppSection title="Activité contenu">
               <View style={styles.statsGrid}>
                 <AdminStatCard icon="chatbubbles-outline" label="Posts actifs" value={overview.postsCount} />
-                <AdminStatCard icon="archive-outline" label="Posts supprimés" value={overview.deletedPostsCount} />
-              </View>
-              <View style={styles.statsGrid}>
                 <AdminStatCard icon="text-outline" label="Commentaires actifs" value={overview.commentsCount} />
-                <AdminStatCard icon="file-tray-outline" label="Commentaires supprimés" value={overview.deletedCommentsCount} />
               </View>
               <View style={styles.statsGrid}>
-                <AdminStatCard icon="flag-outline" label="Signalements ouverts" value={overview.openReportsCount} />
-                <AdminStatCard icon="warning-outline" label="Avertissements" value={overview.warningsCount} />
+                <AdminStatCard icon="archive-outline" label="Posts supprimés" value={overview.deletedPostsCount} />
+                <AdminStatCard icon="file-tray-outline" label="Commentaires supprimés" value={overview.deletedCommentsCount} />
               </View>
               <View style={styles.statsGrid}>
                 <AdminStatCard icon="mail-outline" label="Conversations" value={overview.conversationsCount} />
@@ -126,15 +146,17 @@ export function AdminHomeScreen({ navigation }: AdminHomeScreenProps) {
         </View>
 
         {MODULES.length === 0 ? <EmptyState title="Aucun module admin" /> : null}
-        {MODULES.map((item) => (
-          <AdminModuleCard
-            key={item.id}
-            description={item.description}
-            icon={item.icon}
-            title={item.title}
-            onPress={() => navigation.navigate(item.screen)}
-          />
-        ))}
+        <AppSection title="Modules admin">
+          {MODULES.map((item) => (
+            <AdminModuleCard
+              key={item.id}
+              description={item.description}
+              icon={item.icon}
+              title={item.title}
+              onPress={() => navigation.navigate(item.screen)}
+            />
+          ))}
+        </AppSection>
       </ScrollView>
     </Screen>
   );
