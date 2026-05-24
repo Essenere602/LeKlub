@@ -17,6 +17,24 @@ framework:
     php_errors:
         log: true
 
+    rate_limiter:
+        forgot_password:
+            policy: fixed_window
+            limit: 3
+            interval: '15 minutes'
+        reset_password:
+            policy: fixed_window
+            limit: 5
+            interval: '15 minutes'
+        refresh_token:
+            policy: fixed_window
+            limit: 10
+            interval: '1 minute'
+        change_password:
+            policy: fixed_window
+            limit: 5
+            interval: '15 minutes'
+
 when@test:
     framework:
         test: true

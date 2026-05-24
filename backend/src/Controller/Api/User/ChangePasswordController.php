@@ -11,8 +11,10 @@ use App\Shared\Api\ApiResponse;
 use DomainException;
 use JsonException;
 use Symfony\Bundle\SecurityBundle\Security;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\RateLimiter\RateLimiterFactory;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
@@ -22,6 +24,8 @@ final class ChangePasswordController
         private readonly Security $security,
         private readonly ChangeCurrentUserPasswordUseCase $changeCurrentUserPassword,
         private readonly ValidatorInterface $validator,
+        #[Autowire(service: 'limiter.change_password')]
+        private readonly RateLimiterFactory $changePasswordLimiter,
     ) {
     }
 
@@ -32,6 +36,14 @@ final class ChangePasswordController
 
         if (!$user instanceof User) {
             return ApiResponse::error('Authentication required.', [], 401);
+        }
+
+        $rateLimit = $this->changePasswordLimiter
+            ->create(($user->getId() ?? 'unknown').'|'.($request->getClientIp() ?? 'unknown'))
+            ->consume();
+
+        if (!$rateLimit->isAccepted()) {
+            return ApiResponse::error('Too many attempts. Please try again later.', [], 429);
         }
 
         try {
