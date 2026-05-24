@@ -33,7 +33,7 @@ export type FootballStackParamList = {
 export type MessagingStackParamList = {
   Conversations: undefined;
   UserPicker: undefined;
-  ConversationDetail: { conversationId: number; participantUsername: string };
+  ConversationDetail: { conversationId: number; participantAvatarUrl?: string | null; participantUsername: string };
 };
 
 export type ProfileStackParamList = {

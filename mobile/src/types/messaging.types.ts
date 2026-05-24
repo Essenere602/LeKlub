@@ -1,6 +1,7 @@
 export type MessageSender = {
   id: number;
   username: string;
+  avatarUrl: string | null;
 };
 
 export type PrivateMessage = {
@@ -14,6 +15,7 @@ export type PrivateMessage = {
 export type ConversationParticipant = {
   id: number;
   username: string;
+  avatarUrl: string | null;
 };
 
 export type Conversation = {

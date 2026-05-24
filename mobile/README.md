@@ -189,6 +189,8 @@ Contraintes avatar :
 - pas de base64 en base ;
 - stockage local backend dans `public/uploads/avatars/` pour le MVP.
 
+Dans Expo Go, le texte exact de la permission iOS peut rester celui fourni par Expo. Le texte personnalisé est configuré dans `app.json` pour un build Expo/dev build, mais Expo Go ne reflète pas toujours entièrement ce wording.
+
 La modification du compte distingue :
 
 - `username`, modifiable sans mot de passe car c'est une identité publique

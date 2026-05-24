@@ -8,6 +8,7 @@ import { ActionMenu, ActionMenuItem } from '../ui/ActionMenu';
 import { theme } from '../../config/theme';
 import { Post, ReactionType } from '../../types/feed.types';
 import { AppText } from '../ui/AppText';
+import { UserAvatar } from '../messaging/UserAvatar';
 import { ReactionButtons } from './ReactionButtons';
 
 type PostCardProps = {
@@ -133,9 +134,7 @@ export function PostCard({
     >
       <View style={styles.header}>
         <View style={styles.authorBlock}>
-          <View style={styles.avatar}>
-            <AppText style={styles.avatarText}>{post.author.username.slice(0, 1).toUpperCase()}</AppText>
-          </View>
+          <UserAvatar label={post.author.username} size={40} uri={post.author.avatarUrl} />
           <View style={styles.author}>
             <AppText style={styles.username}>@{post.author.username}</AppText>
             <AppText style={styles.date}>{formatDate(post.createdAt)}</AppText>
@@ -235,23 +234,6 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: 'row',
     gap: theme.spacing.md,
-  },
-  avatar: {
-    alignItems: 'center',
-    backgroundColor: theme.colors.accentSoft,
-    borderColor: theme.colors.accent,
-    borderRadius: 20,
-    borderWidth: 1,
-    height: 40,
-    justifyContent: 'center',
-    width: 40,
-  },
-  avatarText: {
-    color: theme.colors.accent,
-    fontSize: theme.typography.sizes.md,
-    fontWeight: theme.typography.weights.bold,
-    includeFontPadding: false,
-    lineHeight: 18,
   },
   author: {
     flex: 1,

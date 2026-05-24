@@ -22,6 +22,7 @@ final class MessagingPresenter
     public function conversation(Conversation $conversation, User $currentUser): array
     {
         $other = $conversation->otherParticipant($currentUser);
+        $otherProfile = $other?->getProfile();
         $lastMessage = $this->messages->findLastVisibleForConversationAndUser($conversation, $currentUser);
 
         return [
@@ -29,6 +30,7 @@ final class MessagingPresenter
             'participant' => $other === null ? null : [
                 'id' => $other->getId(),
                 'username' => $other->getUsername(),
+                'avatarUrl' => $otherProfile?->getAvatarUrl(),
             ],
             'lastMessage' => $lastMessage === null ? null : $this->message($lastMessage),
             'unreadCount' => $this->messages->countVisibleUnreadForRecipient($conversation, $currentUser),
@@ -42,6 +44,7 @@ final class MessagingPresenter
     public function message(Message $message): array
     {
         $sender = $message->getSender();
+        $senderProfile = $sender->getProfile();
 
         return [
             'id' => $message->getId(),
@@ -49,6 +52,7 @@ final class MessagingPresenter
             'sender' => [
                 'id' => $sender->getId(),
                 'username' => $sender->getUsername(),
+                'avatarUrl' => $senderProfile?->getAvatarUrl(),
             ],
             'readAt' => $message->getReadAt()?->format(DATE_ATOM),
             'createdAt' => $message->getCreatedAt()->format(DATE_ATOM),

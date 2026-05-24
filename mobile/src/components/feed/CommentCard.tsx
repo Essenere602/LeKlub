@@ -7,6 +7,7 @@ import { AppButton } from '../ui/AppButton';
 import { AppInput } from '../ui/AppInput';
 import { ActionMenu, ActionMenuItem } from '../ui/ActionMenu';
 import { AppText } from '../ui/AppText';
+import { UserAvatar } from '../messaging/UserAvatar';
 
 type CommentCardProps = {
   comment: Commentaire;
@@ -103,9 +104,7 @@ export function CommentCard({ canManage = false, comment, onDelete, onReport, on
     <View style={styles.card}>
       <View style={styles.header}>
         <View style={styles.identity}>
-          <View style={styles.avatar}>
-            <AppText style={styles.avatarText}>{comment.author.username.slice(0, 1).toUpperCase()}</AppText>
-          </View>
+          <UserAvatar label={comment.author.username} size={34} uri={comment.author.avatarUrl} />
           <View style={styles.author}>
             <AppText style={styles.username}>@{comment.author.username}</AppText>
             <AppText style={styles.date}>{formatDate(comment.createdAt)}</AppText>
@@ -174,23 +173,6 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: 'row',
     gap: theme.spacing.md,
-  },
-  avatar: {
-    alignItems: 'center',
-    backgroundColor: theme.colors.accentSoft,
-    borderColor: theme.colors.borderSoft,
-    borderRadius: 17,
-    borderWidth: 1,
-    height: 34,
-    justifyContent: 'center',
-    width: 34,
-  },
-  avatarText: {
-    color: theme.colors.accent,
-    fontSize: theme.typography.sizes.sm,
-    fontWeight: theme.typography.weights.bold,
-    includeFontPadding: false,
-    lineHeight: 16,
   },
   author: {
     flex: 1,

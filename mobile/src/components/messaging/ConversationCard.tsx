@@ -19,7 +19,7 @@ export function ConversationCard({ conversation, onPress }: ConversationCardProp
       onPress={onPress}
       style={({ pressed }) => [styles.card, pressed && styles.pressed]}
     >
-      <UserAvatar label={participantName} />
+      <UserAvatar label={participantName} uri={conversation.participant?.avatarUrl} />
 
       <View style={styles.body}>
         <View style={styles.header}>

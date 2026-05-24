@@ -53,6 +53,7 @@ export function UserPickerScreen({ navigation }: UserPickerScreenProps) {
       const conversation = await messagingService.createOrOpenConversation(user.id);
       navigation.replace('ConversationDetail', {
         conversationId: conversation.id,
+        participantAvatarUrl: conversation.participant?.avatarUrl ?? user.avatarUrl,
         participantUsername: conversation.participant?.username ?? user.username,
       });
     } catch (caughtError) {

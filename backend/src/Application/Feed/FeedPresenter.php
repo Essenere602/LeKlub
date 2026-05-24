@@ -22,6 +22,7 @@ final class FeedPresenter
     public function post(Post $post): array
     {
         $author = $post->getAuthor();
+        $profile = $author->getProfile();
 
         return [
             'id' => $post->getId(),
@@ -29,6 +30,7 @@ final class FeedPresenter
             'author' => [
                 'id' => $author->getId(),
                 'username' => $author->getUsername(),
+                'avatarUrl' => $profile?->getAvatarUrl(),
             ],
             'likesCount' => $this->posts->countReactions($post, PostReactionType::Like),
             'dislikesCount' => $this->posts->countReactions($post, PostReactionType::Dislike),
@@ -43,6 +45,7 @@ final class FeedPresenter
     public function comment(Comment $comment): array
     {
         $author = $comment->getAuthor();
+        $profile = $author->getProfile();
 
         return [
             'id' => $comment->getId(),
@@ -50,6 +53,7 @@ final class FeedPresenter
             'author' => [
                 'id' => $author->getId(),
                 'username' => $author->getUsername(),
+                'avatarUrl' => $profile?->getAvatarUrl(),
             ],
             'createdAt' => $comment->getCreatedAt()->format(DATE_ATOM),
         ];

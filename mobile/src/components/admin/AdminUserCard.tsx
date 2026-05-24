@@ -6,6 +6,7 @@ import { AdminUser } from '../../types/admin.types';
 import { AppCard } from '../ui/AppCard';
 import { AppText } from '../ui/AppText';
 import { StatusBadge } from '../ui/StatusBadge';
+import { UserAvatar } from '../messaging/UserAvatar';
 
 type AdminUserCardProps = {
   user: AdminUser;
@@ -34,9 +35,7 @@ export function AdminUserCard({
     <AppCard style={styles.card}>
       <View style={styles.copy}>
         <View style={styles.identityRow}>
-          <View style={styles.avatar}>
-            <AppText style={styles.avatarText}>{displayName.slice(0, 1).toUpperCase()}</AppText>
-          </View>
+          <UserAvatar label={displayName} size={44} uri={user.avatarUrl} />
           <View style={styles.identity}>
             <AppText style={styles.displayName}>{displayName}</AppText>
             <AppText variant="muted">@{user.username} · créé le {formatDate(user.createdAt)}</AppText>
@@ -157,23 +156,6 @@ function formatDate(value: string): string {
 const styles = StyleSheet.create({
   card: {
     gap: theme.spacing.md,
-  },
-  avatar: {
-    alignItems: 'center',
-    backgroundColor: theme.colors.accentSoft,
-    borderColor: theme.colors.accent,
-    borderRadius: 22,
-    borderWidth: 1,
-    height: 44,
-    justifyContent: 'center',
-    width: 44,
-  },
-  avatarText: {
-    color: theme.colors.accent,
-    fontSize: theme.typography.sizes.lg,
-    fontWeight: theme.typography.weights.bold,
-    includeFontPadding: false,
-    lineHeight: 20,
   },
   copy: {
     gap: theme.spacing.md,

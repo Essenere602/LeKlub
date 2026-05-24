@@ -13,7 +13,10 @@
       "backgroundColor": "#080B0A"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSPhotoLibraryUsageDescription": "LeKlub utilise la galerie pour choisir une photo de profil."
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -27,7 +30,13 @@
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
-      "expo-secure-store"
+      "expo-secure-store",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "LeKlub utilise la galerie pour choisir une photo de profil."
+        }
+      ]
     ]
   }
 }

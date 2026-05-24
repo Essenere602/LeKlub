@@ -9,6 +9,7 @@ import { AppHeader } from '../../components/ui/AppHeader';
 import { AppInput } from '../../components/ui/AppInput';
 import { AppText } from '../../components/ui/AppText';
 import { ErrorMessage } from '../../components/ui/ErrorMessage';
+import { StatusBadge } from '../../components/ui/StatusBadge';
 import { Screen } from '../../components/ui/Screen';
 import { theme } from '../../config/theme';
 import { useAuth } from '../../hooks/useAuth';
@@ -192,7 +193,12 @@ export function EditProfileScreen({ navigation }: EditProfileScreenProps) {
           </AppCard>
 
           <ErrorMessage message={error} />
-          {successMessage ? <AppText style={styles.success}>{successMessage}</AppText> : null}
+          {successMessage ? (
+            <View style={styles.successBox}>
+              <StatusBadge label="Succès" variant="success" />
+              <AppText style={styles.success}>{successMessage}</AppText>
+            </View>
+          ) : null}
 
           <View style={styles.actions}>
             <AppButton label="Enregistrer" loading={isSaving} onPress={submitProfile} />
@@ -308,6 +314,16 @@ const styles = StyleSheet.create({
     color: theme.colors.success,
     fontSize: theme.typography.sizes.sm,
     fontWeight: theme.typography.weights.semibold,
+  },
+  successBox: {
+    alignItems: 'center',
+    backgroundColor: 'rgba(43, 212, 134, 0.1)',
+    borderColor: theme.colors.success,
+    borderRadius: theme.radius.md,
+    borderWidth: 1,
+    flexDirection: 'row',
+    gap: theme.spacing.sm,
+    padding: theme.spacing.md,
   },
   actions: {
     gap: theme.spacing.md,
