@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Alert, FlatList, RefreshControl, StyleSheet, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -19,147 +19,25 @@ import { useAuth } from '../../hooks/useAuth';
 import { FeedStackParamList } from '../../navigation/navigation.types';
 import { toApiError } from '../../services/api/apiError';
 import { feedService } from '../../services/feed/feedService';
-import { CreateReportPayload, Pagination, Post, ReactionType } from '../../types/feed.types';
+import { CreateReportPayload } from '../../types/feed.types';
+import { useFeedPosts } from './useFeedPosts';
 
 type FeedScreenProps = NativeStackScreenProps<FeedStackParamList, 'Feed'>;
-
-const FEED_LIMIT = 10;
 
 export function FeedScreen({ navigation }: FeedScreenProps) {
   const tabBarHeight = useBottomTabBarHeight();
   const { user } = useAuth();
-  const [posts, setPosts] = useState<Post[]>([]);
-  const [pagination, setPagination] = useState<Pagination | null>(null);
   const [content, setContent] = useState('');
-  const [error, setError] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isRefreshing, setIsRefreshing] = useState(false);
-  const [isCreating, setIsCreating] = useState(false);
-  const [isLoadingMore, setIsLoadingMore] = useState(false);
-  const [reactingPostId, setReactingPostId] = useState<number | null>(null);
   const [reportingPostId, setReportingPostId] = useState<number | null>(null);
   const [isReporting, setIsReporting] = useState(false);
   const [reportError, setReportError] = useState<string | null>(null);
-
-  const loadPosts = useCallback(async (page = 1, append = false) => {
-    const result = await feedService.listPosts(page, FEED_LIMIT);
-    setPagination(result.pagination);
-    setPosts((currentPosts) => (append ? [...currentPosts, ...result.posts] : result.posts));
-  }, []);
-
-  const loadInitialPosts = useCallback(async () => {
-    setError(null);
-    setIsLoading(true);
-
-    try {
-      await loadPosts();
-    } catch (caughtError) {
-      setError(toApiError(caughtError).message);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [loadPosts]);
-
-  useEffect(() => {
-    void loadInitialPosts();
-  }, [loadInitialPosts]);
-
-  async function refreshPosts() {
-    setError(null);
-    setIsRefreshing(true);
-
-    try {
-      await loadPosts();
-    } catch (caughtError) {
-      setError(toApiError(caughtError).message);
-    } finally {
-      setIsRefreshing(false);
-    }
-  }
+  const feed = useFeedPosts();
 
   async function createPost() {
-    const trimmedContent = content.trim();
+    const created = await feed.createPost(content);
 
-    setError(null);
-
-    if (!trimmedContent) {
-      setError('Le contenu du post est requis.');
-      return;
-    }
-
-    setIsCreating(true);
-
-    try {
-      await feedService.createPost({ content: trimmedContent });
+    if (created) {
       setContent('');
-      await loadPosts();
-    } catch (caughtError) {
-      setError(toApiError(caughtError).message);
-    } finally {
-      setIsCreating(false);
-    }
-  }
-
-  async function loadMorePosts() {
-    if (!pagination || pagination.page >= pagination.pages || isLoadingMore) {
-      return;
-    }
-
-    setIsLoadingMore(true);
-    setError(null);
-
-    try {
-      await loadPosts(pagination.page + 1, true);
-    } catch (caughtError) {
-      setError(toApiError(caughtError).message);
-    } finally {
-      setIsLoadingMore(false);
-    }
-  }
-
-  async function reactToPost(postId: number, type: ReactionType) {
-    await updatePostReaction(postId, () => feedService.setReaction(postId, type));
-  }
-
-  async function removeReaction(postId: number) {
-    await updatePostReaction(postId, () => feedService.removeReaction(postId));
-  }
-
-  async function updatePost(postId: number, updatedContent: string) {
-    setError(null);
-
-    try {
-      const updatedPost = await feedService.updatePost(postId, { content: updatedContent });
-      setPosts((currentPosts) => currentPosts.map((post) => (post.id === updatedPost.id ? updatedPost : post)));
-    } catch (caughtError) {
-      setError(toApiError(caughtError).message);
-      throw caughtError;
-    }
-  }
-
-  async function deletePost(postId: number) {
-    setError(null);
-
-    try {
-      await feedService.deletePost(postId);
-      setPosts((currentPosts) => currentPosts.filter((post) => post.id !== postId));
-    } catch (caughtError) {
-      setError(toApiError(caughtError).message);
-      throw caughtError;
-    }
-  }
-
-  async function updatePostReaction(postId: number, action: () => Promise<Post>) {
-    setReactingPostId(postId);
-    setError(null);
-
-    try {
-      const updatedPost = await action();
-      setPosts((currentPosts) => currentPosts.map((post) => (post.id === updatedPost.id ? updatedPost : post)));
-    } catch (caughtError) {
-      setError(toApiError(caughtError).message);
-    } finally {
-      setReactingPostId(null);
     }
   }
 
@@ -198,15 +76,15 @@ export function FeedScreen({ navigation }: FeedScreenProps) {
       />
       <FlatList
         contentContainerStyle={[styles.content, { paddingBottom: tabBarHeight + theme.spacing['2xl'] }]}
-        data={posts}
+        data={feed.posts}
         keyExtractor={(post) => String(post.id)}
-        ListEmptyComponent={!isLoading ? <EmptyFeed /> : null}
+        ListEmptyComponent={!feed.isLoading ? <EmptyFeed /> : null}
         ListFooterComponent={
-          pagination && pagination.page < pagination.pages ? (
+          feed.pagination && feed.pagination.page < feed.pagination.pages ? (
             <AppButton
               label="Charger plus"
-              loading={isLoadingMore}
-              onPress={loadMorePosts}
+              loading={feed.isLoadingMore}
+              onPress={feed.loadMorePosts}
               variant="secondary"
             />
           ) : null
@@ -247,31 +125,31 @@ export function FeedScreen({ navigation }: FeedScreenProps) {
                   <Ionicons color={theme.colors.text.muted} name="football-outline" size={16} />
                   <AppText variant="muted">{content.trim().length}/1000</AppText>
                 </View>
-                <AppButton label="Publier" loading={isCreating} onPress={createPost} style={styles.publishButton} />
+                <AppButton label="Publier" loading={feed.isCreating} onPress={createPost} style={styles.publishButton} />
               </View>
             </AppCard>
 
-            <ErrorMessage message={error} />
-            {isLoading ? <LoadingState message="Chargement du Feed..." /> : null}
+            <ErrorMessage message={feed.error} />
+            {feed.isLoading ? <LoadingState message="Chargement du Feed..." /> : null}
           </View>
         }
         refreshControl={
           <RefreshControl
-            refreshing={isRefreshing}
+            refreshing={feed.isRefreshing}
             tintColor={theme.colors.accent}
-            onRefresh={refreshPosts}
+            onRefresh={feed.refreshPosts}
           />
         }
         renderItem={({ item }) => (
           <PostCard
             canManage={item.author.id === user?.id}
-            disabled={reactingPostId === item.id}
+            disabled={feed.reactingPostId === item.id}
             onOpen={() => navigation.navigate('PostDetail', { postId: item.id })}
-            onReact={(type) => reactToPost(item.id, type)}
-            onDelete={() => deletePost(item.id)}
+            onReact={(type) => feed.reactToPost(item.id, type)}
+            onDelete={() => feed.deletePost(item.id)}
             onReport={() => setReportingPostId(item.id)}
-            onRemoveReaction={() => removeReaction(item.id)}
-            onUpdate={(updatedContent) => updatePost(item.id, updatedContent)}
+            onRemoveReaction={() => feed.removeReaction(item.id)}
+            onUpdate={(updatedContent) => feed.updatePost(item.id, updatedContent)}
             post={item}
           />
         )}

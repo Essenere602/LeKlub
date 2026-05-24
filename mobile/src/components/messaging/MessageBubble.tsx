@@ -2,6 +2,7 @@ import { Alert, Pressable, StyleSheet, View } from 'react-native';
 
 import { theme } from '../../config/theme';
 import { PrivateMessage } from '../../types/messaging.types';
+import { formatMessageTime } from '../../utils/dateFormat';
 import { AppText } from '../ui/AppText';
 
 type MessageBubbleProps = {
@@ -38,7 +39,7 @@ export function MessageBubble({ message, mine, onHideForMe }: MessageBubbleProps
         {!mine ? <AppText style={styles.sender}>{message.sender.username}</AppText> : null}
         <AppText style={[styles.content, mine && styles.mineContent]}>{message.content}</AppText>
         <View style={styles.metaRow}>
-          <AppText style={[styles.date, mine && styles.mineDate]}>{formatMessageDate(message.createdAt)}</AppText>
+          <AppText style={[styles.date, mine && styles.mineDate]}>{formatMessageTime(message.createdAt)}</AppText>
           {mine ? (
             <AppText
               accessibilityLabel={isRead ? 'Message lu' : 'Message envoyé non lu'}
@@ -51,19 +52,6 @@ export function MessageBubble({ message, mine, onHideForMe }: MessageBubbleProps
       </Pressable>
     </View>
   );
-}
-
-function formatMessageDate(value: string): string {
-  const date = new Date(value);
-
-  if (Number.isNaN(date.getTime())) {
-    return '';
-  }
-
-  return date.toLocaleTimeString('fr-FR', {
-    hour: '2-digit',
-    minute: '2-digit',
-  });
 }
 
 const styles = StyleSheet.create({

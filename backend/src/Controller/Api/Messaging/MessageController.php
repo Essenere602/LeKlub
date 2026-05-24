@@ -8,14 +8,13 @@ use App\Application\Messaging\HideMessageForCurrentUserUseCase;
 use App\Application\Messaging\ListMessagesUseCase;
 use App\Application\Messaging\MarkConversationAsReadUseCase;
 use App\Application\Messaging\SendMessageUseCase;
-use App\Domain\Entity\User;
 use App\Domain\Exception\ResourceNotFoundException;
 use App\Domain\Exception\UserSuspendedException;
 use App\Domain\Repository\ConversationRepositoryInterface;
 use App\DTO\Messaging\SendMessageRequest;
 use App\Security\Voter\ConversationVoter;
+use App\Shared\Api\ApiControllerHelpers;
 use App\Shared\Api\ApiResponse;
-use JsonException;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -25,6 +24,8 @@ use Symfony\Component\Validator\Validator\ValidatorInterface;
 #[Route('/api/conversations')]
 final class MessageController
 {
+    use ApiControllerHelpers;
+
     public function __construct(
         private readonly Security $security,
         private readonly ValidatorInterface $validator,
@@ -46,7 +47,7 @@ final class MessageController
         }
 
         return ApiResponse::success([
-            'messages' => $useCase->execute($conversation, $this->currentUser()),
+            'messages' => $useCase->execute($conversation, $this->currentUser($this->security)),
         ]);
     }
 
@@ -69,15 +70,15 @@ final class MessageController
         }
 
         $dto = SendMessageRequest::fromArray($payload);
-        $violations = $this->validator->validate($dto);
+        $validationError = $this->validationError($dto, $this->validator);
 
-        if (count($violations) > 0) {
-            return ApiResponse::validationError($violations);
+        if ($validationError !== null) {
+            return $validationError;
         }
 
         try {
             return ApiResponse::success([
-                'message' => $useCase->execute($conversation, $this->currentUser(), $dto),
+                'message' => $useCase->execute($conversation, $this->currentUser($this->security), $dto),
             ], 'Message sent.', 201);
         } catch (UserSuspendedException $exception) {
             return ApiResponse::error($exception->getMessage(), [], 403);
@@ -97,7 +98,7 @@ final class MessageController
             return ApiResponse::error('Access denied.', [], 403);
         }
 
-        $useCase->execute($conversation, $this->currentUser());
+        $useCase->execute($conversation, $this->currentUser($this->security));
 
         return ApiResponse::success([], 'Conversation marked as read.');
     }
@@ -116,7 +117,7 @@ final class MessageController
         }
 
         try {
-            $useCase->execute($conversation, $messageId, $this->currentUser());
+            $useCase->execute($conversation, $messageId, $this->currentUser($this->security));
 
             return ApiResponse::success([], 'Message hidden successfully.');
         } catch (ResourceNotFoundException) {
@@ -124,28 +125,4 @@ final class MessageController
         }
     }
 
-    private function currentUser(): User
-    {
-        $user = $this->security->getUser();
-
-        if (!$user instanceof User) {
-            throw new \LogicException('Authenticated user expected.');
-        }
-
-        return $user;
-    }
-
-    /**
-     * @return array<string, mixed>|JsonResponse
-     */
-    private function jsonPayload(Request $request): array|JsonResponse
-    {
-        try {
-            $payload = json_decode($request->getContent(), true, 512, JSON_THROW_ON_ERROR);
-        } catch (JsonException) {
-            return ApiResponse::error('Invalid JSON payload.', [], 400);
-        }
-
-        return is_array($payload) ? $payload : ApiResponse::error('Invalid JSON payload.', [], 400);
-    }
 }

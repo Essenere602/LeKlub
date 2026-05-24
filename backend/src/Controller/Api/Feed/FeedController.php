@@ -9,16 +9,15 @@ use App\Application\Feed\DeletePostUseCase;
 use App\Application\Feed\GetPostUseCase;
 use App\Application\Feed\ListFeedUseCase;
 use App\Application\Feed\UpdatePostUseCase;
-use App\Domain\Entity\User;
 use App\Domain\Exception\ResourceNotFoundException;
 use App\Domain\Exception\UserSuspendedException;
 use App\Domain\Repository\PostRepositoryInterface;
 use App\DTO\Feed\CreatePostRequest;
 use App\DTO\Feed\UpdatePostRequest;
 use App\Security\Voter\PostVoter;
+use App\Shared\Api\ApiControllerHelpers;
 use App\Shared\Api\ApiResponse;
 use App\Shared\Api\Pagination;
-use JsonException;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -28,6 +27,8 @@ use Symfony\Component\Validator\Validator\ValidatorInterface;
 #[Route('/api/feed')]
 final class FeedController
 {
+    use ApiControllerHelpers;
+
     public function __construct(
         private readonly Security $security,
         private readonly ValidatorInterface $validator,
@@ -44,7 +45,7 @@ final class FeedController
     #[Route('', name: 'api_feed_create', methods: ['POST'])]
     public function create(Request $request, CreatePostUseCase $useCase): JsonResponse
     {
-        $user = $this->currentUser();
+        $user = $this->currentUser($this->security);
         $payload = $this->jsonPayload($request);
 
         if ($payload instanceof JsonResponse) {
@@ -52,10 +53,10 @@ final class FeedController
         }
 
         $dto = CreatePostRequest::fromArray($payload);
-        $violations = $this->validator->validate($dto);
+        $validationError = $this->validationError($dto, $this->validator);
 
-        if (count($violations) > 0) {
-            return ApiResponse::validationError($violations);
+        if ($validationError !== null) {
+            return $validationError;
         }
 
         try {
@@ -99,10 +100,10 @@ final class FeedController
         }
 
         $dto = UpdatePostRequest::fromArray($payload);
-        $violations = $this->validator->validate($dto);
+        $validationError = $this->validationError($dto, $this->validator);
 
-        if (count($violations) > 0) {
-            return ApiResponse::validationError($violations);
+        if ($validationError !== null) {
+            return $validationError;
         }
 
         try {
@@ -119,7 +120,7 @@ final class FeedController
     #[Route('/{id}', name: 'api_feed_delete', methods: ['DELETE'], requirements: ['id' => '\d+'])]
     public function delete(int $id, DeletePostUseCase $useCase): JsonResponse
     {
-        $user = $this->currentUser();
+        $user = $this->currentUser($this->security);
         $post = $this->posts->findVisibleById($id);
 
         if ($post === null) {
@@ -135,28 +136,4 @@ final class FeedController
         return ApiResponse::success([], 'Post deleted successfully.');
     }
 
-    private function currentUser(): User
-    {
-        $user = $this->security->getUser();
-
-        if (!$user instanceof User) {
-            throw new \LogicException('Authenticated user expected.');
-        }
-
-        return $user;
-    }
-
-    /**
-     * @return array<string, mixed>|JsonResponse
-     */
-    private function jsonPayload(Request $request): array|JsonResponse
-    {
-        try {
-            $payload = json_decode($request->getContent(), true, 512, JSON_THROW_ON_ERROR);
-        } catch (JsonException) {
-            return ApiResponse::error('Invalid JSON payload.', [], 400);
-        }
-
-        return is_array($payload) ? $payload : ApiResponse::error('Invalid JSON payload.', [], 400);
-    }
 }

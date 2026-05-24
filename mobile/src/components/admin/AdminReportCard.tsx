@@ -3,6 +3,7 @@ import { Ionicons } from '@expo/vector-icons';
 
 import { theme } from '../../config/theme';
 import { AdminReport } from '../../types/admin.types';
+import { formatShortDateTime } from '../../utils/dateFormat';
 import { AppCard } from '../ui/AppCard';
 import { AppText } from '../ui/AppText';
 import { StatusBadge } from '../ui/StatusBadge';
@@ -52,7 +53,7 @@ export function AdminReportCard({ onReject, onRemoveContent, report, resolving =
             <AppText style={styles.queueTitle}>
               {report.status === 'open' ? 'À traiter' : 'Signalement traité'}
             </AppText>
-            <AppText variant="muted">#{report.id} · {formatDate(report.createdAt)}</AppText>
+            <AppText variant="muted">#{report.id} · {formatShortDateTime(report.createdAt)}</AppText>
           </View>
         </View>
         <View style={styles.badges}>
@@ -85,7 +86,7 @@ export function AdminReportCard({ onReject, onRemoveContent, report, resolving =
           </AppText>
           {report.adminNote ? <AppText variant="muted">Note : {report.adminNote}</AppText> : null}
           <AppText variant="muted">
-            Résolu le {formatDate(report.resolvedAt)}
+            Résolu le {formatShortDateTime(report.resolvedAt)}
             {report.resolvedBy ? ` par @${report.resolvedBy.username}` : ''}
           </AppText>
         </View>
@@ -140,21 +141,6 @@ function labelForDecision(decision: AdminReport['decision']): string {
   }
 
   return 'Non renseignée';
-}
-
-function formatDate(value: string): string {
-  const date = new Date(value);
-
-  if (Number.isNaN(date.getTime())) {
-    return value;
-  }
-
-  return date.toLocaleDateString('fr-FR', {
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
-    month: 'short',
-  });
 }
 
 const styles = StyleSheet.create({

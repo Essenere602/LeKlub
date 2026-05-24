@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Tests\Application\Admin;
 
 use App\Application\Admin\AdminPresenter;
+use App\Application\Admin\ApplyUserWarningPolicy;
 use App\Application\Admin\ResolveFeedReportUseCase;
 use App\Application\Feed\DeleteCommentUseCase;
 use App\Application\Feed\DeletePostUseCase;
@@ -139,11 +140,14 @@ final class ResolveFeedReportUseCaseTest extends TestCase
 
         return new ResolveFeedReportUseCase(
             $reports ?? new ResolvingFeedReportRepository(null),
-            $warnings ?? new ResolvingWarningRepository(),
-            $users ?? new ResolvingUserRepository(),
             $notifications ?? new ResolvingNotificationRepository(),
             new DeletePostUseCase($postRepository),
             new DeleteCommentUseCase($commentRepository),
+            new ApplyUserWarningPolicy(
+                $warnings ?? new ResolvingWarningRepository(),
+                $users ?? new ResolvingUserRepository(),
+                $notifications ?? new ResolvingNotificationRepository(),
+            ),
             new AdminPresenter($postRepository, $warnings ?? new ResolvingWarningRepository()),
         );
     }

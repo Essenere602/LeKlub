@@ -2,6 +2,7 @@ import { StyleSheet, View } from 'react-native';
 
 import { theme } from '../../config/theme';
 import { AdminWarning } from '../../types/admin.types';
+import { formatShortDateTime } from '../../utils/dateFormat';
 import { AppCard } from '../ui/AppCard';
 import { AppText } from '../ui/AppText';
 import { StatusBadge } from '../ui/StatusBadge';
@@ -17,7 +18,7 @@ export function AdminWarningCard({ warning }: AdminWarningCardProps) {
         <View style={styles.titleGroup}>
           <AppText style={styles.username}>@{warning.user.username}</AppText>
           <AppText variant="muted">
-            Averti le {formatDate(warning.createdAt)}
+            Averti le {formatShortDateTime(warning.createdAt)}
           </AppText>
         </View>
         <StatusBadge label={statusLabel(warning)} variant={statusVariant(warning)} />
@@ -48,7 +49,7 @@ export function AdminWarningCard({ warning }: AdminWarningCardProps) {
       {warning.isSuspended && warning.suspendedUntil ? (
         <View style={styles.suspension}>
           <AppText variant="label">Suspension active</AppText>
-          <AppText variant="muted">Jusqu'au {formatDate(warning.suspendedUntil)}</AppText>
+          <AppText variant="muted">Jusqu'au {formatShortDateTime(warning.suspendedUntil)}</AppText>
         </View>
       ) : null}
     </AppCard>
@@ -116,21 +117,6 @@ function labelForDecision(decision: AdminWarning['report']['decision']): string 
   }
 
   return 'Non résolu';
-}
-
-function formatDate(value: string): string {
-  const date = new Date(value);
-
-  if (Number.isNaN(date.getTime())) {
-    return value;
-  }
-
-  return date.toLocaleDateString('fr-FR', {
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
-    month: 'short',
-  });
 }
 
 const styles = StyleSheet.create({

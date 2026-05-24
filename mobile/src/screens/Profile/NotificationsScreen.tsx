@@ -18,6 +18,7 @@ import { toApiError } from '../../services/api/apiError';
 import { notificationService } from '../../services/notification/notificationService';
 import { Pagination } from '../../types/feed.types';
 import { SystemNotification } from '../../types/notification.types';
+import { formatShortDateTime } from '../../utils/dateFormat';
 
 type NotificationsScreenProps = NativeStackScreenProps<ProfileStackParamList, 'Notifications'>;
 
@@ -159,7 +160,7 @@ function NotificationCard({ marking, notification, onMarkAsRead }: NotificationC
           </View>
           <View style={styles.notificationHeaderCopy}>
             <AppText style={styles.typeLabel}>{notificationMeta.label}</AppText>
-            <AppText variant="muted">{formatDate(notification.createdAt)}</AppText>
+            <AppText variant="muted">{formatShortDateTime(notification.createdAt)}</AppText>
           </View>
         </View>
         <StatusBadge label={isUnread ? 'Non lu' : 'Lu'} variant={isUnread ? 'accent' : 'neutral'} />
@@ -189,21 +190,6 @@ function metaForNotificationType(type: SystemNotification['type']): {
   };
 
   return meta[type];
-}
-
-function formatDate(value: string): string {
-  const date = new Date(value);
-
-  if (Number.isNaN(date.getTime())) {
-    return value;
-  }
-
-  return date.toLocaleDateString('fr-FR', {
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
-    month: 'short',
-  });
 }
 
 const styles = StyleSheet.create({

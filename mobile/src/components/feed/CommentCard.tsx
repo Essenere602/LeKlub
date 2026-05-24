@@ -3,6 +3,7 @@ import { useState } from 'react';
 
 import { theme } from '../../config/theme';
 import { Commentaire } from '../../types/feed.types';
+import { formatShortDateTime } from '../../utils/dateFormat';
 import { AppButton } from '../ui/AppButton';
 import { AppInput } from '../ui/AppInput';
 import { ActionMenu, ActionMenuItem } from '../ui/ActionMenu';
@@ -107,7 +108,7 @@ export function CommentCard({ canManage = false, comment, onDelete, onReport, on
           <UserAvatar label={comment.author.username} size={34} uri={comment.author.avatarUrl} />
           <View style={styles.author}>
             <AppText style={styles.username}>@{comment.author.username}</AppText>
-            <AppText style={styles.date}>{formatDate(comment.createdAt)}</AppText>
+            <AppText style={styles.date}>{formatShortDateTime(comment.createdAt)}</AppText>
           </View>
         </View>
         <ActionMenu items={menuItems} accessibilityLabel="Actions du Commentaire" />
@@ -137,21 +138,6 @@ export function CommentCard({ canManage = false, comment, onDelete, onReport, on
       )}
     </View>
   );
-}
-
-function formatDate(value: string): string {
-  const date = new Date(value);
-
-  if (Number.isNaN(date.getTime())) {
-    return value;
-  }
-
-  return date.toLocaleDateString('fr-FR', {
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
-    month: 'short',
-  });
 }
 
 const styles = StyleSheet.create({
