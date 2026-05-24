@@ -3,6 +3,7 @@ export type ReactionType = 'like' | 'dislike';
 export type FeedAuthor = {
   id: number;
   username: string;
+  avatarUrl: string | null;
 };
 
 export type Post = {

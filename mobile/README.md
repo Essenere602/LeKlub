@@ -174,12 +174,22 @@ Le profil mobile utilise :
 - `GET /api/me` pour afficher l'utilisateur connecté et son profil
 - `GET /api/me/notifications?page=&limit=` pour afficher les notifications système
 - `PATCH /api/me/notifications/{id}/read` pour marquer une notification comme lue
-- `PATCH /api/me/profile` pour modifier `displayName`, `bio`, `favoriteTeamName` et `avatarUrl`
+- `PATCH /api/me/profile` pour modifier `displayName`, `bio` et `favoriteTeamName`
+- `POST /api/me/avatar` pour uploader une photo de profil
 - `PATCH /api/me/account` pour modifier l'email et le username
 - `PATCH /api/me/password` pour modifier le mot de passe de l'utilisateur connecté
 - `AuthContext.refreshCurrentUser()` après modification pour recharger les données depuis le backend
 
-L'avatar reste une URL texte dans cette version afin de garder un flux simple et maîtrisé côté mobile.
+L'avatar est choisi depuis la galerie avec Expo Image Picker, puis envoyé au backend en `multipart/form-data`.
+
+Contraintes avatar :
+
+- formats acceptés : JPG, PNG, WEBP ;
+- taille maximale : 2 Mo ;
+- pas de base64 en base ;
+- stockage local backend dans `public/uploads/avatars/` pour le MVP.
+
+Dans Expo Go, le texte exact de la permission iOS peut rester celui fourni par Expo. Le texte personnalisé est configuré dans `app.json` pour un build Expo/dev build, mais Expo Go ne reflète pas toujours entièrement ce wording.
 
 La modification du compte distingue :
 
@@ -213,7 +223,9 @@ La validation mobile reprend les règles backend : minimum 10 caractères, au mo
 - modifier le nom affiché, la bio et l'équipe favorite
 - enregistrer et vérifier le message de succès
 - revenir à l'écran `Compte` et vérifier que les données sont rafraîchies
-- saisir une URL avatar invalide et vérifier l'erreur de validation
+- choisir une photo de profil depuis la galerie
+- vérifier que l'avatar est affiché après upload
+- fermer et rouvrir l'application puis vérifier que l'avatar reste visible
 - vider un champ et vérifier qu'il est bien accepté comme valeur vide
 - ouvrir `Changer mon mot de passe`
 - vérifier qu'un formulaire incomplet affiche une erreur
@@ -452,7 +464,8 @@ La correction automatique proposée par npm implique un changement majeur de ver
 - pas de reconnexion WebSocket avancée
 - pas de pagination de l'historique des Messages privés
 - pas de cache football complexe
-- pas d'upload d'avatar ou d'image de Post
+- pas d'upload d'image de Post
+- pas de stockage cloud des avatars
 - pas de statut visuel actif pour la Réaction courante du Feed
 
 ## Structure

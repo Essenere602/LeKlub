@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import { Image, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, View } from 'react-native';
+import * as ImagePicker from 'expo-image-picker';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 
 import { AppButton } from '../../components/ui/AppButton';
@@ -8,6 +9,7 @@ import { AppHeader } from '../../components/ui/AppHeader';
 import { AppInput } from '../../components/ui/AppInput';
 import { AppText } from '../../components/ui/AppText';
 import { ErrorMessage } from '../../components/ui/ErrorMessage';
+import { StatusBadge } from '../../components/ui/StatusBadge';
 import { Screen } from '../../components/ui/Screen';
 import { theme } from '../../config/theme';
 import { useAuth } from '../../hooks/useAuth';
@@ -22,8 +24,10 @@ type ProfileForm = {
   displayName: string;
   bio: string;
   favoriteTeamName: string;
-  avatarUrl: string;
 };
+
+const MAX_AVATAR_SIZE_BYTES = 2 * 1024 * 1024;
+const ALLOWED_AVATAR_MIMES = ['image/jpeg', 'image/png', 'image/webp'];
 
 export function EditProfileScreen({ navigation }: EditProfileScreenProps) {
   const { refreshCurrentUser, user } = useAuth();
@@ -31,15 +35,15 @@ export function EditProfileScreen({ navigation }: EditProfileScreenProps) {
     displayName: user?.profile.displayName ?? '',
     bio: user?.profile.bio ?? '',
     favoriteTeamName: user?.profile.favoriteTeamName ?? '',
-    avatarUrl: user?.profile.avatarUrl ?? '',
   }), [user]);
 
   const [form, setForm] = useState<ProfileForm>(initialForm);
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
 
-  const trimmedAvatarUrl = form.avatarUrl.trim();
+  const avatarUrl = user?.profile.avatarUrl?.trim();
 
   function updateField(field: keyof ProfileForm, value: string) {
     setForm((currentForm) => ({ ...currentForm, [field]: value }));
@@ -56,7 +60,6 @@ export function EditProfileScreen({ navigation }: EditProfileScreenProps) {
       displayName: nullableTrim(form.displayName),
       bio: nullableTrim(form.bio),
       favoriteTeamName: nullableTrim(form.favoriteTeamName),
-      avatarUrl: nullableTrim(form.avatarUrl),
     };
 
     try {
@@ -67,6 +70,58 @@ export function EditProfileScreen({ navigation }: EditProfileScreenProps) {
       setError(toApiError(caughtError).message);
     } finally {
       setIsSaving(false);
+    }
+  }
+
+  async function chooseAvatar() {
+    setError(null);
+    setSuccessMessage(null);
+
+    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+
+    if (!permission.granted) {
+      setError('Autorise l’accès à la galerie pour choisir une photo.');
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      allowsEditing: true,
+      aspect: [1, 1],
+      mediaTypes: ['images'],
+      quality: 0.85,
+    });
+
+    if (result.canceled || !result.assets[0]) {
+      return;
+    }
+
+    const asset = result.assets[0];
+    const mimeType = mimeTypeFor(asset);
+
+    if (!mimeType || !ALLOWED_AVATAR_MIMES.includes(mimeType)) {
+      setError('Choisis une image JPG, PNG ou WEBP.');
+      return;
+    }
+
+    if (asset.fileSize !== undefined && asset.fileSize > MAX_AVATAR_SIZE_BYTES) {
+      setError('La photo doit faire 2 Mo maximum.');
+      return;
+    }
+
+    setIsUploadingAvatar(true);
+
+    try {
+      await profileService.uploadAvatar({
+        uri: asset.uri,
+        name: fileNameFor(asset, mimeType),
+        type: mimeType,
+      });
+      await refreshCurrentUser();
+      setSuccessMessage('Photo de profil mise à jour.');
+    } catch (caughtError) {
+      setError(toApiError(caughtError).message);
+    } finally {
+      setIsUploadingAvatar(false);
     }
   }
 
@@ -84,8 +139,8 @@ export function EditProfileScreen({ navigation }: EditProfileScreenProps) {
           />
 
           <AppCard style={styles.identityPanel} variant="accent">
-            {trimmedAvatarUrl ? (
-              <Image source={{ uri: trimmedAvatarUrl }} style={styles.avatar} />
+            {avatarUrl ? (
+              <Image source={{ uri: avatarUrl }} style={styles.avatar} />
             ) : (
               <View style={styles.avatarFallback}>
                 <AppText style={styles.avatarInitial}>{(user?.username ?? 'L').slice(0, 1).toUpperCase()}</AppText>
@@ -94,8 +149,15 @@ export function EditProfileScreen({ navigation }: EditProfileScreenProps) {
 
             <View style={styles.identityText}>
               <AppText variant="label">{user?.username}</AppText>
-              <AppText variant="muted">Avatar par URL pour cette version mobile.</AppText>
+              <AppText variant="muted">Photo JPG, PNG ou WEBP. Taille maximale : 2 Mo.</AppText>
             </View>
+            <AppButton
+              label="Changer"
+              loading={isUploadingAvatar}
+              onPress={chooseAvatar}
+              style={styles.avatarButton}
+              variant="secondary"
+            />
           </AppCard>
 
           <AppCard style={styles.form}>
@@ -128,20 +190,15 @@ export function EditProfileScreen({ navigation }: EditProfileScreenProps) {
               placeholder="Ex. Paris Saint-Germain"
               value={form.favoriteTeamName}
             />
-
-            <AppInput
-              autoCapitalize="none"
-              keyboardType="url"
-              label="URL avatar"
-              maxLength={255}
-              onChangeText={(value) => updateField('avatarUrl', value)}
-              placeholder="https://..."
-              value={form.avatarUrl}
-            />
           </AppCard>
 
           <ErrorMessage message={error} />
-          {successMessage ? <AppText style={styles.success}>{successMessage}</AppText> : null}
+          {successMessage ? (
+            <View style={styles.successBox}>
+              <StatusBadge label="Succès" variant="success" />
+              <AppText style={styles.success}>{successMessage}</AppText>
+            </View>
+          ) : null}
 
           <View style={styles.actions}>
             <AppButton label="Enregistrer" loading={isSaving} onPress={submitProfile} />
@@ -157,6 +214,46 @@ function nullableTrim(value: string): string | null {
   const trimmedValue = value.trim();
 
   return trimmedValue === '' ? null : trimmedValue;
+}
+
+function mimeTypeFor(asset: ImagePicker.ImagePickerAsset): string | null {
+  if (asset.mimeType) {
+    return asset.mimeType;
+  }
+
+  const extension = extensionFor(asset.fileName ?? asset.uri);
+
+  if (extension === 'jpg' || extension === 'jpeg') {
+    return 'image/jpeg';
+  }
+
+  if (extension === 'png') {
+    return 'image/png';
+  }
+
+  if (extension === 'webp') {
+    return 'image/webp';
+  }
+
+  return null;
+}
+
+function fileNameFor(asset: ImagePicker.ImagePickerAsset, mimeType: string): string {
+  const fallbackExtension = mimeType === 'image/png' ? 'png' : mimeType === 'image/webp' ? 'webp' : 'jpg';
+  const rawName = asset.fileName?.trim();
+
+  if (rawName) {
+    return rawName;
+  }
+
+  return `avatar.${fallbackExtension}`;
+}
+
+function extensionFor(value: string): string {
+  const cleanValue = value.split('?')[0] ?? value;
+  const extension = cleanValue.split('.').pop();
+
+  return extension?.toLowerCase() ?? '';
 }
 
 const styles = StyleSheet.create({
@@ -202,6 +299,10 @@ const styles = StyleSheet.create({
     flex: 1,
     gap: theme.spacing.xs,
   },
+  avatarButton: {
+    minHeight: 42,
+    paddingHorizontal: theme.spacing.md,
+  },
   form: {
     gap: theme.spacing.lg,
   },
@@ -213,6 +314,16 @@ const styles = StyleSheet.create({
     color: theme.colors.success,
     fontSize: theme.typography.sizes.sm,
     fontWeight: theme.typography.weights.semibold,
+  },
+  successBox: {
+    alignItems: 'center',
+    backgroundColor: 'rgba(43, 212, 134, 0.1)',
+    borderColor: theme.colors.success,
+    borderRadius: theme.radius.md,
+    borderWidth: 1,
+    flexDirection: 'row',
+    gap: theme.spacing.sm,
+    padding: theme.spacing.md,
   },
   actions: {
     gap: theme.spacing.md,

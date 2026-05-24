@@ -107,6 +107,7 @@ export function ConversationListScreen({ navigation }: ConversationListScreenPro
             conversation={item}
             onPress={() => navigation.navigate('ConversationDetail', {
               conversationId: item.id,
+              participantAvatarUrl: item.participant?.avatarUrl ?? null,
               participantUsername: item.participant?.username ?? 'Conversation',
             })}
           />

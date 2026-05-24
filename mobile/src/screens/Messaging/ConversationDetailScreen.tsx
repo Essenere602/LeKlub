@@ -3,6 +3,7 @@ import { ActivityIndicator, FlatList, KeyboardAvoidingView, Platform, StyleSheet
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 
 import { MessageBubble } from '../../components/messaging/MessageBubble';
+import { UserAvatar } from '../../components/messaging/UserAvatar';
 import { AppButton } from '../../components/ui/AppButton';
 import { AppInput } from '../../components/ui/AppInput';
 import { AppText } from '../../components/ui/AppText';
@@ -21,7 +22,7 @@ import { PrivateMessage } from '../../types/messaging.types';
 type ConversationDetailScreenProps = NativeStackScreenProps<MessagingStackParamList, 'ConversationDetail'>;
 
 export function ConversationDetailScreen({ navigation, route }: ConversationDetailScreenProps) {
-  const { conversationId, participantUsername } = route.params;
+  const { conversationId, participantAvatarUrl, participantUsername } = route.params;
   const { isAuthenticated, user } = useAuth();
   const { refreshUnreadCount } = useMessagingUnread();
   const listRef = useRef<FlatList<PrivateMessage>>(null);
@@ -112,10 +113,13 @@ export function ConversationDetailScreen({ navigation, route }: ConversationDeta
       >
         <View style={styles.header}>
           <AppButton label="Retour messages" onPress={() => navigation.goBack()} variant="secondary" />
-          <View style={styles.titleBlock}>
-            <AppText style={styles.kicker}>Conversation privée</AppText>
-            <AppText variant="title">{participantUsername}</AppText>
-            <StatusBadge {...badgeForSocketStatus(socketStatus)} />
+          <View style={styles.participantHeader}>
+            <UserAvatar label={participantUsername} size={44} uri={participantAvatarUrl} />
+            <View style={styles.titleBlock}>
+              <AppText style={styles.kicker}>Conversation privée</AppText>
+              <AppText variant="title">{participantUsername}</AppText>
+              <StatusBadge {...badgeForSocketStatus(socketStatus)} />
+            </View>
           </View>
           <ErrorMessage message={error} />
         </View>
@@ -198,7 +202,13 @@ const styles = StyleSheet.create({
     gap: theme.spacing.md,
   },
   titleBlock: {
+    flex: 1,
     gap: theme.spacing.xs,
+  },
+  participantHeader: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: theme.spacing.md,
   },
   kicker: {
     color: theme.colors.accent,

@@ -10,6 +10,16 @@ type UpdateAccountResponseData = {
   user: User;
 };
 
+type UploadAvatarResponseData = {
+  user: User;
+};
+
+type AvatarUploadFile = {
+  uri: string;
+  name: string;
+  type: string;
+};
+
 export const profileService = {
   async updateCurrentProfile(payload: UpdateProfilePayload): Promise<User> {
     const response = await apiClient.patch<ApiResponse<UpdateProfileResponseData>>('/me/profile', payload);
@@ -33,5 +43,22 @@ export const profileService = {
 
   async changePassword(payload: ChangePasswordPayload): Promise<void> {
     await apiClient.patch<ApiResponse<[]>>('/me/password', payload);
+  },
+
+  async uploadAvatar(file: AvatarUploadFile): Promise<User> {
+    const formData = new FormData();
+    formData.append('avatar', file as unknown as Blob);
+
+    const response = await apiClient.post<ApiResponse<UploadAvatarResponseData>>('/me/avatar', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+
+    if (!response.data.data?.user) {
+      throw new Error(response.data.message ?? 'Unable to upload avatar.');
+    }
+
+    return response.data.data.user;
   },
 };

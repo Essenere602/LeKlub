@@ -217,6 +217,42 @@ Modifie uniquement le profil de l'utilisateur authentifié.
 
 Codes possibles : `200`, `400`, `401`, `422`.
 
+### POST /api/me/avatar
+
+Upload une image de profil pour l'utilisateur authentifié.
+
+Requête `multipart/form-data` :
+
+```text
+avatar=<fichier image>
+```
+
+Règles :
+
+- route protégée par JWT ;
+- formats acceptés : JPG, JPEG, PNG, WEBP ;
+- taille maximale : 2 Mo ;
+- validation de l'extension et du type MIME ;
+- nom de fichier généré aléatoirement côté backend ;
+- stockage local MVP dans `public/uploads/avatars/` ;
+- remplacement de l'ancien avatar uniquement s'il s'agit d'un avatar local uploadé par LeKlub ;
+- aucune image n'est stockée en base64 en base de données.
+
+Réponse uniforme :
+
+```json
+{
+  "success": true,
+  "data": {
+    "user": {}
+  },
+  "message": "Avatar updated successfully.",
+  "errors": []
+}
+```
+
+Codes possibles : `200`, `401`, `422`.
+
 ### PATCH /api/me/account
 
 Modifie les informations de compte de l'utilisateur authentifié.
