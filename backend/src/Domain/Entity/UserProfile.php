@@ -92,6 +92,12 @@ class UserProfile
         $this->touch();
     }
 
+    public function updateAvatarUrl(?string $avatarUrl): void
+    {
+        $this->avatarUrl = $avatarUrl;
+        $this->touch();
+    }
+
     public function getCreatedAt(): DateTimeImmutable
     {
         return $this->createdAt;

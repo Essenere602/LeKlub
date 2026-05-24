@@ -265,6 +265,7 @@ POST   /api/auth/forgot-password
 POST   /api/auth/reset-password
 GET    /api/me
 PATCH  /api/me/profile
+POST   /api/me/avatar
 PATCH  /api/me/account
 PATCH  /api/me/password
 GET    /api/users

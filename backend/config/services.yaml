@@ -5,6 +5,8 @@
 # https://symfony.com/doc/current/best_practices.html#use-parameters-for-application-configuration
 parameters:
     football_data_api_default_base_url: 'https://api.football-data.org'
+    avatar_upload_directory: '%kernel.project_dir%/public/uploads/avatars'
+    avatar_public_path: '/uploads/avatars'
 
 services:
     # default configuration for services in *this* file
@@ -47,6 +49,9 @@ services:
     App\Domain\Repository\RefreshTokenRepositoryInterface:
         alias: App\Infrastructure\Doctrine\Repository\RefreshTokenRepository
 
+    App\Application\User\AvatarStorageInterface:
+        alias: App\Infrastructure\Storage\LocalAvatarStorage
+
     App\Application\Auth\PasswordResetNotifierInterface:
         alias: App\Infrastructure\Security\PasswordResetEmailNotifier
 
@@ -75,6 +80,11 @@ services:
     App\Infrastructure\WebSocket\ChatNotificationServer:
         arguments:
             $projectDir: '%kernel.project_dir%'
+
+    App\Infrastructure\Storage\LocalAvatarStorage:
+        arguments:
+            $uploadDirectory: '%avatar_upload_directory%'
+            $publicPath: '%avatar_public_path%'
 
     App\Controller\:
         resource: '../src/Controller/'

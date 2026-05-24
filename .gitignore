@@ -26,6 +26,7 @@ docker/mysql/data/
 /backend/var/
 /backend/.env.local
 /backend/.env.*.local
+/backend/public/uploads/
 /backend/public/bundles/
 /backend/phpunit.xml
 /backend/.phpunit.result.cache

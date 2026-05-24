@@ -43,6 +43,21 @@ Le profil utilisateur regroupe l'identité sociale visible :
 - équipe favorite
 - avatar URL
 
+L'avatar peut être mis à jour via `POST /api/me/avatar`.
+
+Mesures appliquées à l'upload :
+
+- route protégée par JWT ;
+- stockage local MVP dans `backend/public/uploads/avatars/` ;
+- dossier `uploads` ignoré par Git ;
+- formats acceptés : JPG, JPEG, PNG, WEBP ;
+- taille maximale : 2 Mo ;
+- validation de l'extension et du type MIME ;
+- nom de fichier aléatoire généré côté backend ;
+- pas de base64 en base de données ;
+- suppression de l'ancien fichier uniquement si l'ancien avatar est un upload local LeKlub ;
+- aucune suppression d'URL externe éventuellement saisie avant cette feature.
+
 Le endpoint `PATCH /api/me/account` permet de modifier l'email et le username de l'utilisateur connecté.
 
 Mesures appliquées :
@@ -344,6 +359,8 @@ Conséquence MVP : les endpoints football restent simples et peu nombreux pour �
 - pas de cache des données football
 - pas de persistance des données football
 - dépendance à la disponibilité et au quota de football-data.org
+- pas de stockage cloud pour les avatars dans le MVP
+- pas de recadrage avancé serveur des avatars
 - WebSocket adapté à une démonstration locale, pas à une architecture multi-serveurs en production
 
 Ces limites sont assumées pour garder un MVP stable, compréhensible et réaliste dans le cadre du titre CDA.
