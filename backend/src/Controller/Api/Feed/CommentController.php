@@ -8,16 +8,15 @@ use App\Application\Feed\AddCommentUseCase;
 use App\Application\Feed\DeleteCommentUseCase;
 use App\Application\Feed\ListPostCommentsUseCase;
 use App\Application\Feed\UpdateCommentUseCase;
-use App\Domain\Entity\User;
 use App\Domain\Exception\ResourceNotFoundException;
 use App\Domain\Exception\UserSuspendedException;
 use App\Domain\Repository\CommentRepositoryInterface;
 use App\DTO\Feed\CreateCommentRequest;
 use App\DTO\Feed\UpdateCommentRequest;
 use App\Security\Voter\CommentVoter;
+use App\Shared\Api\ApiControllerHelpers;
 use App\Shared\Api\ApiResponse;
 use App\Shared\Api\Pagination;
-use JsonException;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -27,6 +26,8 @@ use Symfony\Component\Validator\Validator\ValidatorInterface;
 #[Route('/api/feed')]
 final class CommentController
 {
+    use ApiControllerHelpers;
+
     public function __construct(
         private readonly Security $security,
         private readonly ValidatorInterface $validator,
@@ -54,15 +55,15 @@ final class CommentController
         }
 
         $dto = CreateCommentRequest::fromArray($payload);
-        $violations = $this->validator->validate($dto);
+        $validationError = $this->validationError($dto, $this->validator);
 
-        if (count($violations) > 0) {
-            return ApiResponse::validationError($violations);
+        if ($validationError !== null) {
+            return $validationError;
         }
 
         try {
             return ApiResponse::success([
-                'comment' => $useCase->execute($postId, $this->currentUser(), $dto),
+                'comment' => $useCase->execute($postId, $this->currentUser($this->security), $dto),
             ], 'Comment created successfully.', 201);
         } catch (ResourceNotFoundException) {
             return ApiResponse::error('Post not found.', [], 404);
@@ -91,10 +92,10 @@ final class CommentController
         }
 
         $dto = UpdateCommentRequest::fromArray($payload);
-        $violations = $this->validator->validate($dto);
+        $validationError = $this->validationError($dto, $this->validator);
 
-        if (count($violations) > 0) {
-            return ApiResponse::validationError($violations);
+        if ($validationError !== null) {
+            return $validationError;
         }
 
         try {
@@ -121,33 +122,9 @@ final class CommentController
             return ApiResponse::error('Access denied.', [], 403);
         }
 
-        $useCase->execute($comment, $this->currentUser());
+        $useCase->execute($comment, $this->currentUser($this->security));
 
         return ApiResponse::success([], 'Comment deleted successfully.');
     }
 
-    private function currentUser(): User
-    {
-        $user = $this->security->getUser();
-
-        if (!$user instanceof User) {
-            throw new \LogicException('Authenticated user expected.');
-        }
-
-        return $user;
-    }
-
-    /**
-     * @return array<string, mixed>|JsonResponse
-     */
-    private function jsonPayload(Request $request): array|JsonResponse
-    {
-        try {
-            $payload = json_decode($request->getContent(), true, 512, JSON_THROW_ON_ERROR);
-        } catch (JsonException) {
-            return ApiResponse::error('Invalid JSON payload.', [], 400);
-        }
-
-        return is_array($payload) ? $payload : ApiResponse::error('Invalid JSON payload.', [], 400);
-    }
 }
