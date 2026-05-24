@@ -17,6 +17,7 @@ final class PasswordResetEmailNotifier implements PasswordResetNotifierInterface
         private readonly MailerInterface $mailer,
         private readonly LoggerInterface $logger,
         private readonly string $environment,
+        private readonly bool $logTokenInDev,
         private readonly string $fromAddress,
         private readonly string $fromName,
     ) {
@@ -32,7 +33,7 @@ final class PasswordResetEmailNotifier implements PasswordResetNotifierInterface
 
         $this->mailer->send($email);
 
-        if ($this->environment === 'dev') {
+        if ($this->environment === 'dev' && $this->logTokenInDev) {
             $this->logger->info('Password reset email sent for local development.', [
                 'userId' => $user->getId(),
                 'email' => $user->getEmail(),

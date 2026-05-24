@@ -17,6 +17,7 @@ services:
       MAILER_DSN: ${MAILER_DSN:-smtp://mailpit:1025}
       MAIL_FROM_ADDRESS: ${MAIL_FROM_ADDRESS:-no-reply@leklub.test}
       MAIL_FROM_NAME: ${MAIL_FROM_NAME:-LeKlub}
+      PASSWORD_RESET_LOG_TOKEN: ${PASSWORD_RESET_LOG_TOKEN:-false}
     depends_on:
       - mysql
       - mailpit
@@ -53,6 +54,7 @@ services:
       MAILER_DSN: ${MAILER_DSN:-smtp://mailpit:1025}
       MAIL_FROM_ADDRESS: ${MAIL_FROM_ADDRESS:-no-reply@leklub.test}
       MAIL_FROM_NAME: ${MAIL_FROM_NAME:-LeKlub}
+      PASSWORD_RESET_LOG_TOKEN: ${PASSWORD_RESET_LOG_TOKEN:-false}
     depends_on:
       - mysql
 

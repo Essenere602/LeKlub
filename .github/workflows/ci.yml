@@ -25,6 +25,7 @@ jobs:
       MAILER_DSN: 'null://null'
       MAIL_FROM_ADDRESS: no-reply@leklub.test
       MAIL_FROM_NAME: LeKlub
+      PASSWORD_RESET_LOG_TOKEN: 'false'
 
     services:
       mysql:
@@ -76,6 +77,7 @@ jobs:
           MAILER_DSN=null://null
           MAIL_FROM_ADDRESS=no-reply@leklub.test
           MAIL_FROM_NAME=LeKlub
+          PASSWORD_RESET_LOG_TOKEN=false
           EOF
 
       - name: Generate temporary JWT keys
