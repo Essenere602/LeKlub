@@ -2,6 +2,7 @@ import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useState } from 'react';
 import { KeyboardAvoidingView, Platform, StyleSheet, View } from 'react-native';
 
+import { PasswordRulesChecklist } from '../../components/auth/PasswordRulesChecklist';
 import { AppButton } from '../../components/ui/AppButton';
 import { AppInput } from '../../components/ui/AppInput';
 import { AppText } from '../../components/ui/AppText';
@@ -11,6 +12,7 @@ import { theme } from '../../config/theme';
 import { useAuth } from '../../hooks/useAuth';
 import { AuthStackParamList } from '../../navigation/navigation.types';
 import { toApiError } from '../../services/api/apiError';
+import { isPasswordValid } from '../../utils/passwordValidation';
 
 type RegisterScreenProps = NativeStackScreenProps<AuthStackParamList, 'Register'>;
 
@@ -37,8 +39,8 @@ export function RegisterScreen({ navigation }: RegisterScreenProps) {
       return;
     }
 
-    if (password.length < 10 || !/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(password)) {
-      setError('Le mot de passe doit contenir au moins 10 caractères, une minuscule, une majuscule et un chiffre.');
+    if (!isPasswordValid(password)) {
+      setError('Le mot de passe ne respecte pas encore toutes les règles.');
       return;
     }
 
@@ -63,7 +65,7 @@ export function RegisterScreen({ navigation }: RegisterScreenProps) {
         <View style={styles.header}>
           <AppText style={styles.kicker}>LeKlub</AppText>
           <AppText variant="title">Créer un compte</AppText>
-          <AppText variant="subtitle">Un compte simple pour accéder au MVP mobile.</AppText>
+          <AppText variant="subtitle">Crée ton identité LeKlub et protège ton compte avec un mot de passe robuste.</AppText>
         </View>
 
         <View style={styles.form}>
@@ -74,26 +76,24 @@ export function RegisterScreen({ navigation }: RegisterScreenProps) {
             keyboardType="email-address"
             label="Email"
             onChangeText={setEmail}
-            placeholder="user@example.com"
+            placeholder="votre.email@exemple.com"
             value={email}
           />
           <AppInput
             autoCapitalize="none"
             label="Nom utilisateur"
             onChangeText={setUsername}
-            placeholder="samuel"
+            placeholder="pseudo_leklub"
             value={username}
           />
           <AppInput
             label="Mot de passe"
             onChangeText={setPassword}
-            placeholder="Password123!"
+            placeholder="Votre mot de passe"
             secureTextEntry
             value={password}
           />
-          <AppText variant="muted">
-            Minimum 10 caractères, avec une majuscule, une minuscule et un chiffre.
-          </AppText>
+          <PasswordRulesChecklist password={password} />
           <AppButton label="Créer le compte" loading={isSubmitting} onPress={handleRegister} />
           <AppButton label="J'ai déjà un compte" onPress={() => navigation.navigate('Login')} variant="ghost" />
         </View>

@@ -48,7 +48,7 @@ export function ForgotPasswordScreen({ navigation }: ForgotPasswordScreenProps) 
           <AppText style={styles.kicker}>Sécurité</AppText>
           <AppText variant="title">Mot de passe oublié</AppText>
           <AppText variant="subtitle">
-            Saisis ton email. En développement, le token est disponible dans les logs backend.
+            Saisis ton email. En développement, le token est disponible dans Mailpit.
           </AppText>
         </View>
 
@@ -62,7 +62,7 @@ export function ForgotPasswordScreen({ navigation }: ForgotPasswordScreenProps) 
             keyboardType="email-address"
             label="Email"
             onChangeText={setEmail}
-            placeholder="user@example.test"
+            placeholder="votre.email@exemple.com"
             value={email}
           />
 
