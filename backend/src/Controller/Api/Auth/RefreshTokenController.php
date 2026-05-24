@@ -57,7 +57,7 @@ final class RefreshTokenController
         try {
             return new JsonResponse($this->refreshAccessToken->execute($refreshTokenRequest));
         } catch (DomainException) {
-            return ApiResponse::error('Invalid refresh token.', [], 401);
+            return ApiResponse::error('Unable to refresh session.', [], 401);
         }
     }
 }
