@@ -2,22 +2,24 @@
 
 Date : 25 mai 2026  
 Branche : `feature/security-audit`  
-Perimetre : backend Symfony, mobile Expo, Docker, CI, configuration, dependances, flux auth, feed, messagerie, moderation, upload avatar, reset password, refresh token.
+Perimetre : backend Symfony, mobile Expo, Docker, CI, configuration, dependances, auth, feed, messagerie, moderation, upload avatar, reset password, refresh token.
 
 ## 1. Resume executif
 
 LeKlub dispose d'une base securite solide pour un MVP CDA : API stateless protegee par JWT, refresh tokens hashes et rotatifs, reset password avec token hash en base, stockage mobile via Expo SecureStore, autorisations metier par voters/use cases, moderation admin sans lecture des messages prives, validation DTO et separation des couches.
 
-L'audit ne met pas en evidence de fuite de secret versionne : `.env`, `mobile/.env`, uploads et cles JWT locales sont ignores par Git. Les cles JWT presentes localement dans `backend/config/jwt/` ne sont pas suivies par Git.
+L'audit initial a identifie des risques reels. Les corrections ciblees appliquees sur cette branche sont :
 
-Les risques les plus importants avant soutenance sont :
+- mise a jour des dependances Symfony signalees par `composer audit` ;
+- rate limiting simple sur les endpoints auth sensibles ;
+- log du token reset password rendu opt-in et limite a `APP_ENV=dev` ;
+- headers Nginx simples ;
+- message d'echec refresh rendu plus generique ;
+- documentation des limites JWT, WebSocket, CORS, Expo et upload avatar.
 
-- dependances backend Symfony avec avis de securite remontes par `composer audit` ;
-- absence de limitation de debit sur login, reset password, refresh token et actions sensibles ;
-- token de reset password journalise en environnement `dev` comme fallback local ;
-- WebSocket et CORS encore penses pour le local, pas pour une exposition production.
+Aucun secret versionne n'a ete detecte. `.env`, `mobile/.env`, uploads et cles JWT locales sont ignores par Git. Les cles JWT presentes localement dans `backend/config/jwt/` ne sont pas suivies par Git.
 
-Conclusion : le projet est defensible en MVP local/demo, mais il faut corriger les dependances vulnerables et documenter les limites de mise en production avant de presenter LeKlub comme publiable.
+Conclusion : le projet est defensible pour une soutenance CDA en environnement local/demo. Une mise en production publique demanderait encore un durcissement CORS/WebSocket, une strategie TLS complete, du monitoring et une politique plus avancee de sessions.
 
 ## 2. Surface d'attaque du projet
 
@@ -35,22 +37,22 @@ Conclusion : le projet est defensible en MVP local/demo, mais il faut corriger l
 ### Mobile Expo
 
 - Stockage des tokens dans SecureStore.
-- Client API avec refresh automatique.
+- Client API avec refresh automatique et verrou anti-concurrence.
 - Navigation protegee selon authentification et role admin.
 - Upload avatar via image picker.
-- WebSocket avec token JWT envoye dans un message d'authentification, pas dans l'URL.
+- WebSocket avec JWT envoye dans un message d'authentification, jamais dans l'URL.
 - Variables publiques Expo : URL API et URL WebSocket uniquement, pas de secret.
 
 ### Infrastructure
 
 - Docker : Nginx, PHP/Symfony, MySQL, WebSocket, Mailpit.
-- CI GitHub Actions : installation, validation Composer, lint container, validation Doctrine, phpunit, TypeScript mobile.
+- CI GitHub Actions : Composer, lint container, Doctrine mapping, PHPUnit, TypeScript mobile.
 - Environnements : `.env.example`, `backend/.env.test`, `backend/.env.dev`, variables CI factices.
 
 ## 3. Points forts securite
 
-- JWT access token court : `token_ttl: 900` soit 15 minutes.
-- Refresh token maison :
+- JWT access token court : 15 minutes.
+- Refresh token :
   - token brut jamais stocke en base ;
   - hash SHA-256 stocke ;
   - expiration 30 jours ;
@@ -58,25 +60,31 @@ Conclusion : le projet est defensible en MVP local/demo, mais il faut corriger l
   - revocation au logout ;
   - revocation apres changement de mot de passe et reset password.
 - Reset password :
-  - reponse generique pour limiter l'enumeration email ;
+  - reponse generique a la demande ;
   - token brut non retourne par l'API ;
   - token hash en base ;
   - expiration 30 minutes ;
   - usage unique ;
-  - anciens tokens invalides a nouvelle demande.
+  - anciens tokens invalides a nouvelle demande ;
+  - Mailpit local sans secret SMTP.
+- Rate limiting auth :
+  - login : 5 tentatives par minute ;
+  - forgot password : 3 demandes par 15 minutes ;
+  - reset password : 5 tentatives par 15 minutes ;
+  - refresh token : 10 tentatives par minute ;
+  - changement de mot de passe : 5 tentatives par 15 minutes.
 - Mobile :
-  - access token et refresh token stockes dans SecureStore ;
+  - tokens stockes dans SecureStore ;
   - pas d'AsyncStorage pour les tokens ;
-  - verrou anti-refresh concurrent cote client.
+  - refresh automatique sans boucle infinie connue.
 - Controle d'acces :
-  - routes publiques limitees aux endpoints auth/health/reset ;
   - `/api/admin/*` protege par `ROLE_ADMIN` ;
-  - voters pour posts, commentaires, conversations ;
+  - voters pour posts, commentaires et conversations ;
   - use cases metier pour ownership et moderation.
 - Messagerie :
   - admin ne lit pas les messages prives ;
-  - WebSocket sert uniquement a notifier, REST reste source de verite ;
-  - suppression de message pour soi avec filtrage par utilisateur.
+  - WebSocket sert uniquement a notifier ;
+  - REST reste source de verite.
 - Upload avatar :
   - pas de base64 en base ;
   - stockage local ignore par Git ;
@@ -88,258 +96,181 @@ Conclusion : le projet est defensible en MVP local/demo, mais il faut corriger l
   - password/hash/tokens non exposes dans les presenters ;
   - `/api/users` et admin users ne retournent pas l'email ;
   - token football-data lu depuis variable d'environnement, pas versionne.
-- Git :
-  - `.env`, `mobile/.env`, uploads, `var`, vendor, node_modules et `backend/config/jwt/*.pem` ignores.
 
 ## 4. Risques critiques
 
-### C1 - Dependances backend Symfony avec avis de securite
+### C1 - Dependances backend Symfony avec avis de securite - corrige
 
-`composer audit` remonte 10 avis de securite affectant 7 packages Symfony, notamment `symfony/cache`, `symfony/dom-crawler`, `symfony/monolog-bridge`, `symfony/routing`, `symfony/runtime`, `symfony/security-http` et `symfony/yaml`.
+L'audit initial remontait 10 avis de securite affectant 7 packages Symfony.
 
-Impact potentiel :
+Correction appliquee :
 
-- injection SQL dans un composant cache selon usage ;
-- XXE/local file disclosure dans DomCrawler selon usage ;
-- contournements/risques dans runtime, routing, security-http ;
-- DoS/memoire dans YAML parser.
+- mise a jour ciblee en Symfony 6.4.x ;
+- aucune montee majeure ;
+- `composer audit` relance avec succes ;
+- `php bin/phpunit`, `lint:container` et `doctrine:schema:validate --skip-sync` relances avec succes.
 
-Risque pour LeKlub :
+Risque residuel :
 
-- certains composants ne sont pas directement exposes aux utilisateurs finaux ;
-- le risque reste critique au niveau hygiene dependances, car un audit dependances echoue et le projet doit etre defendu devant jury.
-
-Correction indispensable :
-
-- mettre a jour les composants Symfony vers une version patchee compatible ;
-- relancer `composer audit`, `php bin/phpunit`, `lint:container`, `doctrine:schema:validate --skip-sync`.
+- maintenir `composer audit` dans les controles reguliers avant toute mise en ligne.
 
 ## 5. Risques moyens
 
-### M1 - Absence de rate limiting sur endpoints sensibles
+### M1 - Rate limiting simple sur endpoints auth - corrige MVP
 
-Endpoints concernes :
+Le risque de brute force ou d'abus reset/refresh est traite par des limiters Symfony simples et locaux aux endpoints sensibles.
 
-- login ;
-- forgot/reset password ;
-- refresh token ;
-- creation de signalement ;
-- upload avatar ;
-- envoi de messages.
+Limite residuelle :
 
-Risque :
+- pas de verrouillage de compte ;
+- pas de rate limiting avance par appareil ;
+- pas de monitoring des tentatives.
 
-- brute force login ;
-- abus de reset password ;
-- enumeration indirecte ;
-- spam API.
+### M2 - Token reset password en logs dev - durci
 
-Le package `symfony/rate-limiter` est present, mais aucun usage effectif n'a ete trouve dans la configuration ou le code.
+Le token reset password n'est plus loggue par defaut. Le fallback de diagnostic est possible uniquement si `APP_ENV=dev` et `PASSWORD_RESET_LOG_TOKEN=true`.
 
-Correction recommandee :
+Decision :
 
-- ajouter une limitation simple par IP et/ou identifiant sur login/reset ;
-- limiter refresh et upload avatar ;
-- documenter les seuils.
-
-### M2 - Token reset password journalise en environnement dev
-
-Le notifier de reset password envoie un email Mailpit et journalise aussi le token brut en `APP_ENV=dev`.
-
-Risque :
-
-- acceptable pour test local ;
-- dangereux si un environnement deploye est mal configure en `dev`, ou si les logs dev sont partages.
-
-Correction recommandee :
-
-- conserver Mailpit comme canal local principal ;
-- supprimer le fallback de log ou le rendre explicitement opt-in via variable dediee ;
-- rappeler qu'aucun environnement public ne doit tourner en `APP_ENV=dev`.
+- Mailpit reste le canal local principal ;
+- le fallback log ne doit jamais etre active en test, CI ou production.
 
 ### M3 - WebSocket local sans garanties production
 
-Le WebSocket authentifie le client via JWT envoye dans un message `auth`. Le token n'est pas dans l'URL, ce qui est positif.
+Le WebSocket authentifie le client via JWT dans un message `auth`. Le token n'est pas dans l'URL.
 
 Risques restants :
 
-- URL locale souvent en `ws://`, donc pas chiffree ;
+- local en `ws://`, non chiffre ;
 - pas de controle d'origine ;
 - pas de limitation de connexions ;
-- erreurs WebSocket assez explicites ;
-- pas de strategie production `wss://` documentee en detail.
+- pas de strategie production `wss://` complete.
 
-Correction recommandee :
+Decision MVP :
 
-- utiliser `wss://` derriere reverse proxy en production ;
-- ajouter verification d'origine si exposition publique ;
-- limiter connexions et messages par client.
+- ne pas refondre WebSocket avant soutenance ;
+- documenter `wss://`, controle d'origine et limitation de connexions comme pre-requis production.
 
 ### M4 - Upload avatar sans retraitement image
 
-Le stockage local valide taille, extension et MIME, et refuse les formats dangereux comme SVG.
+Le stockage local valide taille, extension et MIME, refuse SVG et genere un nom aleatoire.
 
 Risques restants :
 
 - pas de re-encodage image ;
 - pas d'antivirus ;
-- fichiers servis depuis `public/uploads` ;
-- headers securite Nginx minimaux.
+- fichiers servis depuis `public/uploads`.
 
-Correction recommandee :
+Correction appliquee :
 
-- ajouter headers `X-Content-Type-Options: nosniff` ;
-- envisager re-encodage image ou stockage hors `public` avec controleur de lecture si mise en production ;
-- conserver la limite 2 Mo.
+- ajout de headers Nginx simples, dont `X-Content-Type-Options: nosniff`.
+
+Decision MVP :
+
+- ne pas ajouter d'antivirus ni re-encodage serveur avant soutenance pour ne pas fragiliser l'upload iPhone valide.
 
 ### M5 - Access tokens valides jusqu'a expiration apres revocation refresh
 
-Apres logout, reset password ou changement de mot de passe, les refresh tokens sont revoques, mais un access token deja emis reste valide jusqu'a son expiration de 15 minutes.
-
-Risque :
-
-- fenetre residuelle courte mais reelle.
+Apres logout, reset password ou changement de mot de passe, les refresh tokens sont revoques. Un access token deja emis reste valide jusqu'a son expiration de 15 minutes.
 
 Justification MVP :
 
-- JWT stateless ;
+- comportement normal avec JWT stateless ;
 - TTL court ;
+- pas de blacklist JWT lourde ;
 - actions d'ecriture bloquees pour utilisateurs suspendus via `SuspensionGuard`.
 
 Correction post-MVP :
 
-- liste de revocation access token ou version de session dans le payload JWT.
+- version de session dans le payload JWT ou blacklist courte si besoin produit.
 
 ### M6 - CORS non finalise pour production web
 
-`CORS_ALLOW_ORIGIN` est present dans `.env.example`, mais aucune configuration CORS effective n'a ete identifiee.
+`CORS_ALLOW_ORIGIN` est present dans `.env.example`, mais aucune configuration CORS production dediee n'est active.
 
-Risque :
+Decision MVP :
 
 - non bloquant pour Expo Go natif ;
-- a clarifier avant frontend web ou exposition publique.
-
-Correction recommandee :
-
-- ajouter une configuration CORS explicite si un client web est expose ;
-- garder une liste d'origines autorisees, jamais `*` avec credentials.
+- a traiter avant client web public.
 
 ### M7 - Enumeration partielle via unicite email/username
 
 Les endpoints compte peuvent retourner des conflits email/username.
 
-Risque :
-
-- faible a moyen, car l'utilisateur doit etre authentifie ;
-- utile UX pour corriger le formulaire.
-
 Decision MVP :
 
-- acceptable pour compte connecte ;
-- ne pas rendre les erreurs login/reset plus precises.
+- acceptable car l'utilisateur doit etre authentifie ;
+- utile pour l'UX compte ;
+- login, forgot et reset restent generiques.
 
 ## 6. Risques faibles
 
 ### F1 - Donnees publiques Expo
 
-Les variables `EXPO_PUBLIC_API_BASE_URL` et `EXPO_PUBLIC_WEBSOCKET_URL` sont publiques par nature.
+Les variables `EXPO_PUBLIC_API_BASE_URL` et `EXPO_PUBLIC_WEBSOCKET_URL` sont publiques par nature. Aucun secret ne doit etre place dans une variable `EXPO_PUBLIC_*`.
 
-Risque :
+### F2 - `.env.example` dev only
 
-- faible, car aucune cle API ni secret n'y est stocke.
-
-### F2 - Secrets de developpement dans fichiers exemples
-
-`.env.example` contient `change_me` et des mots de passe de base de donnees de developpement.
-
-Risque :
-
-- faible si clairement remplaces hors local ;
-- a ne jamais utiliser en production.
+`.env.example` contient des valeurs locales comme `change_me`, Mailpit et des mots de passe MySQL de developpement. Elles ne sont pas des secrets de production et doivent etre remplacees avant toute mise en ligne.
 
 ### F3 - Messages d'erreur API parfois informatifs
 
-Certaines erreurs indiquent explicitement une ressource introuvable ou une action interdite.
+Les erreurs metier authentifiees restent explicites pour preserver l'UX admin/utilisateur. Les flux sensibles login/reset/refresh restent generiques.
 
-Risque :
+### F4 - Headers Nginx production partiels
 
-- faible dans le contexte API authentifiee ;
-- a harmoniser si exposition publique plus large.
+La configuration locale ajoute des headers simples : `X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy` et `Permissions-Policy`.
 
-### F4 - Absence de headers securite Nginx avances
+Restera a traiter en production :
 
-La configuration Nginx locale est simple.
-
-Risque :
-
-- faible en local ;
-- a completer avant deploiement : `nosniff`, restrictions upload, logs, TLS, proxy headers.
+- TLS ;
+- HSTS en HTTPS ;
+- proxy headers ;
+- politique CORS si client web.
 
 ### F5 - Absence de surveillance securite runtime
 
-Le projet a des logs applicatifs, mais pas de monitoring ou alerting securite.
-
-Risque :
-
-- acceptable MVP ;
-- a prevoir pour production.
+Le MVP n'a pas de monitoring ou alerting securite avance.
 
 ## 7. Limites MVP assumees
 
-- Pas de rate limiting actif.
-- Pas de verrouillage de compte apres tentatives de login.
-- Pas de verification email apres changement email.
-- Pas de gestion multi-appareils des sessions.
-- Pas d'ecran utilisateur pour voir/revoquer ses sessions.
-- Pas de revocation immediate des access tokens deja emis.
+- Pas de gestion des sessions ou appareils connectes.
+- Pas de revocation serveur immediate des access tokens JWT avant leur expiration courte.
+- Pas de verification email.
+- Pas de SMTP de production pour le reset password.
+- Pas de deep link automatique pour le reset password.
+- Pas de blocage de compte apres plusieurs tentatives echouees.
+- Rate limiting simple sur auth, sans strategie anti-abus avancee.
+- Pas de chiffrement applicatif du contenu des messages prives.
 - Pas de notification push.
-- Pas de chiffrement de bout en bout des messages prives.
-- Pas de lecture admin des messages prives, par choix de confidentialite.
+- Pas de reconnexion WebSocket avancee.
 - Pas d'antivirus ni re-encodage image pour avatars.
 - Pas de CORS production finalise.
-- Pas de deploiement production securise documente dans cette etape.
 - Football-data utilise une cle d'environnement locale, a regenerer avant mise en ligne.
 
 ## 8. Corrections indispensables avant soutenance
 
-1. Mettre a jour les dependances backend vulnerables signalees par `composer audit`.
-2. Relancer et archiver les resultats :
-   - `composer audit` ;
+1. Conserver les dependances a jour et relancer `composer audit`.
+2. Conserver les tests backend verts :
    - `php bin/phpunit` ;
    - `php bin/console lint:container` ;
    - `php bin/console doctrine:schema:validate --skip-sync`.
-3. Documenter dans `docs/security.md` la politique de rotation des secrets :
-   - `APP_SECRET` ;
-   - cle JWT ;
-   - passphrase JWT ;
-   - token football-data ;
-   - secrets SMTP production futurs.
-4. Clarifier que Mailpit est local/dev uniquement.
-5. Clarifier que le fallback de log du token reset password est strictement local/dev.
+3. Verifier qu'aucun secret local n'est suivi par Git.
+4. Presenter clairement les limites JWT stateless, Mailpit local, Expo public env et WebSocket local.
 
 ## 9. Corrections recommandees post-soutenance
 
-1. Ajouter rate limiting sur :
-   - login ;
-   - forgot/reset password ;
-   - refresh ;
-   - upload avatar ;
-   - signalements ;
-   - envoi messages.
-2. Ajouter headers securite Nginx :
-   - `X-Content-Type-Options: nosniff` ;
-   - politique cache uploads ;
-   - durcissement TLS en production.
-3. Mettre en place CORS explicite si client web.
-4. Remplacer le log dev du token reset par une option explicite du type `PASSWORD_RESET_LOG_TOKEN=true`.
-5. Ajouter une strategie de revocation access token si besoin produit.
-6. Ajouter un ecran "sessions/appareils" si LeKlub evolue vers une application publique.
-7. Ajouter scan/re-encodage des avatars avant stockage public.
-8. Ajouter monitoring securite minimal :
+1. Ajouter du rate limiting avance sur upload avatar, signalements et envoi messages.
+2. Ajouter CORS explicite si client web.
+3. Exposer WebSocket uniquement en `wss://` avec controle d'origine.
+4. Ajouter re-encodage/scanning des avatars si application publique.
+5. Ajouter ecran sessions/appareils.
+6. Ajouter monitoring securite :
    - erreurs auth ;
    - tentatives reset ;
    - actions admin critiques ;
    - uploads rejetes.
+7. Ajouter HSTS et durcissement TLS dans la configuration de production.
 
 ## 10. Checklist securite finale
 
@@ -352,7 +283,7 @@ Risque :
 - [x] Logout revoque le refresh token courant.
 - [x] Changement mot de passe revoque les refresh tokens.
 - [x] Reset password revoque les refresh tokens.
-- [ ] Rate limiting login/reset/refresh.
+- [x] Rate limiting login/reset/refresh/password.
 - [ ] Revocation immediate access token.
 
 ### Reset password
@@ -363,7 +294,7 @@ Risque :
 - [x] Usage unique.
 - [x] Reponse generique a la demande.
 - [x] Mailpit pour developpement local.
-- [ ] Supprimer ou conditionner strictement le log dev du token.
+- [x] Log dev du token conditionne par `PASSWORD_RESET_LOG_TOKEN=true`.
 
 ### Autorisations
 
@@ -389,7 +320,7 @@ Risque :
 - [x] Extension/MIME controles.
 - [x] Noms aleatoires.
 - [x] Uploads ignores par Git.
-- [ ] Headers securite statiques.
+- [x] Header `nosniff`.
 - [ ] Re-encodage/scanning images.
 
 ### Mobile
@@ -403,8 +334,8 @@ Risque :
 ### Dependances et CI
 
 - [x] CI execute tests backend/mobile.
+- [x] `composer audit` ne remonte plus d'avis de securite.
 - [x] `npm audit --omit=dev --audit-level=high` ne remonte pas de vulnerabilite high.
-- [ ] `composer audit` remonte des vulnerabilites a corriger.
 - [ ] Integrer ou documenter un audit dependances regulier dans le workflow.
 
 ## Verifications realisees
@@ -418,21 +349,24 @@ Risque :
 - Inspection WebSocket backend/mobile.
 - Inspection voters posts/commentaires/conversations.
 - Inspection configuration Docker, Mailpit et CI.
-- `composer audit` : echec securite, 10 avis affectant 7 packages.
+- `composer audit` initial : echec securite, 10 avis affectant 7 packages.
+- `composer audit` apres correction : aucun avis de securite.
 - `npm audit --omit=dev --audit-level=high` : pas de fail high, 11 vulnerabilites moderate liees a Expo/PostCSS/uuid.
 
 ## Decision de priorisation
 
-A corriger maintenant :
+Corrige pendant cette branche :
 
 1. dependances backend signalees par `composer audit` ;
-2. documentation explicite du reset token dev/Mailpit ;
-3. verification finale qu'aucun secret local n'est pousse.
+2. rate limiting simple sur endpoints auth sensibles ;
+3. log reset token dev rendu opt-in ;
+4. headers Nginx simples ;
+5. message refresh generique ;
+6. documentation explicite des limites securite MVP.
 
-A documenter comme limites MVP avant correction post-soutenance :
+A documenter comme limites MVP :
 
-1. rate limiting absent ;
-2. access token non revocable immediatement ;
-3. CORS/WebSocket production non finalises ;
-4. upload avatar sans re-encodage/scanning ;
-5. absence de monitoring securite.
+1. access token non revocable immediatement ;
+2. CORS/WebSocket production non finalises ;
+3. upload avatar sans re-encodage/scanning ;
+4. absence de monitoring securite avance.

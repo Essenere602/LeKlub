@@ -40,6 +40,8 @@ Expo lit les variables `EXPO_PUBLIC_*` au démarrage du serveur Metro. Après mo
 npm run start
 ```
 
+Les variables `EXPO_PUBLIC_*` sont publiques dans une application Expo. Elles ne doivent contenir aucun secret : uniquement l'URL de l'API et l'URL WebSocket.
+
 ### iPhone Physique Avec Expo Go
 
 Utiliser l'adresse IP locale de la machine qui lance Docker et Expo.
