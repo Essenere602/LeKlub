@@ -2,6 +2,7 @@ import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useState } from 'react';
 import { KeyboardAvoidingView, Platform, StyleSheet, View } from 'react-native';
 
+import { PasswordRulesChecklist } from '../../components/auth/PasswordRulesChecklist';
 import { AppButton } from '../../components/ui/AppButton';
 import { AppCard } from '../../components/ui/AppCard';
 import { AppInput } from '../../components/ui/AppInput';
@@ -12,6 +13,7 @@ import { theme } from '../../config/theme';
 import { AuthStackParamList } from '../../navigation/navigation.types';
 import { toApiError } from '../../services/api/apiError';
 import { authService } from '../../services/auth/authService';
+import { isPasswordValid, passwordConfirmationMatches } from '../../utils/passwordValidation';
 
 type ResetPasswordScreenProps = NativeStackScreenProps<AuthStackParamList, 'ResetPassword'>;
 
@@ -32,7 +34,12 @@ export function ResetPasswordScreen({ navigation }: ResetPasswordScreenProps) {
       return;
     }
 
-    if (newPassword !== newPasswordConfirmation) {
+    if (!isPasswordValid(newPassword)) {
+      setError('Le nouveau mot de passe ne respecte pas encore toutes les règles.');
+      return;
+    }
+
+    if (!passwordConfirmationMatches(newPassword, newPasswordConfirmation)) {
       setError('La confirmation ne correspond pas au nouveau mot de passe.');
       return;
     }
@@ -58,7 +65,7 @@ export function ResetPasswordScreen({ navigation }: ResetPasswordScreenProps) {
         <View style={styles.header}>
           <AppText style={styles.kicker}>Reset</AppText>
           <AppText variant="title">Nouveau mot de passe</AppText>
-          <AppText variant="subtitle">Colle le token reçu, puis définis un mot de passe robuste.</AppText>
+          <AppText variant="subtitle">Colle le token reçu dans Mailpit, puis définis un mot de passe robuste.</AppText>
         </View>
 
         <AppCard style={styles.form}>
@@ -69,20 +76,21 @@ export function ResetPasswordScreen({ navigation }: ResetPasswordScreenProps) {
             autoCapitalize="none"
             label="Token"
             onChangeText={setToken}
-            placeholder="Token de reset"
+            placeholder="Token reçu par email"
             value={token}
           />
           <AppInput
             label="Nouveau mot de passe"
             onChangeText={setNewPassword}
-            placeholder="NewPassword123"
+            placeholder="Votre nouveau mot de passe"
             secureTextEntry
             value={newPassword}
           />
+          <PasswordRulesChecklist password={newPassword} />
           <AppInput
-            label="Confirmation"
+            label="Confirmer le nouveau mot de passe"
             onChangeText={setNewPasswordConfirmation}
-            placeholder="NewPassword123"
+            placeholder="Répéter le nouveau mot de passe"
             secureTextEntry
             value={newPasswordConfirmation}
           />

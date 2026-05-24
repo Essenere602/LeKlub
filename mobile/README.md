@@ -129,7 +129,7 @@ Comportement MVP :
 - en développement local, l'email de reset est visible dans Mailpit sur `http://localhost:8025` ;
 - l'utilisateur copie le token reçu dans l'email Mailpit ;
 - l'utilisateur ouvre `J'ai un token` et saisit le token manuellement ;
-- le nouveau mot de passe doit respecter les règles backend ;
+- le nouveau mot de passe doit respecter les règles backend, affichées aussi côté mobile pour guider l'utilisateur ;
 - après succès, l'utilisateur revient à la connexion ;
 - aucun login automatique n'est effectué après reset.
 
@@ -204,7 +204,7 @@ Le changement de mot de passe demande :
 - nouveau mot de passe
 - confirmation du nouveau mot de passe
 
-La validation mobile reprend les règles backend : minimum 10 caractères, au moins une minuscule, une majuscule et un chiffre. Le logout n'est pas forcé après succès dans ce MVP.
+La validation mobile reprend les règles backend : minimum 10 caractères, maximum 128 caractères, au moins une minuscule, une majuscule et un chiffre. Le backend reste la source de vérité. Après changement du mot de passe, les refresh tokens existants sont révoqués.
 
 ## Tests Manuels Compte Et Profil
 

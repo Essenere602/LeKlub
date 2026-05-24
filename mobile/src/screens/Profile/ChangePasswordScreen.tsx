@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, View } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 
+import { PasswordRulesChecklist } from '../../components/auth/PasswordRulesChecklist';
 import { AppButton } from '../../components/ui/AppButton';
 import { AppCard } from '../../components/ui/AppCard';
 import { AppInput } from '../../components/ui/AppInput';
@@ -12,6 +13,7 @@ import { theme } from '../../config/theme';
 import { ProfileStackParamList } from '../../navigation/navigation.types';
 import { toApiError } from '../../services/api/apiError';
 import { profileService } from '../../services/user/profileService';
+import { isPasswordValid, passwordConfirmationMatches } from '../../utils/passwordValidation';
 
 type ChangePasswordScreenProps = NativeStackScreenProps<ProfileStackParamList, 'ChangePassword'>;
 
@@ -55,7 +57,7 @@ export function ChangePasswordScreen({ navigation }: ChangePasswordScreenProps) 
     try {
       await profileService.changePassword(form);
       setForm(initialForm);
-      setSuccessMessage('Mot de passe mis à jour. Les sessions déjà ouvertes restent actives dans ce MVP.');
+      setSuccessMessage('Mot de passe mis à jour. Les sessions longues ont été révoquées.');
     } catch (caughtError) {
       setError(toApiError(caughtError).message);
     } finally {
@@ -73,9 +75,7 @@ export function ChangePasswordScreen({ navigation }: ChangePasswordScreenProps) 
           <View style={styles.header}>
             <AppText style={styles.kicker}>Sécurité</AppText>
             <AppText variant="title">Mot de passe</AppText>
-            <AppText variant="subtitle">
-              Utilise un mot de passe d'au moins 10 caractères avec une minuscule, une majuscule et un chiffre.
-            </AppText>
+            <AppText variant="subtitle">Choisis un nouveau mot de passe robuste pour protéger ton compte.</AppText>
           </View>
 
           <AppCard style={styles.form}>
@@ -90,14 +90,17 @@ export function ChangePasswordScreen({ navigation }: ChangePasswordScreenProps) 
             <AppInput
               label="Nouveau mot de passe"
               onChangeText={(value) => updateField('newPassword', value)}
+              placeholder="Votre nouveau mot de passe"
               secureTextEntry
               textContentType="newPassword"
               value={form.newPassword}
             />
+            <PasswordRulesChecklist password={form.newPassword} />
 
             <AppInput
-              label="Confirmation"
+              label="Confirmer le nouveau mot de passe"
               onChangeText={(value) => updateField('newPasswordConfirmation', value)}
+              placeholder="Répéter le nouveau mot de passe"
               secureTextEntry
               textContentType="newPassword"
               value={form.newPasswordConfirmation}
@@ -122,15 +125,11 @@ function validateForm(form: PasswordForm): string | null {
     return 'Tous les champs sont obligatoires.';
   }
 
-  if (form.newPassword.length < 10) {
-    return 'Le nouveau mot de passe doit contenir au moins 10 caractères.';
+  if (!isPasswordValid(form.newPassword)) {
+    return 'Le nouveau mot de passe ne respecte pas encore toutes les règles.';
   }
 
-  if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).+$/.test(form.newPassword)) {
-    return 'Le nouveau mot de passe doit contenir au moins une minuscule, une majuscule et un chiffre.';
-  }
-
-  if (form.newPassword !== form.newPasswordConfirmation) {
+  if (!passwordConfirmationMatches(form.newPassword, form.newPasswordConfirmation)) {
     return 'La confirmation ne correspond pas au nouveau mot de passe.';
   }
 

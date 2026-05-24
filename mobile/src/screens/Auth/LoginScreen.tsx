@@ -25,7 +25,7 @@ export function LoginScreen({ navigation }: LoginScreenProps) {
     setError(null);
 
     if (!email.trim() || !password) {
-      setError('Email et mot de passe sont requis.');
+      setError('Renseigne ton email et ton mot de passe.');
       return;
     }
 
@@ -33,7 +33,8 @@ export function LoginScreen({ navigation }: LoginScreenProps) {
       setIsSubmitting(true);
       await login({ email: email.trim(), password });
     } catch (loginError) {
-      setError(toApiError(loginError).message);
+      const apiError = toApiError(loginError);
+      setError(apiError.status === 401 ? 'Connexion impossible. Vérifie tes identifiants.' : apiError.message);
     } finally {
       setIsSubmitting(false);
     }
@@ -45,7 +46,7 @@ export function LoginScreen({ navigation }: LoginScreenProps) {
         <View style={styles.header}>
           <AppText style={styles.kicker}>LeKlub</AppText>
           <AppText variant="title">Connexion</AppText>
-          <AppText variant="subtitle">Retrouvez votre feed, vos conversations et les données football.</AppText>
+          <AppText variant="subtitle">Accède à ton feed, tes messages et ton espace football.</AppText>
         </View>
 
         <View style={styles.form}>
@@ -55,13 +56,13 @@ export function LoginScreen({ navigation }: LoginScreenProps) {
             keyboardType="email-address"
             label="Email"
             onChangeText={setEmail}
-            placeholder="user@example.com"
+            placeholder="votre.email@exemple.com"
             value={email}
           />
           <AppInput
             label="Mot de passe"
             onChangeText={setPassword}
-            placeholder="Password123!"
+            placeholder="Votre mot de passe"
             secureTextEntry
             value={password}
           />
