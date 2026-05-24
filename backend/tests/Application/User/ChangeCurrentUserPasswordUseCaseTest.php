@@ -6,6 +6,7 @@ namespace App\Tests\Application\User;
 
 use App\Application\User\ChangeCurrentUserPasswordUseCase;
 use App\Domain\Entity\User;
+use App\Domain\Repository\RefreshTokenRepositoryInterface;
 use App\Domain\Repository\UserRepositoryInterface;
 use App\DTO\User\ChangePasswordRequest;
 use DomainException;
@@ -19,7 +20,8 @@ final class ChangeCurrentUserPasswordUseCaseTest extends TestCase
         $user = new User('user@example.com', 'samuel', 'old_hash');
         $repository = new ChangePasswordUserRepository();
         $passwordHasher = new FakePasswordHasher(true);
-        $useCase = new ChangeCurrentUserPasswordUseCase($repository, $passwordHasher);
+        $refreshTokens = new ChangePasswordRefreshTokenRepository();
+        $useCase = new ChangeCurrentUserPasswordUseCase($repository, $passwordHasher, $refreshTokens);
 
         $useCase->execute($user, ChangePasswordRequest::fromArray([
             'currentPassword' => 'OldPassword123',
@@ -30,13 +32,14 @@ final class ChangeCurrentUserPasswordUseCaseTest extends TestCase
         self::assertSame($user, $repository->savedUser);
         self::assertSame('hashed_NewPassword123', $user->getPassword());
         self::assertSame('OldPassword123', $passwordHasher->validatedPassword);
+        self::assertSame($user, $refreshTokens->revokedUser);
     }
 
     public function testItRejectsInvalidCurrentPassword(): void
     {
         $user = new User('user@example.com', 'samuel', 'old_hash');
         $repository = new ChangePasswordUserRepository();
-        $useCase = new ChangeCurrentUserPasswordUseCase($repository, new FakePasswordHasher(false));
+        $useCase = new ChangeCurrentUserPasswordUseCase($repository, new FakePasswordHasher(false), new ChangePasswordRefreshTokenRepository());
 
         $this->expectException(DomainException::class);
         $this->expectExceptionMessage('PASSWORD_CHANGE_FAILED');
@@ -51,6 +54,25 @@ final class ChangeCurrentUserPasswordUseCaseTest extends TestCase
             self::assertNull($repository->savedUser);
             self::assertSame('old_hash', $user->getPassword());
         }
+    }
+}
+
+final class ChangePasswordRefreshTokenRepository implements RefreshTokenRepositoryInterface
+{
+    public ?User $revokedUser = null;
+
+    public function save(\App\Domain\Entity\RefreshToken $refreshToken): void
+    {
+    }
+
+    public function findActiveByHash(string $tokenHash): ?\App\Domain\Entity\RefreshToken
+    {
+        return null;
+    }
+
+    public function revokeAllForUser(User $user): void
+    {
+        $this->revokedUser = $user;
     }
 }
 

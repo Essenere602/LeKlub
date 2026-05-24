@@ -55,7 +55,7 @@ Mesures appliquées :
 - aucun hash, mot de passe ou token retourné
 - l'annuaire utilisateur et la liste admin ne retournent pas l'email
 
-Comme l'email est l'identifiant Symfony utilisé par le JWT, un changement d'email peut rendre le token courant inutilisable au prochain appel API. Dans cette version, l'application mobile déclenche un rafraîchissement utilisateur après modification ; si le backend refuse l'ancien token, la session est nettoyée et l'utilisateur se reconnecte. Une révocation ou rotation complète de session sera traitée avec la future étape refresh token.
+Comme l'email est l'identifiant Symfony utilisé par le JWT, un changement d'email peut rendre l'access token courant inutilisable au prochain appel API. Le client mobile peut alors utiliser le refresh token pour obtenir un nouvel access token cohérent avec le compte mis à jour. Si le refresh échoue, la session locale est nettoyée et l'utilisateur se reconnecte.
 
 ## Mots De Passe
 
@@ -117,7 +117,7 @@ Mesures appliquées :
 
 Les comptes de démonstration ne doivent jamais être utilisés en production.
 
-## Tokens JWT
+## Tokens JWT Et Refresh Token
 
 Les clés JWT sont générées localement dans `backend/config/jwt/`.
 
@@ -129,9 +129,30 @@ Commande :
 docker compose --env-file .env.example run --rm php php bin/console lexik:jwt:generate-keypair --skip-if-exists
 ```
 
-Pas de refresh token dans le MVP initial. Ce choix réduit la complexité et reste défendable pour une première version stable.
+LeKlub utilise deux tokens :
 
-Après un changement de mot de passe, les JWT déjà émis restent valides jusqu'à leur expiration. Cette limite est documentée et acceptée dans le MVP, car l'application ne gère pas encore de révocation de tokens ni de sessions serveur.
+- un access token JWT court, émis par LexikJWTAuthenticationBundle ;
+- un refresh token plus long, stocké côté mobile dans Expo Secure Store.
+
+TTL retenus :
+
+- access token : 15 minutes ;
+- refresh token : 30 jours.
+
+Mesures appliquées au refresh token :
+
+- token brut jamais stocké en base ;
+- hash SHA-256 stocké dans `refresh_token.token_hash` ;
+- token jamais transmis dans une URL ;
+- token jamais loggué ;
+- rotation à chaque appel `POST /api/auth/refresh` ;
+- révocation du token courant au logout ;
+- révocation de tous les refresh tokens après changement de mot de passe connecté ;
+- révocation de tous les refresh tokens après reset password.
+
+Le login Lexik est conservé. La réponse est enrichie via `AuthenticationSuccessEvent`, ce qui évite de remplacer le mécanisme Symfony Security.
+
+Après un changement de mot de passe, les refresh tokens sont révoqués. Les access tokens JWT déjà émis peuvent rester valides jusqu'à leur expiration courte.
 
 Après un changement d'email, les anciens JWT peuvent être refusés car ils référencent l'ancien email. Ce comportement est assumé dans le MVP et documenté côté mobile comme une reconnexion possible.
 
@@ -306,8 +327,8 @@ Conséquence MVP : les endpoints football restent simples et peu nombreux pour �
 
 ## Limites Connues Du MVP
 
-- pas de refresh token
-- pas de révocation des JWT déjà émis après changement de mot de passe
+- pas d'écran de gestion des sessions ou appareils connectés
+- pas de révocation serveur des access tokens JWT déjà émis avant leur expiration courte
 - pas de vérification d'email
 - pas de SMTP de production pour le reset password
 - pas de deep link automatique pour le reset password

@@ -97,7 +97,7 @@ EXPO_PUBLIC_WEBSOCKET_URL=ws://10.0.2.2:8081
 - pas de Docker pour le frontend mobile
 - pas de Redux ou Zustand pour l'instant
 - pas de librairie UI lourde
-- stockage sécurisé du JWT avec Expo Secure Store
+- stockage sécurisé de l'access token et du refresh token avec Expo Secure Store
 - appels API isolés dans `src/services`
 - thème centralisé dans `src/config/theme.ts`
 
@@ -106,15 +106,17 @@ EXPO_PUBLIC_WEBSOCKET_URL=ws://10.0.2.2:8081
 L'authentification mobile utilise :
 
 - `POST /api/auth/register` pour créer un compte
-- `POST /api/auth/login` pour récupérer le JWT
+- `POST /api/auth/login` pour récupérer l'access token JWT et le refresh token
+- `POST /api/auth/refresh` pour renouveler la session
+- `POST /api/auth/logout` pour révoquer le refresh token courant
 - `POST /api/auth/forgot-password` pour demander un reset password
 - `POST /api/auth/reset-password` pour définir un nouveau mot de passe avec token
 - `GET /api/me` pour charger l'utilisateur connecté
-- Expo Secure Store pour stocker le JWT
+- Expo Secure Store pour stocker l'access token et le refresh token
 
 Au démarrage, si un token existe, l'application appelle `/api/me`.
 
-Si `/api/me` retourne `401`, le token est supprimé et l'utilisateur revient sur l'écran de connexion.
+Si une requête API retourne `401`, le client tente un refresh une seule fois. Les requêtes parallèles partagent la même promesse de refresh pour éviter plusieurs rotations concurrentes. Si le refresh échoue, les tokens sont supprimés et l'utilisateur revient sur l'écran de connexion.
 
 ## Reset Password Mobile
 
@@ -184,7 +186,7 @@ La modification du compte distingue :
 - `username`, modifiable sans mot de passe car c'est une identité publique
 - `email`, modifiable avec le mot de passe actuel car c'est l'identifiant de connexion
 
-Après changement d'email, une reconnexion peut être nécessaire, car le JWT Symfony utilise l'ancien email comme identifiant jusqu'à expiration.
+Après changement d'email, l'access token courant peut devenir inutilisable, car Symfony utilise l'email comme identifiant. Le client tente alors un refresh de session ; si celui-ci échoue, l'utilisateur est renvoyé vers la connexion.
 
 Le changement de mot de passe demande :
 

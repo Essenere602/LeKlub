@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Application\User;
 
 use App\Domain\Entity\User;
+use App\Domain\Repository\RefreshTokenRepositoryInterface;
 use App\Domain\Repository\UserRepositoryInterface;
 use App\DTO\User\ChangePasswordRequest;
 use DomainException;
@@ -15,6 +16,7 @@ final class ChangeCurrentUserPasswordUseCase
     public function __construct(
         private readonly UserRepositoryInterface $users,
         private readonly UserPasswordHasherInterface $passwordHasher,
+        private readonly RefreshTokenRepositoryInterface $refreshTokens,
     ) {
     }
 
@@ -25,6 +27,7 @@ final class ChangeCurrentUserPasswordUseCase
         }
 
         $user->setPassword($this->passwordHasher->hashPassword($user, $request->newPassword));
+        $this->refreshTokens->revokeAllForUser($user);
         $this->users->save($user);
     }
 }

@@ -306,7 +306,7 @@ Les compromis suivants sont volontaires et doivent etre expliques comme des choi
 - pas de microservices ;
 - pas de CQRS avance ;
 - pas d'event sourcing ;
-- pas de refresh token pour l'instant ;
+- refresh token volontairement simple : pas de gestion avancee des appareils ou sessions ;
 - pas de lecture admin des messages prives ;
 - pas de suppression physique utilisateur.
 
