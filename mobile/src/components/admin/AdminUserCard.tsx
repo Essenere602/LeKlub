@@ -3,6 +3,7 @@ import { Ionicons } from '@expo/vector-icons';
 
 import { theme } from '../../config/theme';
 import { AdminUser } from '../../types/admin.types';
+import { formatShortDate } from '../../utils/dateFormat';
 import { AppCard } from '../ui/AppCard';
 import { AppText } from '../ui/AppText';
 import { StatusBadge } from '../ui/StatusBadge';
@@ -38,7 +39,7 @@ export function AdminUserCard({
           <UserAvatar label={displayName} size={44} uri={user.avatarUrl} />
           <View style={styles.identity}>
             <AppText style={styles.displayName}>{displayName}</AppText>
-            <AppText variant="muted">@{user.username} · créé le {formatDate(user.createdAt)}</AppText>
+            <AppText variant="muted">@{user.username} · créé le {formatShortDate(user.createdAt)}</AppText>
           </View>
         </View>
 
@@ -53,7 +54,7 @@ export function AdminUserCard({
         {user.isSuspended && user.suspendedUntil ? (
           <View style={styles.suspensionBox}>
             <Ionicons color={theme.colors.danger} name="pause-circle-outline" size={18} />
-            <AppText style={styles.suspensionText}>Suspendu jusqu'au {formatDate(user.suspendedUntil)}</AppText>
+            <AppText style={styles.suspensionText}>Suspendu jusqu'au {formatShortDate(user.suspendedUntil)}</AppText>
           </View>
         ) : null}
         {isCurrentUser ? (
@@ -141,16 +142,6 @@ function ActionButton({ disabled, icon, label, onPress, variant }: ActionButtonP
       <AppText style={styles.actionLabel}>{label}</AppText>
     </Pressable>
   );
-}
-
-function formatDate(value: string): string {
-  const date = new Date(value);
-
-  if (Number.isNaN(date.getTime())) {
-    return value;
-  }
-
-  return date.toLocaleDateString('fr-FR');
 }
 
 const styles = StyleSheet.create({

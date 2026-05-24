@@ -13,6 +13,7 @@ import { SettingsRow } from '../../components/ui/SettingsRow';
 import { theme } from '../../config/theme';
 import { useAuth } from '../../hooks/useAuth';
 import { ProfileStackParamList } from '../../navigation/navigation.types';
+import { formatShortDate } from '../../utils/dateFormat';
 
 type ProfileScreenProps = NativeStackScreenProps<ProfileStackParamList, 'Profile'>;
 
@@ -105,7 +106,7 @@ export function ProfileScreen({ navigation }: ProfileScreenProps) {
         <AppSection title="Informations compte">
           <SettingsRow icon="mail-outline" meta={user?.email ?? '-'} title="Email" />
           <SettingsRow icon="ribbon-outline" meta={formatRoles(user?.roles ?? [])} title="Rôle" />
-          <SettingsRow icon="calendar-outline" meta={formatDate(user?.createdAt)} title="Créé le" />
+          <SettingsRow icon="calendar-outline" meta={formatShortDate(user?.createdAt)} title="Créé le" />
           <SettingsRow
             icon="information-circle-outline"
             subtitle="Le changement d'email peut demander une reconnexion, car les tokens JWT utilisent l'email comme identifiant."
@@ -127,24 +128,6 @@ function formatRoles(roles: string[]): string {
   }
 
   return 'Membre';
-}
-
-function formatDate(value: string | undefined): string {
-  if (!value) {
-    return '-';
-  }
-
-  const date = new Date(value);
-
-  if (Number.isNaN(date.getTime())) {
-    return '-';
-  }
-
-  return new Intl.DateTimeFormat('fr-FR', {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric',
-  }).format(date);
 }
 
 const styles = StyleSheet.create({

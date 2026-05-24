@@ -7,6 +7,7 @@ import { AppInput } from '../ui/AppInput';
 import { ActionMenu, ActionMenuItem } from '../ui/ActionMenu';
 import { theme } from '../../config/theme';
 import { Post, ReactionType } from '../../types/feed.types';
+import { formatShortDateTime } from '../../utils/dateFormat';
 import { AppText } from '../ui/AppText';
 import { UserAvatar } from '../messaging/UserAvatar';
 import { ReactionButtons } from './ReactionButtons';
@@ -137,7 +138,7 @@ export function PostCard({
           <UserAvatar label={post.author.username} size={40} uri={post.author.avatarUrl} />
           <View style={styles.author}>
             <AppText style={styles.username}>@{post.author.username}</AppText>
-            <AppText style={styles.date}>{formatDate(post.createdAt)}</AppText>
+            <AppText style={styles.date}>{formatShortDateTime(post.createdAt)}</AppText>
           </View>
         </View>
         <ActionMenu items={menuItems} accessibilityLabel="Actions du Post" />
@@ -194,21 +195,6 @@ export function PostCard({
       ) : null}
     </Pressable>
   );
-}
-
-function formatDate(value: string): string {
-  const date = new Date(value);
-
-  if (Number.isNaN(date.getTime())) {
-    return value;
-  }
-
-  return date.toLocaleDateString('fr-FR', {
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
-    month: 'short',
-  });
 }
 
 const styles = StyleSheet.create({

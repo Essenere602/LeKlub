@@ -3,6 +3,7 @@ import { Ionicons } from '@expo/vector-icons';
 
 import { theme } from '../../config/theme';
 import { FootballMatch } from '../../types/football.types';
+import { formatFootballDateTime } from '../../utils/dateFormat';
 import { AppText } from '../ui/AppText';
 import { FootballBadge } from './FootballBadge';
 import { FootballCard } from './FootballCard';
@@ -28,7 +29,7 @@ export function MatchCard({ match, mode }: MatchCardProps) {
 
       <View style={styles.dateLine}>
         <Ionicons color={theme.colors.text.muted} name="time-outline" size={14} />
-        <AppText style={styles.date}>{formatDate(match.utcDate)}</AppText>
+        <AppText style={styles.date}>{formatFootballDateTime(match.utcDate)}</AppText>
       </View>
 
       <View style={styles.matchContent}>
@@ -59,26 +60,6 @@ export function MatchCard({ match, mode }: MatchCardProps) {
       </View>
     </FootballCard>
   );
-}
-
-function formatDate(value: string | null): string {
-  if (!value) {
-    return 'Date non communiquée';
-  }
-
-  const date = new Date(value);
-
-  if (Number.isNaN(date.getTime())) {
-    return value;
-  }
-
-  return date.toLocaleDateString('fr-FR', {
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
-    month: 'short',
-    weekday: 'short',
-  });
 }
 
 function labelForStatus(status: string | null): string | null {

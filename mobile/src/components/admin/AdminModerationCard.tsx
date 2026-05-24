@@ -3,6 +3,7 @@ import { Ionicons } from '@expo/vector-icons';
 
 import { theme } from '../../config/theme';
 import { AdminComment, AdminPost } from '../../types/admin.types';
+import { formatShortDateTime } from '../../utils/dateFormat';
 import { AppCard } from '../ui/AppCard';
 import { AppText } from '../ui/AppText';
 import { StatusBadge } from '../ui/StatusBadge';
@@ -38,7 +39,7 @@ export function AdminModerationCard({ deleting = false, item, onDelete, type }: 
             <StatusBadge label={isDeleted ? 'Supprimé' : 'Actif'} variant={isDeleted ? 'danger' : 'success'} />
           </View>
           <AppText style={styles.authorName}>@{item.author.username}</AppText>
-          <AppText variant="muted">Publié le {formatDate(item.createdAt)}</AppText>
+          <AppText variant="muted">Publié le {formatShortDateTime(item.createdAt)}</AppText>
         </View>
         {!isDeleted ? (
           <Pressable
@@ -65,28 +66,13 @@ export function AdminModerationCard({ deleting = false, item, onDelete, type }: 
         <View style={styles.deletedContext}>
           <AppText variant="label">Suppression logique</AppText>
           <AppText variant="muted">
-            Supprimé le {formatDate(item.deletedAt ?? '')}
+            Supprimé le {formatShortDateTime(item.deletedAt)}
             {item.deletedBy ? ` par @${item.deletedBy.username}` : ''}
           </AppText>
         </View>
       ) : null}
     </AppCard>
   );
-}
-
-function formatDate(value: string): string {
-  const date = new Date(value);
-
-  if (Number.isNaN(date.getTime())) {
-    return value;
-  }
-
-  return date.toLocaleDateString('fr-FR', {
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
-    month: 'short',
-  });
 }
 
 const styles = StyleSheet.create({
