@@ -1,7 +1,7 @@
-import { useEffect, useState } from 'react';
+import { useContext, useEffect } from 'react';
 
-import { connectMessagingSocket, MessagingSocketStatus } from '../services/messaging/messagingSocket';
-import { tokenStorage } from '../services/auth/tokenStorage';
+import { MessagingSocketContext } from '../contexts/MessagingSocketContext';
+import { MessagingSocketStatus } from '../services/messaging/messagingSocket';
 import { NewMessageSocketEvent } from '../types/messaging.types';
 
 type UseMessagingSocketOptions = {
@@ -10,45 +10,19 @@ type UseMessagingSocketOptions = {
 };
 
 export function useMessagingSocket({ enabled, onNewMessage }: UseMessagingSocketOptions): MessagingSocketStatus {
-  const [status, setStatus] = useState<MessagingSocketStatus>(enabled ? 'connecting' : 'disabled');
+  const context = useContext(MessagingSocketContext);
+
+  if (!context) {
+    throw new Error('useMessagingSocket must be used within MessagingSocketProvider.');
+  }
 
   useEffect(() => {
-    let isActive = true;
-    let connection: { close: () => void } | null = null;
-
-    async function connect() {
-      if (!enabled) {
-        setStatus('disabled');
-        return;
-      }
-
-      const token = await tokenStorage.getAccessToken();
-      if (!isActive) {
-        return;
-      }
-
-      if (!token) {
-        setStatus('disabled');
-        return;
-      }
-
-      connection = connectMessagingSocket(token, {
-        onNewMessage,
-        onStatusChange: (nextStatus) => {
-          if (isActive) {
-            setStatus(nextStatus);
-          }
-        },
-      });
+    if (!enabled) {
+      return undefined;
     }
 
-    void connect();
+    return context.addNewMessageListener(onNewMessage);
+  }, [context, enabled, onNewMessage]);
 
-    return () => {
-      isActive = false;
-      connection?.close();
-    };
-  }, [enabled, onNewMessage]);
-
-  return status;
+  return enabled ? context.status : 'disabled';
 }

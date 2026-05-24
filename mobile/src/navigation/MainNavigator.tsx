@@ -1,10 +1,13 @@
 import { MainTabsNavigator } from './MainTabsNavigator';
+import { MessagingSocketProvider } from '../contexts/MessagingSocketContext';
 import { MessagingUnreadProvider } from '../contexts/MessagingUnreadContext';
 
 export function MainNavigator() {
   return (
-    <MessagingUnreadProvider>
-      <MainTabsNavigator />
-    </MessagingUnreadProvider>
+    <MessagingSocketProvider>
+      <MessagingUnreadProvider>
+        <MainTabsNavigator />
+      </MessagingUnreadProvider>
+    </MessagingSocketProvider>
   );
 }
