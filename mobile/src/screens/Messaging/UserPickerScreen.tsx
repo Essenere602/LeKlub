@@ -1,12 +1,14 @@
 import { useCallback, useEffect, useState } from 'react';
-import { ActivityIndicator, FlatList, StyleSheet, View } from 'react-native';
+import { FlatList, StyleSheet, View } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 
 import { UserListItem } from '../../components/messaging/UserListItem';
 import { AppButton } from '../../components/ui/AppButton';
+import { EmptyState } from '../../components/ui/EmptyState';
 import { AppInput } from '../../components/ui/AppInput';
 import { AppText } from '../../components/ui/AppText';
 import { ErrorMessage } from '../../components/ui/ErrorMessage';
+import { LoadingState } from '../../components/ui/LoadingState';
 import { Screen } from '../../components/ui/Screen';
 import { theme } from '../../config/theme';
 import { MessagingStackParamList } from '../../navigation/navigation.types';
@@ -89,7 +91,7 @@ export function UserPickerScreen({ navigation }: UserPickerScreenProps) {
             />
 
             <ErrorMessage message={error} />
-            {isLoading ? <ActivityIndicator color={theme.colors.accent} /> : null}
+            {isLoading ? <LoadingState message="Recherche des utilisateurs..." /> : null}
           </View>
         }
         renderItem={({ item }) => (
@@ -109,10 +111,11 @@ export function UserPickerScreen({ navigation }: UserPickerScreenProps) {
 
 function EmptyUsers() {
   return (
-    <View style={styles.empty}>
-      <AppText style={styles.emptyTitle}>Aucun utilisateur trouvé</AppText>
-      <AppText variant="muted">Essaie avec un autre nom utilisateur.</AppText>
-    </View>
+    <EmptyState
+      icon="person-add-outline"
+      message="Essaie avec un autre nom utilisateur."
+      title="Aucun utilisateur trouvé"
+    />
   );
 }
 
@@ -135,18 +138,5 @@ const styles = StyleSheet.create({
     fontSize: theme.typography.sizes.sm,
     fontWeight: theme.typography.weights.bold,
     textTransform: 'uppercase',
-  },
-  empty: {
-    alignItems: 'center',
-    backgroundColor: theme.colors.surface,
-    borderColor: theme.colors.border,
-    borderRadius: theme.radius.lg,
-    borderWidth: 1,
-    gap: theme.spacing.sm,
-    padding: theme.spacing.xl,
-  },
-  emptyTitle: {
-    fontSize: theme.typography.sizes.lg,
-    fontWeight: theme.typography.weights.bold,
   },
 });

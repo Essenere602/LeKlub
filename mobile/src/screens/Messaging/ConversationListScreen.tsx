@@ -1,11 +1,13 @@
 import { useCallback, useEffect, useState } from 'react';
-import { ActivityIndicator, FlatList, RefreshControl, StyleSheet, View } from 'react-native';
+import { FlatList, RefreshControl, StyleSheet, View } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 
 import { ConversationCard } from '../../components/messaging/ConversationCard';
 import { AppButton } from '../../components/ui/AppButton';
 import { AppText } from '../../components/ui/AppText';
+import { EmptyState } from '../../components/ui/EmptyState';
 import { ErrorMessage } from '../../components/ui/ErrorMessage';
+import { LoadingState } from '../../components/ui/LoadingState';
 import { Screen } from '../../components/ui/Screen';
 import { StatusBadge } from '../../components/ui/StatusBadge';
 import { theme } from '../../config/theme';
@@ -92,7 +94,7 @@ export function ConversationListScreen({ navigation }: ConversationListScreenPro
 
             <StatusBadge {...badgeForSocketStatus(socketStatus)} />
             <ErrorMessage message={error} />
-            {isLoading ? <ActivityIndicator color={theme.colors.accent} /> : null}
+            {isLoading ? <LoadingState message="Chargement des conversations..." /> : null}
           </View>
         }
         refreshControl={
@@ -119,10 +121,11 @@ export function ConversationListScreen({ navigation }: ConversationListScreenPro
 
 function EmptyConversations() {
   return (
-    <View style={styles.empty}>
-      <AppText style={styles.emptyTitle}>Aucune conversation</AppText>
-      <AppText variant="muted">Choisis un utilisateur pour démarrer une Conversation privée.</AppText>
-    </View>
+    <EmptyState
+      icon="mail-outline"
+      message="Choisis un utilisateur pour démarrer une conversation privée."
+      title="Aucune conversation"
+    />
   );
 }
 
@@ -132,11 +135,11 @@ type SocketBadge = {
 };
 
 function badgeForSocketStatus(status: string): SocketBadge {
-  if (status === 'authenticated' || status === 'connected') {
+  if (status === 'authenticated') {
     return { label: 'Temps réel actif', variant: 'success' };
   }
 
-  if (status === 'connecting') {
+  if (status === 'connected' || status === 'connecting') {
     return { label: 'Connexion temps réel...', variant: 'warning' };
   }
 
@@ -169,18 +172,5 @@ const styles = StyleSheet.create({
   },
   actions: {
     gap: theme.spacing.md,
-  },
-  empty: {
-    alignItems: 'center',
-    backgroundColor: theme.colors.surface,
-    borderColor: theme.colors.border,
-    borderRadius: theme.radius.lg,
-    borderWidth: 1,
-    gap: theme.spacing.sm,
-    padding: theme.spacing.xl,
-  },
-  emptyTitle: {
-    fontSize: theme.typography.sizes.lg,
-    fontWeight: theme.typography.weights.bold,
   },
 });
