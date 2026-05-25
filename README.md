@@ -187,6 +187,14 @@ Voir `.env.example`.
 
 Les secrets réels ne doivent jamais être versionnés.
 
+## Préparation Déploiement
+
+La stratégie de déploiement MVP est documentée dans `docs/deployment.md`.
+
+Cette documentation couvre les environnements local, CI, pré-production et production cible, ainsi que les secrets, clés JWT, migrations Doctrine, sauvegardes MySQL, uploads avatars, WebSocket, SMTP, Expo mobile et limites de production.
+
+Le projet ne contient pas de déploiement automatique dans cette version.
+
 ## Stratégie Git
 
 Branches principales :
