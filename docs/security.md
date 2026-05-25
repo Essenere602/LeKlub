@@ -11,6 +11,8 @@ Mesures prévues :
 - secrets hors repository
 - logs sans données sensibles
 
+La préparation au déploiement est détaillée dans `docs/deployment.md`. Cette documentation distingue clairement le fonctionnement local/dev, la CI, la pré-production et la production cible.
+
 ## Authentification Backend
 
 Le backend utilise Symfony Security avec LexikJWTAuthenticationBundle.
