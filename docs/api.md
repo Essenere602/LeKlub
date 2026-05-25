@@ -42,6 +42,7 @@ Codes utilisés dans l'API :
 - `403 Forbidden` : utilisateur authentifié mais non autorisé
 - `404 Not Found` : ressource inexistante ou non visible
 - `409 Conflict` : conflit métier, par exemple email déjà utilisé
+- `429 Too Many Requests` : trop de tentatives sur un endpoint sensible
 - `422 Unprocessable Entity` : erreur de validation des données
 
 ## Authentification
@@ -98,7 +99,7 @@ Réponse :
 }
 ```
 
-Codes possibles : `200`, `401`.
+Codes possibles : `200`, `401`, `429`.
 
 ### POST /api/auth/refresh
 
@@ -127,7 +128,7 @@ Règles :
 - l'ancien refresh token est révoqué ;
 - le nouveau refresh token expire après 30 jours.
 
-Codes possibles : `200`, `400`, `401`, `422`.
+Codes possibles : `200`, `400`, `401`, `422`, `429`.
 
 ### POST /api/auth/logout
 
@@ -166,7 +167,7 @@ La réponse est toujours générique, que l'email existe ou non :
 
 En développement local, un email est envoyé vers Mailpit. Le token est présent dans l'email pour permettre la saisie manuelle côté Expo Go. Il n'est jamais retourné par l'API.
 
-Codes possibles : `200`, `400`, `422`.
+Codes possibles : `200`, `400`, `422`, `429`.
 
 ### POST /api/auth/reset-password
 
@@ -188,7 +189,7 @@ Règles :
 - nouveau mot de passe validé comme à l'inscription ;
 - pas de connexion automatique après succès.
 
-Codes possibles : `200`, `400`, `422`.
+Codes possibles : `200`, `400`, `422`, `429`.
 
 ### GET /api/me
 
@@ -311,7 +312,7 @@ En cas d'ancien mot de passe incorrect, l'API retourne un message générique :
 }
 ```
 
-Codes possibles : `200`, `400`, `401`, `422`.
+Codes possibles : `200`, `400`, `401`, `422`, `429`.
 
 ### GET /api/me/notifications?page=1&limit=10
 

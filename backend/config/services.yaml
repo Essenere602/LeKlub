@@ -58,6 +58,7 @@ services:
     App\Infrastructure\Security\PasswordResetEmailNotifier:
         arguments:
             $environment: '%kernel.environment%'
+            $logTokenInDev: '%env(bool:PASSWORD_RESET_LOG_TOKEN)%'
             $fromAddress: '%env(MAIL_FROM_ADDRESS)%'
             $fromName: '%env(MAIL_FROM_NAME)%'
 

@@ -9,6 +9,7 @@ services:
       - ./backend:/var/www/backend
     environment:
       APP_ENV: ${APP_ENV:-dev}
+      LOCK_DSN: ${LOCK_DSN:-flock}
       DATABASE_URL: ${DATABASE_URL}
       FOOTBALL_DATA_API_BASE_URL: ${FOOTBALL_DATA_API_BASE_URL:-https://api.football-data.org}
       FOOTBALL_DATA_API_TOKEN: ${FOOTBALL_DATA_API_TOKEN:-change_me}
@@ -16,6 +17,7 @@ services:
       MAILER_DSN: ${MAILER_DSN:-smtp://mailpit:1025}
       MAIL_FROM_ADDRESS: ${MAIL_FROM_ADDRESS:-no-reply@leklub.test}
       MAIL_FROM_NAME: ${MAIL_FROM_NAME:-LeKlub}
+      PASSWORD_RESET_LOG_TOKEN: ${PASSWORD_RESET_LOG_TOKEN:-false}
     depends_on:
       - mysql
       - mailpit
@@ -44,6 +46,7 @@ services:
       - ./backend:/var/www/backend
     environment:
       APP_ENV: ${APP_ENV:-dev}
+      LOCK_DSN: ${LOCK_DSN:-flock}
       DATABASE_URL: ${DATABASE_URL}
       FOOTBALL_DATA_API_BASE_URL: ${FOOTBALL_DATA_API_BASE_URL:-https://api.football-data.org}
       FOOTBALL_DATA_API_TOKEN: ${FOOTBALL_DATA_API_TOKEN:-change_me}
@@ -51,6 +54,7 @@ services:
       MAILER_DSN: ${MAILER_DSN:-smtp://mailpit:1025}
       MAIL_FROM_ADDRESS: ${MAIL_FROM_ADDRESS:-no-reply@leklub.test}
       MAIL_FROM_NAME: ${MAIL_FROM_NAME:-LeKlub}
+      PASSWORD_RESET_LOG_TOKEN: ${PASSWORD_RESET_LOG_TOKEN:-false}
     depends_on:
       - mysql
 

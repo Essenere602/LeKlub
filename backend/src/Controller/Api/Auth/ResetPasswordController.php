@@ -9,8 +9,10 @@ use App\DTO\Auth\ResetPasswordRequest;
 use App\Shared\Api\ApiResponse;
 use DomainException;
 use JsonException;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\RateLimiter\RateLimiterFactory;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
@@ -19,6 +21,8 @@ final class ResetPasswordController
     public function __construct(
         private readonly ResetPasswordUseCase $resetPassword,
         private readonly ValidatorInterface $validator,
+        #[Autowire(service: 'limiter.reset_password')]
+        private readonly RateLimiterFactory $resetPasswordLimiter,
     ) {
     }
 
@@ -33,6 +37,14 @@ final class ResetPasswordController
 
         if (!is_array($payload)) {
             return ApiResponse::error('Invalid JSON payload.', [], 400);
+        }
+
+        $rateLimit = $this->resetPasswordLimiter
+            ->create($request->getClientIp() ?? 'unknown')
+            ->consume();
+
+        if (!$rateLimit->isAccepted()) {
+            return ApiResponse::error('Too many attempts. Please try again later.', [], 429);
         }
 
         $resetPasswordRequest = ResetPasswordRequest::fromArray($payload);

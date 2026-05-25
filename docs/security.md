@@ -106,7 +106,8 @@ Mesures appliquées :
 - token hashé en SHA-256 en base
 - token brut jamais retourné par l'API
 - token envoyé par email local Mailpit en développement
-- token brut loggué uniquement en environnement `dev` comme fallback de diagnostic
+- token brut non loggué par défaut
+- fallback de log possible uniquement si `APP_ENV=dev` et `PASSWORD_RESET_LOG_TOKEN=true`
 - expiration du token après 30 minutes
 - usage unique avec `usedAt`
 - invalidation des anciens tokens actifs d'un utilisateur à chaque nouvelle demande
@@ -116,6 +117,8 @@ Mesures appliquées :
 - aucun mot de passe clair dans les logs
 
 Le MVP utilise Mailpit pour les tests locaux. Mailpit reçoit les emails sans utiliser de vrai secret SMTP. Pour les tests iPhone, le token est récupéré dans l'email Mailpit, puis saisi manuellement dans l'écran mobile de reset.
+
+La variable `PASSWORD_RESET_LOG_TOKEN` doit rester à `false` par défaut. Elle ne sert qu'au diagnostic local ponctuel et ne doit jamais être activée en test, CI ou production.
 
 ## Données De Démonstration
 
@@ -165,9 +168,21 @@ Mesures appliquées au refresh token :
 - révocation de tous les refresh tokens après changement de mot de passe connecté ;
 - révocation de tous les refresh tokens après reset password.
 
+Les endpoints sensibles d'authentification appliquent un rate limiting simple côté Symfony :
+
+- login : 5 tentatives par minute via `login_throttling` ;
+- demande de reset password : 3 demandes par 15 minutes ;
+- confirmation reset password : 5 tentatives par 15 minutes ;
+- refresh token : 10 tentatives par minute ;
+- changement de mot de passe connecté : 5 tentatives par 15 minutes.
+
+Cette protection reste volontairement simple pour le MVP. Elle limite les abus évidents sans ajouter de workflow de verrouillage de compte.
+
 Le login Lexik est conservé. La réponse est enrichie via `AuthenticationSuccessEvent`, ce qui évite de remplacer le mécanisme Symfony Security.
 
 Après un changement de mot de passe, les refresh tokens sont révoqués. Les access tokens JWT déjà émis peuvent rester valides jusqu'à leur expiration courte.
+
+Cette limite est normale avec une stratégie JWT stateless. Le MVP ne met pas en place de blacklist JWT serveur. Le risque est limité par le TTL court de 15 minutes et par les contrôles backend sur les actions sensibles.
 
 Après un changement d'email, les anciens JWT peuvent être refusés car ils référencent l'ancien email. Ce comportement est assumé dans le MVP et documenté côté mobile comme une reconnexion possible.
 
@@ -300,6 +315,8 @@ Les Messages privés sont normalisés avant stockage :
 
 Le WebSocket est authentifié par JWT après ouverture de connexion.
 
+En local, le WebSocket utilise `ws://` pour rester compatible avec Docker et Expo Go. En production, il devra obligatoirement être exposé en `wss://` derrière un reverse proxy TLS. Le token est envoyé dans un message d'authentification WebSocket, jamais dans l'URL.
+
 La suppression de Message privé dans le MVP est une suppression pour soi uniquement :
 
 - table dédiée `message_hidden_for_user`
@@ -317,6 +334,13 @@ Le MVP utilise un notificateur fichier local pour transmettre les événements a
 - pas de microservice
 - pas de bus distribué
 - comportement démontrable localement avec Docker
+
+Limites WebSocket à traiter avant une mise en production :
+
+- contrôle d'origine ;
+- limitation de connexions ;
+- supervision des erreurs ;
+- durcissement TLS via `wss://`.
 
 ## API Football
 
@@ -340,6 +364,17 @@ Limites vérifiées dans la documentation officielle football-data.org :
 
 Conséquence MVP : les endpoints football restent simples et peu nombreux pour éviter de consommer inutilement le quota.
 
+## Variables Mobile Expo
+
+Les variables préfixées `EXPO_PUBLIC_*` sont intégrées au bundle mobile Expo et doivent être considérées comme publiques.
+
+Dans LeKlub, elles servent uniquement à configurer :
+
+- l'URL de l'API ;
+- l'URL WebSocket.
+
+Aucun secret, token API, mot de passe ou clé privée ne doit être placé dans une variable `EXPO_PUBLIC_*`.
+
 ## Limites Connues Du MVP
 
 - pas d'écran de gestion des sessions ou appareils connectés
@@ -348,7 +383,7 @@ Conséquence MVP : les endpoints football restent simples et peu nombreux pour �
 - pas de SMTP de production pour le reset password
 - pas de deep link automatique pour le reset password
 - pas de blocage de compte après plusieurs tentatives échouées
-- pas de rate limiting avancé par endpoint
+- rate limiting simple sur les endpoints auth sensibles, sans verrouillage de compte avancé
 - pas de chiffrement applicatif du contenu des Messages privés
 - pas de suppression avancée des Messages privés
 - pas de notifications push hors application ouverte
@@ -361,6 +396,7 @@ Conséquence MVP : les endpoints football restent simples et peu nombreux pour �
 - dépendance à la disponibilité et au quota de football-data.org
 - pas de stockage cloud pour les avatars dans le MVP
 - pas de recadrage avancé serveur des avatars
+- pas de re-encodage ni scan antivirus serveur des avatars
 - WebSocket adapté à une démonstration locale, pas à une architecture multi-serveurs en production
 
 Ces limites sont assumées pour garder un MVP stable, compréhensible et réaliste dans le cadre du titre CDA.
