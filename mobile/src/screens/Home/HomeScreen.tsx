@@ -2,6 +2,7 @@ import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { BottomTabScreenProps, useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 
+import { UserAvatar } from '../../components/messaging/UserAvatar';
 import { AppCard } from '../../components/ui/AppCard';
 import { AppHeader } from '../../components/ui/AppHeader';
 import { AppText } from '../../components/ui/AppText';
@@ -17,6 +18,7 @@ export function HomeScreen({ navigation }: HomeScreenProps) {
   const tabBarHeight = useBottomTabBarHeight();
   const { logout, user } = useAuth();
   const displayName = user?.profile.displayName ?? user?.username ?? 'membre';
+  const avatarUrl = user?.profile.avatarUrl ?? null;
   const isAdmin = user?.roles.includes('ROLE_ADMIN') ?? false;
 
   return (
@@ -32,9 +34,7 @@ export function HomeScreen({ navigation }: HomeScreenProps) {
         />
 
         <AppCard variant="accent" style={styles.identityCard}>
-          <View style={styles.avatar}>
-            <AppText style={styles.avatarText}>{displayName.slice(0, 1).toUpperCase()}</AppText>
-          </View>
+          <UserAvatar label={displayName} size={56} uri={avatarUrl} />
           <View style={styles.identityContent}>
             <View style={styles.identityTitle}>
               <AppText variant="label">@{user?.username}</AppText>
@@ -140,21 +140,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     flexDirection: 'row',
     gap: theme.spacing.md,
-  },
-  avatar: {
-    alignItems: 'center',
-    backgroundColor: theme.colors.accentSoft,
-    borderColor: theme.colors.accent,
-    borderRadius: 28,
-    borderWidth: 1,
-    height: 56,
-    justifyContent: 'center',
-    width: 56,
-  },
-  avatarText: {
-    color: theme.colors.accent,
-    fontSize: theme.typography.sizes.xl,
-    fontWeight: theme.typography.weights.bold,
   },
   identityContent: {
     flex: 1,
