@@ -4,6 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 
+import { UserAvatar } from '../../components/messaging/UserAvatar';
 import { PostCard } from '../../components/feed/PostCard';
 import { ReportContentModal } from '../../components/feed/ReportContentModal';
 import { AppButton } from '../../components/ui/AppButton';
@@ -32,6 +33,8 @@ export function FeedScreen({ navigation }: FeedScreenProps) {
   const [isReporting, setIsReporting] = useState(false);
   const [reportError, setReportError] = useState<string | null>(null);
   const feed = useFeedPosts();
+  const composerLabel = user?.profile.displayName ?? user?.username ?? 'Klub';
+  const composerAvatarUrl = user?.profile.avatarUrl ?? null;
 
   async function createPost() {
     const created = await feed.createPost(content);
@@ -99,11 +102,7 @@ export function FeedScreen({ navigation }: FeedScreenProps) {
 
             <AppCard variant="accent" style={styles.createPanel}>
               <View style={styles.composerHeader}>
-                <View style={styles.composerAvatar}>
-                  <AppText style={styles.composerAvatarText}>
-                    {(user?.profile.displayName ?? user?.username ?? 'K').slice(0, 1).toUpperCase()}
-                  </AppText>
-                </View>
+                <UserAvatar label={composerLabel} size={44} uri={composerAvatarUrl} />
                 <View style={styles.composerTitle}>
                   <AppText style={styles.composerLabel}>Créer un Post</AppText>
                   <AppText variant="muted">Partage une réaction football avec le Klub.</AppText>
@@ -195,21 +194,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     flexDirection: 'row',
     gap: theme.spacing.md,
-  },
-  composerAvatar: {
-    alignItems: 'center',
-    backgroundColor: theme.colors.accent,
-    borderRadius: 22,
-    height: 44,
-    justifyContent: 'center',
-    width: 44,
-  },
-  composerAvatarText: {
-    color: theme.colors.text.inverse,
-    fontSize: theme.typography.sizes.lg,
-    fontWeight: theme.typography.weights.bold,
-    includeFontPadding: false,
-    lineHeight: 20,
   },
   composerTitle: {
     flex: 1,
